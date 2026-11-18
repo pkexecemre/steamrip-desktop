@@ -70,7 +70,20 @@ public sealed class FlareSolverrClient(
             ?? (
                 body is IDictionary<string, object?> d && d.TryGetValue("cmd", out var c) ? c : "?"
             );
-        using var r = await http.PostAsJsonAsync(BaseUrl + "/v1", body, ct);
+        HttpResponseMessage r;
+        try
+        {
+            r = await http.PostAsJsonAsync(BaseUrl + "/v1", body, ct);
+        }
+        catch (HttpRequestException e)
+        {
+            // The usual case: no solver running. Say what to do instead of "connection refused".
+            throw new SolverException(
+                $"this mirror needs FlareSolverr and none answered at {BaseUrl} ({e.Message}). "
+                    + "Start FlareSolverr, or pick a mirror that does not need it"
+            );
+        }
+        using var _ = r;
         var text = await r.Content.ReadAsStringAsync(ct);
         using var doc = JsonDocument.Parse(text);
         var root = doc.RootElement.Clone();

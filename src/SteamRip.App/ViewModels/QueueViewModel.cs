@@ -97,8 +97,11 @@ public sealed partial class JobItem : ObservableObject
     public string Kind => Job.IsUpdate ? "Update" : "Install";
     public string Version => UpdateDetector.Normalize(Job.Post.VersionKey) ?? "";
 
+    /// <summary>FileDitch and BuzzHeavier sit behind the same challenge, so the browser fallback applies to both.</summary>
     public bool CanSolveInBrowser =>
-        Job.Post.Mirrors.Any(m => m.Host == Core.Catalog.Hoster.FileDitch);
+        Job.Post.Mirrors.Any(m =>
+            m.Host is Core.Catalog.Hoster.FileDitch or Core.Catalog.Hoster.BuzzHeavier
+        );
 
     public JobItem(QueueViewModel owner, Job job)
     {

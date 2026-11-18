@@ -73,7 +73,8 @@ public sealed class ResolverChain(
                 }
                 catch (Exception e)
                 {
-                    errors.Add($"{host}: {e.Message}");
+                    // HostResolveException already starts with the host name; don't print it twice.
+                    errors.Add(e is HostResolveException ? e.Message : $"{host}: {e.Message}");
                     _log.LogWarning(
                         e,
                         "{Host} failed after {Seconds:0.0}s: {Error}",
