@@ -53,10 +53,13 @@ overrides:
       - libsecret-tools
       - wine
   rpm:
+    # Sonames, not Fedora package names: "libX11" resolves on Fedora but nothing is called
+    # libX11 on openSUSE (it is libX11-6), so a package with the names alone is broken there.
+    # Both distros auto-provide the versioned soname.
     depends:
-      - libX11
-      - libICE
-      - libSM
+      - libX11.so.6()(64bit)
+      - libICE.so.6()(64bit)
+      - libSM.so.6()(64bit)
       - fontconfig
     recommends:
       - unrar
