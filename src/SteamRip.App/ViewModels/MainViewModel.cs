@@ -171,9 +171,12 @@ public partial class MainViewModel : ObservableObject
     {
         var ok = await _s.Solver.IsHealthyAsync();
         SolverHealthy = ok;
-        SolverLine = ok
-            ? $"FlareSolverr reachable at {_s.Solver.BaseUrl}"
-            : $"FlareSolverr unreachable at {_s.Solver.BaseUrl} — challenge pages (FileDitch, BuzzHeavier) are handled by the built-in headless browser instead";
+        var browser = Core.Solver.CdpSolver.Executable;
+        SolverLine =
+            ok ? $"FlareSolverr reachable at {_s.Solver.BaseUrl}"
+            : browser is { }
+                ? $"No FlareSolverr at {_s.Solver.BaseUrl} — hoster checks run in {Path.GetFileName(browser)}"
+            : $"No FlareSolverr at {_s.Solver.BaseUrl} and no Chromium-family browser installed — FileDitch and BuzzHeavier cannot be resolved";
     }
 
     public static string Humanize(DateTime utc)

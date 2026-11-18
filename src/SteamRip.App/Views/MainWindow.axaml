@@ -749,6 +749,11 @@
                                 SelectedItem="{Binding DownloadEngine}"
                                 HorizontalAlignment="Stretch"
                             />
+                            <ToggleSwitch
+                                IsChecked="{Binding TorrentMirrors}"
+                                OnContent="Use .torrent mirrors when no direct link resolves"
+                                OffContent="Skip .torrent mirrors (direct files only)"
+                            />
                             <TextBlock
                                 Classes="mono muted"
                                 Text="{Binding DownloadLine}"

@@ -41,6 +41,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial EngineChoice? DownloadEngine { get; set; }
 
+    /// <summary>Off by default: a .torrent mirror is a 100+ GiB peer-to-peer transfer, not the file itself.</summary>
+    [ObservableProperty]
+    public partial bool TorrentMirrors { get; set; }
+
     public string DownloadLine =>
         _s.Downloader.Aria2 is { Available: true } a
             ? $"aria2: {a.Describe()} — in use: {_s.Downloader.EngineName}"
@@ -133,6 +137,7 @@ public partial class SettingsViewModel : ObservableObject
             Engines.FirstOrDefault(e =>
                 string.Equals(e.Value, c.DownloadEngine, StringComparison.OrdinalIgnoreCase)
             ) ?? Engines[0];
+        TorrentMirrors = c.TorrentMirrors;
         foreach (var p in ProtonLocator.Managed.Concat(ProtonLocator.Find()))
             Protons.Add(p);
         var current = ProtonLocator.Effective(c.DefaultProtonPath);
@@ -194,6 +199,7 @@ public partial class SettingsViewModel : ObservableObject
         c.PrefixRoot = PrefixRoot.Trim();
         c.DeletePrefixOnUninstall = DeletePrefixOnUninstall;
         c.DownloadEngine = DownloadEngine?.Value ?? "auto";
+        c.TorrentMirrors = TorrentMirrors;
         _s.Downloader.PreferAria2 = !string.Equals(
             c.DownloadEngine,
             "internal",
