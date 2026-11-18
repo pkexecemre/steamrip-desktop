@@ -44,7 +44,7 @@ public sealed class FlareSolverrClient(
             cts.CancelAfter(TimeSpan.FromSeconds(5));
             using var r = await http.GetAsync(target + "/", cts.Token);
             if (!r.IsSuccessStatusCode)
-                _log.LogWarning(
+                _log.LogDebug(
                     "FlareSolverr health check at {Url}: HTTP {Status}",
                     target,
                     (int)r.StatusCode
@@ -53,11 +53,9 @@ public sealed class FlareSolverrClient(
         }
         catch (Exception e)
         {
-            _log.LogWarning(
-                "FlareSolverr health check at {Url} failed: {Error}",
-                target,
-                e.Message
-            );
+            // Running without FlareSolverr is a supported state (the CDP browser takes over), so this is not a
+            // warning on every poll; FallbackSolver logs the decision once a minute.
+            _log.LogDebug("FlareSolverr health check at {Url} failed: {Error}", target, e.Message);
             return false;
         }
     }

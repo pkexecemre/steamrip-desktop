@@ -481,17 +481,23 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         );
 
         using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        proc.OutputDataReceived += (_, e) =>
+        var sw = Stopwatch.StartNew();
+        // Proton and umu are chatty (hundreds of lines per launch). Show the start of the run, then keep the tail
+        // at Debug so the Activity log stays readable.
+        var seen = 0;
+        void RunnerLine(string? line)
         {
-            if (!string.IsNullOrWhiteSpace(e.Data))
-                _log.LogInformation("[{Exe}] {Line}", Path.GetFileName(windowsExe), e.Data);
-        };
-        proc.ErrorDataReceived += (_, e) =>
-        {
-            if (!string.IsNullOrWhiteSpace(e.Data))
-                _log.LogInformation("[{Exe}] {Line}", Path.GetFileName(windowsExe), e.Data);
-        };
+            if (string.IsNullOrWhiteSpace(line))
+                return;
+            var n = Interlocked.Increment(ref seen);
+            if (n <= 40)
+                _log.LogInformation("[{Exe}] {Line}", Path.GetFileName(windowsExe), line);
+            else
+                _log.LogDebug("[{Exe}] {Line}", Path.GetFileName(windowsExe), line);
+        }
+
+        proc.OutputDataReceived += (_, e) => RunnerLine(e.Data);
+        proc.ErrorDataReceived += (_, e) => RunnerLine(e.Data);
         proc.Start();
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();

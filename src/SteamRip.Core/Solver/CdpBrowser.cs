@@ -94,10 +94,6 @@ public sealed partial class CdpBrowser : IAsyncDisposable
     private readonly string _profileDir;
     private readonly SemaphoreSlim _send = new(1);
     private readonly Dictionary<int, TaskCompletionSource<JsonElement>> _pending = [];
-    private readonly Dictionary<
-        string,
-        TaskCompletionSource<IReadOnlyDictionary<string, string>>
-    > _responses = [];
     private readonly Dictionary<string, string> _requestUrls = [];
     private readonly ILogger _log;
     private readonly CancellationTokenSource _pump = new();
@@ -364,7 +360,7 @@ public sealed partial class CdpBrowser : IAsyncDisposable
         );
         if (string.IsNullOrEmpty(json))
             return [];
-        using var doc = JsonDocument.Parse(json!);
+        using var doc = JsonDocument.Parse(json);
         return
         [
             .. doc
@@ -395,13 +391,11 @@ public sealed partial class CdpBrowser : IAsyncDisposable
         CancellationToken ct
     )
     {
-        var key = urlPart + "#" + Guid.NewGuid().ToString("N")[..6];
         var tcs = new TaskCompletionSource<IReadOnlyDictionary<string, string>>(
             TaskCreationOptions.RunContinuationsAsynchronously
         );
-        lock (_responses)
-            _responses[key] = tcs;
-        _watched.Add((urlPart, tcs));
+        lock (_watched)
+            _watched.Add((urlPart, tcs));
         try
         {
             var done = await Task.WhenAny(tcs.Task, Task.Delay(timeout, ct));
@@ -409,9 +403,8 @@ public sealed partial class CdpBrowser : IAsyncDisposable
         }
         finally
         {
-            _watched.RemoveAll(w => w.Tcs == tcs);
-            lock (_responses)
-                _responses.Remove(key);
+            lock (_watched)
+                _watched.RemoveAll(w => w.Tcs == tcs);
         }
     }
 

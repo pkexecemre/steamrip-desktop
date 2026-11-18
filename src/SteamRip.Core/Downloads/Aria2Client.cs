@@ -38,7 +38,6 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
         "completedLength",
         "downloadSpeed",
         "errorMessage",
-        "files",
     ];
 
     private static readonly string[] FileFields = ["files"];
@@ -438,7 +437,6 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
         {
             var stalledSince = DateTime.UtcNow;
             var lastBytes = 0L;
-            var files = new List<string>();
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
@@ -457,7 +455,7 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
                 switch (state)
                 {
                     case "complete":
-                        files = await FilesAsync(gid, ct).ConfigureAwait(false);
+                        var files = await FilesAsync(gid, ct).ConfigureAwait(false);
                         if (
                             expectedName is not null
                             && files.Count > 0
@@ -522,16 +520,6 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
             using var doc = JsonDocument.Parse(raw);
             foreach (var property in doc.RootElement.EnumerateObject())
             {
-                if (property.Name == "files")
-                {
-                    var list = property
-                        .Value.EnumerateArray()
-                        .Select(f => f.TryGetProperty("path", out var p) ? p.GetString() : null)
-                        .Where(p => p is { Length: > 0 })
-                        .Select(p => p!);
-                    fields["files"] = string.Join('\n', list);
-                    continue;
-                }
                 fields[property.Name] =
                     property.Value.ValueKind == JsonValueKind.String
                         ? property.Value.GetString() ?? ""
