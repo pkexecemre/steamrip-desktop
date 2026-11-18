@@ -11,4 +11,15 @@ public sealed class InstallRecoveryTests
         Assert.Equal(InstallState.Installed, UpdateService.RecoveredState(hasGame: true));
         Assert.Equal(InstallState.NeedsAttention, UpdateService.RecoveredState(hasGame: false));
     }
+
+    [Fact]
+    public void Auto_updates_skip_rows_that_are_working_or_waiting_for_a_person()
+    {
+        Assert.False(UpdateService.AutoQueues(InstallState.Queued));
+        Assert.False(UpdateService.AutoQueues(InstallState.Downloading));
+        Assert.False(UpdateService.AutoQueues(InstallState.Installing));
+        Assert.False(UpdateService.AutoQueues(InstallState.NeedsAttention));
+        Assert.True(UpdateService.AutoQueues(InstallState.Installed));
+        Assert.True(UpdateService.AutoQueues(InstallState.Failed));
+    }
 }

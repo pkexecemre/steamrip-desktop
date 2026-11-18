@@ -258,6 +258,19 @@ public sealed class UpdateService : IAsyncDisposable
     public static InstallState RecoveredState(bool hasGame) =>
         hasGame ? InstallState.Installed : InstallState.NeedsAttention;
 
+    /// <summary>
+    /// Which rows the hourly check may queue by itself. NeedsAttention means a person has to act (no working mirror,
+    /// a torrent-only post with torrents off); re-queueing it every hour just repeats the failure and the notification.
+    /// </summary>
+    public static bool AutoQueues(InstallState state) =>
+        state
+            is not (
+                InstallState.Downloading
+                or InstallState.Installing
+                or InstallState.Queued
+                or InstallState.NeedsAttention
+            );
+
     // ---- catalog ----
 
     public async Task<int> SyncCatalogAsync(bool full = false, CancellationToken ct = default)
@@ -344,12 +357,7 @@ public sealed class UpdateService : IAsyncDisposable
         var pending = new List<(InstalledGame, CatalogPost)>();
         foreach (var g in _db.GetInstalls())
         {
-            if (
-                g.State
-                is InstallState.Downloading
-                    or InstallState.Installing
-                    or InstallState.Queued
-            )
+            if (!AutoQueues(g.State))
                 continue;
             var post = _db.GetPost(g.PostId);
             if (post is null || !UpdateDetector.IsUpdate(g, post))
