@@ -737,6 +737,28 @@
 
                     <Border Classes="card">
                         <StackPanel Spacing="10">
+                            <TextBlock FontWeight="SemiBold" Text="Downloads" />
+                            <TextBlock
+                                Classes="muted"
+                                TextWrapping="Wrap"
+                                Text="aria2 splits a transfer over many connections, resumes a half-finished file, retries a host that hung up, checks the hash the hoster published and opens the .torrent mirrors some hosters serve instead of an archive. Without it the app falls back to its own single-connection downloader."
+                            />
+                            <TextBlock Text="Engine" Classes="muted" />
+                            <ComboBox
+                                ItemsSource="{Binding Engines}"
+                                SelectedItem="{Binding DownloadEngine}"
+                                HorizontalAlignment="Stretch"
+                            />
+                            <TextBlock
+                                Classes="mono muted"
+                                Text="{Binding DownloadLine}"
+                                TextWrapping="Wrap"
+                            />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="10">
                             <TextBlock FontWeight="SemiBold" Text="Playing" />
                             <TextBlock
                                 Classes="muted"

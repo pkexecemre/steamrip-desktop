@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,106 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
     [GeneratedRegex(@"(\d{1,3})%")]
     private static partial Regex Percent();
 
+    [GeneratedRegex(@"^(?<base>.+)\.part(?<n>\d+)\.(?<ext>rar|7z|zip)$", RegexOptions.IgnoreCase)]
+    private static partial Regex MultiPart();
+
+    [GeneratedRegex(@"^(?<base>.+)\.r(?<n>\d{2})$", RegexOptions.IgnoreCase)]
+    private static partial Regex OldRarPart();
+
+    [GeneratedRegex(@"^(?<base>.+)\.z(?<n>\d{2})$", RegexOptions.IgnoreCase)]
+    private static partial Regex ZipPart();
+
+    [GeneratedRegex(@"^(?<base>.+)\.(?<ext>7z|zip|rar)\.(?<n>\d{3})$", RegexOptions.IgnoreCase)]
+    private static partial Regex NumericSplit();
+
+    /// <summary>
+    /// The first volume of a split archive, given any volume: <c>Foo.part03.rar</c> → <c>Foo.part01.rar</c>,
+    /// <c>Foo.r05</c> → <c>Foo.rar</c>, <c>Foo.7z.004</c> → <c>Foo.7z.001</c>. Unrar and 7z both open a split set
+    /// from its first volume, so nothing else in the pipeline has to know the archive was split.
+    /// </summary>
+    public static string FirstPart(string archive)
+    {
+        var dir = Path.GetDirectoryName(archive) ?? ".";
+        var name = Path.GetFileName(archive);
+        var multi = MultiPart().Match(name);
+        if (multi.Success)
+        {
+            var digits = multi.Groups["n"].Value;
+            if (digits.Length > 0 && int.Parse(digits, CultureInfo.InvariantCulture) <= 1)
+                return archive;
+            var first = Path.Combine(
+                dir,
+                multi.Groups["base"].Value
+                    + ".part"
+                    + "1".PadLeft(digits.Length, '0')
+                    + "."
+                    + multi.Groups["ext"].Value
+            );
+            return File.Exists(first) ? first : archive;
+        }
+        var old = OldRarPart().Match(name);
+        if (old.Success)
+        {
+            var rar = Path.Combine(dir, old.Groups["base"].Value + ".rar");
+            return File.Exists(rar) ? rar : archive;
+        }
+        var zip = ZipPart().Match(name);
+        if (zip.Success)
+        {
+            var target = Path.Combine(dir, zip.Groups["base"].Value + ".zip");
+            return File.Exists(target) ? target : archive;
+        }
+        var numeric = NumericSplit().Match(name);
+        if (
+            numeric.Success
+            && int.Parse(numeric.Groups["n"].Value, CultureInfo.InvariantCulture) > 1
+        )
+        {
+            var target = Path.Combine(
+                dir,
+                numeric.Groups["base"].Value + "." + numeric.Groups["ext"].Value + ".001"
+            );
+            return File.Exists(target) ? target : archive;
+        }
+        return archive;
+    }
+
+    /// <summary>What the first bytes of a file say it is: <c>rar</c>, <c>7z</c>, <c>zip</c>, <c>torrent</c>, <c>html</c>, else null.</summary>
+    public static string? SniffKind(string path)
+    {
+        try
+        {
+            using var fs = File.OpenRead(path);
+            var head = new byte[8];
+            var read = fs.Read(head, 0, head.Length);
+            if (read < 2)
+                return null;
+            if (head[0] == 'R' && head[1] == 'a' && head[2] == 'r' && head[3] == '!')
+                return "rar";
+            if (read >= 6 && head[0] == 0x37 && head[1] == 0x7A && head[2] == 0xBC)
+                return "7z";
+            if (head[0] == 'P' && head[1] == 'K')
+                return "zip";
+            if (read >= 3 && head[0] == 'd' && head[1] == '8' && head[2] == ':')
+                return "torrent";
+            if (read >= 5 && (head[0] == (byte)'<' || (head[0] == 0xEF && head[1] == 0xBB)))
+                return "html";
+            return null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A file an archive tool can actually open (RAR, 7z, ZIP and their split volumes).</summary>
+    public static bool LooksLikeArchive(string path) => SniffKind(path) is "rar" or "7z" or "zip";
+
+    /// <summary>A BitTorrent metadata file, which some hosters serve in place of the archive itself.</summary>
+    public static bool IsTorrent(string path) =>
+        SniffKind(path) == "torrent"
+        || path.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase);
+
     private readonly ILogger _log = logger ?? NullLogger<ArchiveTool>.Instance;
 
     public string? UnrarPath { get; init; } = Find("unrar");
@@ -22,6 +123,7 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
 
     public async Task<bool> TestAsync(string archive, CancellationToken ct)
     {
+        archive = FirstPart(archive);
         (string exe, string[] args) tool =
             UnrarPath is not null && archive.EndsWith(".rar", StringComparison.OrdinalIgnoreCase)
                 ? (UnrarPath, ["t", "-y", "-idq", archive])
@@ -41,6 +143,7 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
     )
     {
         Directory.CreateDirectory(destination);
+        archive = FirstPart(archive);
         (string exe, string[] args) tool =
             UnrarPath is not null && archive.EndsWith(".rar", StringComparison.OrdinalIgnoreCase)
                 ? (

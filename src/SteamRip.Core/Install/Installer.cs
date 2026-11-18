@@ -61,9 +61,21 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
         progress?.Report(("Testing archive", 0));
         if (!await archive.TestAsync(archivePath, ct))
         {
-            _log.LogError("Install {Slug}: archive failed integrity test", slug);
-            throw new InstallException("Archive failed integrity test (corrupt download?)");
+            var kind = ArchiveTool.SniffKind(archivePath) ?? "unknown";
+            ArchiveMarker.Clear(archivePath);
+            _log.LogError(
+                "Install {Slug}: {Archive} failed the integrity test (looks like {Kind}); it was not verified, so the job will re-download instead of reusing it",
+                slug,
+                Path.GetFileName(archivePath),
+                kind
+            );
+            throw new InstallException(
+                kind == "torrent"
+                    ? "That mirror served a .torrent (BitTorrent metadata), not the game archive"
+                    : $"Archive failed integrity test (looks like {kind} — corrupt or truncated download)"
+            );
         }
+        ArchiveMarker.Mark(archivePath);
 
         progress?.Report(("Extracting", 0));
         if (Directory.Exists(staging))

@@ -12,14 +12,60 @@ public sealed record DownloadProgress(long Bytes, long? Total, double BytesPerSe
     public double? Fraction => Total is > 0 ? (double)Bytes / Total : null;
 }
 
-/// <summary>Single-connection ranged downloader that resumes a <c>.part</c> file and verifies MD5/SHA-256 when the host published one.</summary>
-public sealed class Downloader(HttpClient http, ILogger<Downloader>? logger = null)
+/// <summary>
+/// Front door for every download. Hands the transfer to aria2 when it is installed and enabled (<see cref="Aria2Client"/>:
+/// multi-connection, resume, retries, checksum, torrents), else runs the built-in single-connection ranged HTTP loop.
+/// </summary>
+public sealed class Downloader(
+    HttpClient http,
+    ILogger<Downloader>? logger = null,
+    Aria2Client? aria2 = null
+)
 {
     public const string DefaultUserAgent =
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36";
     private readonly ILogger _log = logger ?? NullLogger<Downloader>.Instance;
 
+    /// <summary>Settings → Downloads. "internal" forces the built-in loop even when aria2 is installed.</summary>
+    public bool PreferAria2 { get; set; } = true;
+
+    public Aria2Client? Aria2 => aria2;
+
+    /// <summary>What the next transfer will actually run: "aria2c" or the built-in HTTP loop.</summary>
+    public string EngineName => aria2 is { Available: true } && PreferAria2 ? "aria2c" : "http";
+
+    /// <summary>True when a resolved link points at a <c>.torrent</c> instead of the archive: some hosters only publish those.</summary>
+    public static bool IsTorrent(ResolvedDownload src) =>
+        (src.FileName?.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase) ?? false)
+        || src.Url.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase);
+
     public async Task<string> DownloadAsync(
+        ResolvedDownload src,
+        string destinationPath,
+        IProgress<DownloadProgress>? progress,
+        CancellationToken ct
+    )
+    {
+        if (aria2 is { Available: true } a2 && PreferAria2)
+            return await a2.DownloadAsync(src, destinationPath, progress, ct);
+        return await DownloadOverHttpAsync(src, destinationPath, progress, ct);
+    }
+
+    /// <summary>BitTorrent payload from a local .torrent (some MegaDB/BuzzHeavier mirrors are torrents).</summary>
+    public Task<TorrentDownload> TorrentAsync(
+        string torrentFile,
+        string dir,
+        IProgress<DownloadProgress>? progress,
+        CancellationToken ct
+    ) =>
+        aria2 is { Available: true } a2
+            ? a2.DownloadTorrentAsync(torrentFile, dir, progress, ct)
+            : throw new DownloadException(
+                "This mirror is a torrent and aria2 is not installed. Install aria2 (aria2c) to download it.",
+                retryResolve: false
+            );
+
+    private async Task<string> DownloadOverHttpAsync(
         ResolvedDownload src,
         string destinationPath,
         IProgress<DownloadProgress>? progress,

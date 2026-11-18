@@ -591,23 +591,6 @@ public sealed class UpdateService : IAsyncDisposable
             // Refresh the post so we use the latest mirrors.
             post = _db.GetPost(post.Id) ?? post;
 
-            var archivePath = await DownloadWithRetryAsync(job, post, ct);
-
-            if (_launcher.IsRunning(post.Id))
-            {
-                _log.LogInformation(
-                    "{Name} is running; waiting for it to exit before installing",
-                    post.Name
-                );
-                job.Set(
-                    JobStage.Installing,
-                    "Downloaded. Waiting for the game to close before installing…"
-                );
-                await _launcher.WaitForExitAsync(post.Id, ct);
-            }
-
-            job.Set(JobStage.Installing, "Installing…");
-            _db.SetInstallState(post.Id, InstallState.Installing);
             var custom = string.IsNullOrWhiteSpace(previous?.InstallPath)
                 ? null
                 : previous.InstallPath;
@@ -617,28 +600,27 @@ public sealed class UpdateService : IAsyncDisposable
                 custom,
                 PrefixManager.Dir(PrefixRoot, post.Slug)
             );
-            var result = await _installer.InstallAsync(
-                archivePath,
-                post.Slug,
-                post.SteamAppId,
-                previous?.InstalledVersion,
-                opt,
-                new Progress<(string Stage, int Percent)>(p =>
-                    job.Set(JobStage.Installing, $"{p.Stage} {p.Percent}%", p.Percent / 100.0)
-                ),
-                ct
-            );
-            if (_settings.DeleteArchiveAfterInstall)
+            var archivePath = await DownloadWithRetryAsync(job, post, ct);
+            InstallResult result;
+            try
             {
-                try
-                {
-                    File.Delete(archivePath);
-                }
-                catch
-                {
-                    // leaving the archive behind is harmless; the next install overwrites it
-                }
+                result = await InstallFromArchiveAsync(job, post, archivePath, opt, previous, ct);
             }
+            catch (InstallException) when (!ct.IsCancellationRequested)
+            {
+                // The bytes themselves are bad (truncated, or the mirror served something that is not the
+                // archive). Throw them away and fetch once more instead of retrying the same file forever.
+                _log.LogWarning(
+                    "{Name}: {Archive} did not pass its test; discarding it and downloading again (once)",
+                    post.Name,
+                    Path.GetFileName(archivePath)
+                );
+                DiscardArchive(archivePath);
+                archivePath = await DownloadWithRetryAsync(job, post, ct);
+                result = await InstallFromArchiveAsync(job, post, archivePath, opt, previous, ct);
+            }
+            if (_settings.DeleteArchiveAfterInstall)
+                DiscardArchive(archivePath);
 
             var exe =
                 previous?.ExeRelative is { } prevExe
@@ -742,16 +724,20 @@ public sealed class UpdateService : IAsyncDisposable
         Directory.CreateDirectory(_settings.DownloadsRoot);
         // A complete, verified archive from an interrupted install can be reused without resolving a link again.
         var slugDir = Path.Combine(_settings.DownloadsRoot, post.Slug);
-        if (
-            Directory.Exists(slugDir)
-            && Directory
-                .EnumerateFiles(slugDir)
-                .FirstOrDefault(f => !f.EndsWith(".part", StringComparison.OrdinalIgnoreCase))
-                is { } existing
-        )
+        if (Directory.Exists(slugDir))
         {
-            _log.LogInformation("Reusing already-verified archive {Dest}", existing);
-            return existing;
+            // Only a file that finished downloading AND passed the archive test is reusable. Anything else is
+            // leftover junk — the .torrent a mirror served instead of the archive, a truncated download — and
+            // reusing it is how a job ends up failing on the same bytes on every retry.
+            var verified = Directory
+                .EnumerateFiles(slugDir, "*", SearchOption.AllDirectories)
+                .FirstOrDefault(ArchiveMarker.IsVerified);
+            if (verified is not null)
+            {
+                _log.LogInformation("Reusing verified archive {Dest}", verified);
+                return verified;
+            }
+            PruneStaleDownloads(slugDir);
         }
 
         var attempts = 0;
@@ -782,7 +768,14 @@ public sealed class UpdateService : IAsyncDisposable
             var dest = Path.Combine(slugDir, fileName);
 
             CheckDiskSpace(resolved.Size, _settings.DownloadsRoot, _settings.LibraryRoot);
-            job.Set(JobStage.Downloading, $"Downloading from {resolved.Host}…", 0);
+            if (Downloader.IsTorrent(resolved))
+                return await DownloadTorrentAsync(job, post, resolved, slugDir, ct);
+
+            job.Set(
+                JobStage.Downloading,
+                $"Downloading from {resolved.Host} via {_downloader.EngineName}…",
+                0
+            );
             try
             {
                 return await _downloader.DownloadAsync(
@@ -822,6 +815,176 @@ public sealed class UpdateService : IAsyncDisposable
                 await Task.Delay(TimeSpan.FromSeconds(15), ct);
             }
         }
+    }
+
+    /// <summary>
+    /// Some hosters publish a .torrent instead of the archive (MegaDB and BuzzHeavier do it for the big titles).
+    /// Fetch the metadata, then let aria2 pull the payload over BitTorrent — the web seed in the file usually means
+    /// it starts immediately without waiting for peers — and hand back the archive it produced.
+    /// </summary>
+    private async Task<string> DownloadTorrentAsync(
+        Job job,
+        CatalogPost post,
+        ResolvedDownload resolved,
+        string slugDir,
+        CancellationToken ct
+    )
+    {
+        Directory.CreateDirectory(slugDir);
+        var torrentName = Installer.SafeName(
+            Path.GetFileName(resolved.FileName ?? post.Slug + ".torrent")
+        );
+        if (!torrentName.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase))
+            torrentName += ".torrent";
+        var torrentFile = Path.Combine(slugDir, torrentName);
+        job.Set(JobStage.Downloading, $"Fetching torrent from {resolved.Host}…", 0);
+        _log.LogInformation(
+            "{Name}: {Host} mirror is a torrent; fetching {Torrent}",
+            post.Name,
+            resolved.Host,
+            torrentFile
+        );
+        await _downloader.DownloadAsync(
+            resolved with
+            {
+                FileName = torrentName,
+                Md5 = null,
+                Sha256 = null,
+            },
+            torrentFile,
+            null,
+            ct
+        );
+        if (!ArchiveTool.IsTorrent(torrentFile))
+            throw new NeedsAttentionException(
+                $"{resolved.Host} was supposed to serve a torrent but sent something else"
+            );
+
+        job.Set(JobStage.Downloading, "Downloading torrent payload…", 0);
+        var payload = await _downloader.TorrentAsync(
+            torrentFile,
+            slugDir,
+            new Progress<DownloadProgress>(job.Progress),
+            ct
+        );
+        var archive = PickArchive(payload.Files);
+        if (archive is null)
+            throw new NeedsAttentionException(
+                "That torrent contains "
+                    + payload.Files.Count
+                    + " files ("
+                    + string.Join(", ", payload.Files.Take(4).Select(Path.GetFileName))
+                    + "…) and none of them is a RAR/7z/ZIP archive. Try another mirror."
+            );
+        _log.LogInformation(
+            "{Name}: torrent produced {Archive} ({Size})",
+            post.Name,
+            Path.GetFileName(archive),
+            Job.Fmt(new FileInfo(archive).Length)
+        );
+        return archive;
+    }
+
+    /// <summary>The archive among a torrent's files: split sets resolve to their first volume, and the biggest wins.</summary>
+    public static string? PickArchive(IReadOnlyList<string> files)
+    {
+        var candidates = files
+            .Where(f => File.Exists(f) && ArchiveTool.LooksLikeArchive(f))
+            .Select(ArchiveTool.FirstPart)
+            .ToList();
+        return candidates.Count == 0
+            ? null
+            : candidates.OrderByDescending(f => new FileInfo(f).Length).First();
+    }
+
+    /// <summary>Deletes the small junk a failed attempt leaves behind (HTML error pages), never a resumable payload.</summary>
+    private void PruneStaleDownloads(string slugDir)
+    {
+        foreach (var file in Directory.EnumerateFiles(slugDir, "*", SearchOption.AllDirectories))
+        {
+            try
+            {
+                if (ArchiveMarker.IsVerified(file))
+                    continue;
+                if (
+                    file.EndsWith(".part", StringComparison.OrdinalIgnoreCase)
+                    || file.EndsWith(".aria2", StringComparison.OrdinalIgnoreCase)
+                    || file.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase)
+                )
+                    continue;
+                var info = new FileInfo(file);
+                var kind = ArchiveTool.SniffKind(file);
+                if (info.Length > 1 << 20 || (kind is not null and not "html"))
+                    continue;
+                _log.LogInformation(
+                    "Download dir: dropping leftover {File} ({Kind}, {Bytes} bytes)",
+                    Path.GetFileName(file),
+                    kind ?? "unknown",
+                    info.Length
+                );
+                File.Delete(file);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                _log.LogDebug("Could not prune {File}: {Error}", file, e.Message);
+            }
+        }
+    }
+
+    /// <summary>Removes an archive the installer rejected, plus its marker and aria2 control file, so the retry re-downloads.</summary>
+    private void DiscardArchive(string archivePath)
+    {
+        ArchiveMarker.Clear(archivePath);
+        foreach (var path in new[] { archivePath, archivePath + ".aria2" })
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                _log.LogWarning("Could not delete {Path}: {Error}", path, e.Message);
+            }
+        }
+    }
+
+    /// <summary>Waits for a running game, then runs the installer against the archive (test → extract → swap).</summary>
+    private async Task<InstallResult> InstallFromArchiveAsync(
+        Job job,
+        CatalogPost post,
+        string archivePath,
+        InstallOptions opt,
+        InstalledGame? previous,
+        CancellationToken ct
+    )
+    {
+        if (_launcher.IsRunning(post.Id))
+        {
+            _log.LogInformation(
+                "{Name} is running; waiting for it to exit before installing",
+                post.Name
+            );
+            job.Set(
+                JobStage.Installing,
+                "Downloaded. Waiting for the game to close before installing…"
+            );
+            await _launcher.WaitForExitAsync(post.Id, ct);
+        }
+
+        job.Set(JobStage.Installing, "Installing…");
+        _db.SetInstallState(post.Id, InstallState.Installing);
+        return await _installer.InstallAsync(
+            archivePath,
+            post.Slug,
+            post.SteamAppId,
+            previous?.InstalledVersion,
+            opt,
+            new Progress<(string Stage, int Percent)>(p =>
+                job.Set(JobStage.Installing, $"{p.Stage} {p.Percent}%", p.Percent / 100.0)
+            ),
+            ct
+        );
     }
 
     private void CheckDiskSpace(long? archiveSize, string downloadsRoot, string libraryRoot)

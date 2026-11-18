@@ -25,6 +25,27 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool DeletePrefixOnUninstall { get; set; }
 
+    /// <summary>Transfer engine: aria2 when it is installed, or the built-in HTTP loop.</summary>
+    public sealed record EngineChoice(string Label, string Value)
+    {
+        public override string ToString() => Label;
+    }
+
+    public IReadOnlyList<EngineChoice> Engines { get; } =
+    [
+        new("Auto — aria2 when installed", "auto"),
+        new("aria2c (multi-connection, torrents)", "aria2"),
+        new("Built-in HTTP", "internal"),
+    ];
+
+    [ObservableProperty]
+    public partial EngineChoice? DownloadEngine { get; set; }
+
+    public string DownloadLine =>
+        _s.Downloader.Aria2 is { Available: true } a
+            ? $"aria2: {a.Describe()} — in use: {_s.Downloader.EngineName}"
+            : "aria2 is not installed; the built-in single-connection downloader is in use. Install aria2 (aria2c) to split downloads across connections and to open the torrent mirrors some hosters publish.";
+
     [ObservableProperty]
     public partial ProtonBuild? DefaultProton { get; set; }
     public ObservableCollection<ProtonBuild> Protons { get; } = [];
@@ -108,6 +129,10 @@ public partial class SettingsViewModel : ObservableObject
         DownloadsRoot = c.DownloadsRoot;
         PrefixRoot = c.PrefixRoot;
         DeletePrefixOnUninstall = c.DeletePrefixOnUninstall;
+        DownloadEngine =
+            Engines.FirstOrDefault(e =>
+                string.Equals(e.Value, c.DownloadEngine, StringComparison.OrdinalIgnoreCase)
+            ) ?? Engines[0];
         foreach (var p in ProtonLocator.Managed.Concat(ProtonLocator.Find()))
             Protons.Add(p);
         var current = ProtonLocator.Effective(c.DefaultProtonPath);
@@ -168,6 +193,12 @@ public partial class SettingsViewModel : ObservableObject
         c.DownloadsRoot = DownloadsRoot.Trim();
         c.PrefixRoot = PrefixRoot.Trim();
         c.DeletePrefixOnUninstall = DeletePrefixOnUninstall;
+        c.DownloadEngine = DownloadEngine?.Value ?? "auto";
+        _s.Downloader.PreferAria2 = !string.Equals(
+            c.DownloadEngine,
+            "internal",
+            StringComparison.OrdinalIgnoreCase
+        );
         c.DefaultProtonPath = DefaultProton?.Path ?? ProtonLocator.GeProton;
         c.FlareSolverrUrl = Core.Solver.FlareSolverrClient.NormalizeUrl(FlareSolverrUrl);
         var sgdbKey = SteamGridDbApiKey.Trim();

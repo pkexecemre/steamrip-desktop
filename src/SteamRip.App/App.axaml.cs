@@ -279,6 +279,7 @@ public sealed class AppServices : IAsyncDisposable
     public required FlareSolverrClient Solver { get; init; }
     public required ResolverChain Resolvers { get; init; }
     public required ArchiveTool Archive { get; init; }
+    public required Downloader Downloader { get; init; }
     public required UpdateService Updates { get; init; }
     public required ISecretStore Secrets { get; init; }
     public required INotifier Notifier { get; init; }
@@ -402,7 +403,20 @@ public sealed class AppServices : IAsyncDisposable
             string.Join(", ", ProtonLocator.Find().Select(p => p.Name)),
             ProtonLocator.Effective(settings.DefaultProtonPath)
         );
-        var downloader = new Downloader(http, loggers.CreateLogger<Downloader>());
+        var aria2 = new Aria2Client(loggers.CreateLogger<Aria2Client>());
+        var downloader = new Downloader(http, loggers.CreateLogger<Downloader>(), aria2)
+        {
+            PreferAria2 = !string.Equals(
+                settings.DownloadEngine,
+                "internal",
+                StringComparison.OrdinalIgnoreCase
+            ),
+        };
+        log.LogInformation(
+            "Download engine: {Engine} ({Aria2})",
+            downloader.EngineName,
+            aria2.Describe()
+        );
         var steamHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
         var steamApps = new SteamAppIdResolver(
             steamHttp,
@@ -443,6 +457,7 @@ public sealed class AppServices : IAsyncDisposable
             Solver = solver,
             Resolvers = resolvers,
             Archive = archive,
+            Downloader = downloader,
             Updates = updates,
             Secrets = secrets,
             Notifier = notifier,

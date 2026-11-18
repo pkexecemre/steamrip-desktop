@@ -32,6 +32,12 @@ public sealed class Settings
     /// <summary>Uninstall with "delete files" removes the prefix too (saves included). Off by default.</summary>
     public bool DeletePrefixOnUninstall { get; set; }
 
+    /// <summary>
+    /// Transfer engine: <c>auto</c> (aria2 when installed), <c>aria2</c>, or <c>internal</c> (the built-in loop).
+    /// aria2 splits over many connections, resumes, retries and can pull the torrent mirrors hosters publish.
+    /// </summary>
+    public string DownloadEngine { get; set; } = "auto";
+
     /// <summary>Launch tweaks every game inherits unless it overrides them. Nested on purpose: the same record is stored per game.</summary>
     public Launch.LaunchOptions DefaultLaunch { get; set; } = Launch.LaunchOptions.AppDefaults;
     public string FlareSolverrUrl { get; set; } = "http://localhost:8191";
