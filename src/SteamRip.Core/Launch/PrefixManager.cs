@@ -293,7 +293,10 @@ public static class PrefixManager
                 {
                     try
                     {
-                        bytes += new FileInfo(file).Length;
+                        var info = new FileInfo(file);
+                        // A prefix is full of links into the host (dosdevices/z: -> /); counting through them
+                        // reported terabytes for a 300 MB prefix.
+                        bytes += info.LinkTarget is null ? info.Length : 0;
                         files++;
                     }
                     catch (IOException)
@@ -302,7 +305,11 @@ public static class PrefixManager
                     }
                 }
                 foreach (var child in Directory.EnumerateDirectories(dir))
+                {
+                    if (new DirectoryInfo(child).LinkTarget is not null)
+                        continue;
                     stack.Push(child);
+                }
             }
             catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {

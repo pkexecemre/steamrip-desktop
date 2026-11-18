@@ -187,6 +187,29 @@ public sealed class PrefixManagerTests : IDisposable
     }
 
     [Fact]
+    public void Measure_does_not_follow_links_out_of_the_prefix()
+    {
+        // Wine puts links to the host in dosdevices (z: -> /); following them reported terabytes for a small prefix.
+        var outside = Path.Combine(_root, "outside");
+        Directory.CreateDirectory(outside);
+        File.WriteAllBytes(Path.Combine(outside, "big.bin"), new byte[1 << 20]);
+
+        var prefix = Path.Combine(_root, "measured");
+        Directory.CreateDirectory(Path.Combine(prefix, "dosdevices"));
+        File.WriteAllBytes(Path.Combine(prefix, "system.reg"), new byte[1024]);
+        Directory.CreateSymbolicLink(Path.Combine(prefix, "dosdevices", "z:"), outside);
+        File.CreateSymbolicLink(
+            Path.Combine(prefix, "link-to-big"),
+            Path.Combine(outside, "big.bin")
+        );
+
+        var (bytes, files) = PrefixManager.Measure(prefix);
+
+        Assert.Equal(1024, bytes);
+        Assert.Equal(2, files);
+    }
+
+    [Fact]
     public void Lease_refuses_a_second_holder_and_releases_cleanly()
     {
         var dir = Path.Combine(_root, "lease");

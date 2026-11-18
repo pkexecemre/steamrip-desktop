@@ -364,9 +364,57 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                     Path.GetFileName(inst.FilePath),
                     e.Message
                 );
+                // A killed installer leaves the prefix's wineserver and its winedevice behind; they hold the
+                // prefix and confuse the next launch, so ask the prefix to shut down before carrying on.
+                await KillPrefixProcessesAsync(prefix, protonPath, ct);
             }
         }
         RedistInstaller.MarkDone(prefix);
+    }
+
+    /// <summary><c>wineboot -k</c> for one prefix: stops everything the prefix is running, then returns.</summary>
+    public async Task KillPrefixProcessesAsync(
+        string prefix,
+        string? protonPath,
+        CancellationToken ct = default
+    )
+    {
+        var runner = UmuPath ?? WinePath;
+        if (runner is null || OperatingSystem.IsWindows())
+            return;
+        var psi = new ProcessStartInfo(runner)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+        psi.ArgumentList.Add("wineboot");
+        psi.ArgumentList.Add("-k");
+        psi.Environment["WINEPREFIX"] = prefix;
+        psi.Environment["GAMEID"] = "umu-default";
+        psi.Environment["STORE"] = "none";
+        if (!string.IsNullOrEmpty(protonPath))
+            psi.Environment["PROTONPATH"] = protonPath;
+        psi.Environment.Remove("UMU_RUNTIME_UPDATE");
+        try
+        {
+            using var p = Process.Start(psi);
+            if (p is null)
+                return;
+            var finished = await Task.Run(() => p.WaitForExit(15000), ct);
+            _log.LogInformation(
+                "wineboot -k for {Prefix}: {Result}",
+                prefix,
+                finished ? $"exited {p.ExitCode}" : "still running after 15 s"
+            );
+            if (!finished)
+                p.Kill(entireProcessTree: true);
+        }
+        catch (Exception e) when (e is IOException or System.ComponentModel.Win32Exception)
+        {
+            _log.LogWarning("wineboot -k failed for {Prefix}: {Error}", prefix, e.Message);
+        }
     }
 
     /// <summary>
