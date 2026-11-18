@@ -202,6 +202,7 @@ public sealed class UpdateService : IAsyncDisposable
 
     public void Start()
     {
+        RecoverStaleInstalls();
         _log.LogInformation(
             "UpdateService starting: library {Library}, downloads {Downloads}, interval {Interval} min, auto-updates {Paused}, FlareSolverr {Solver}",
             _settings.LibraryRoot,
@@ -213,6 +214,49 @@ public sealed class UpdateService : IAsyncDisposable
         _worker ??= Task.Run(WorkerLoopAsync);
         _scheduler ??= Task.Run(SchedulerLoopAsync);
     }
+
+    /// <summary>
+    /// The job queue lives in memory, so a row left in Queued/Downloading/Installing is a leftover from a previous
+    /// process: nothing is ever going to move it again, Play refuses it ("is Downloading; wait for it to finish") and
+    /// auto-update skips it. Put those rows back to something true — Installed when the files are still there,
+    /// NeedsAttention otherwise.
+    /// </summary>
+    private void RecoverStaleInstalls()
+    {
+        foreach (var g in _db.GetInstalls())
+        {
+            if (
+                g.State
+                is not (InstallState.Queued or InstallState.Downloading or InstallState.Installing)
+            )
+                continue;
+            var path = g.ResolvePath(_settings.LibraryRoot);
+            var hasGame =
+                g.ExeRelative is { Length: > 0 } exe && File.Exists(Path.Combine(path, exe));
+            var state = RecoveredState(hasGame);
+            _db.SetInstallState(
+                g.PostId,
+                state,
+                hasGame ? null : $"Interrupted while {g.State.ToString().ToLowerInvariant()}"
+            );
+            _db.LogEvent(
+                "recover",
+                $"{g.Name}: {g.State} with no job after restart → {state}",
+                g.PostId
+            );
+            _log.LogWarning(
+                "{Name}: state was {Was} with no job after a restart; marked {Now} (files {Files})",
+                g.Name,
+                g.State,
+                state,
+                hasGame ? "present" : "missing"
+            );
+        }
+    }
+
+    /// <summary>A stale in-flight row keeps the game if its executable is still on disk, else it needs a person.</summary>
+    public static InstallState RecoveredState(bool hasGame) =>
+        hasGame ? InstallState.Installed : InstallState.NeedsAttention;
 
     // ---- catalog ----
 
