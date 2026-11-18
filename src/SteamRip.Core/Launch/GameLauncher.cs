@@ -345,6 +345,9 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                     protonPath,
                     inst.FilePath,
                     inst.Args,
+                    // A redistributable that never exits must not hold the first Play hostage: cap it, log it,
+                    // mark the prefix done and let the game start. Winetricks can finish the job later.
+                    timeout: TimeSpan.FromMinutes(4),
                     prefixDir: prefix,
                     ct: ct
                 );
@@ -425,10 +428,38 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             prefix,
             protonPath ?? "umu default"
         );
+        _log.LogInformation(
+            "The first run of umu may download the Steam runtime and a Proton build (several hundred MB) — that wait is not a hang; the lines below come from it"
+        );
 
-        using var proc = new Process { StartInfo = psi };
+        using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        proc.OutputDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+                _log.LogInformation("[{Exe}] {Line}", Path.GetFileName(windowsExe), e.Data);
+        };
+        proc.ErrorDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+                _log.LogInformation("[{Exe}] {Line}", Path.GetFileName(windowsExe), e.Data);
+        };
         proc.Start();
+        proc.BeginOutputReadLine();
+        proc.BeginErrorReadLine();
         var wait = timeout ?? TimeSpan.FromMinutes(15);
+        // A silent 10-minute wait reads as a freeze; say what is still running, every 30 s.
+        using var heartbeat = new Timer(
+            _ =>
+                _log.LogInformation(
+                    "Still running {Exe} ({Elapsed:0}s)…",
+                    Path.GetFileName(windowsExe),
+                    sw.Elapsed.TotalSeconds
+                ),
+            null,
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromSeconds(30)
+        );
         try
         {
             var finished = await Task.Run(() => proc.WaitForExit((int)wait.TotalMilliseconds), ct);
