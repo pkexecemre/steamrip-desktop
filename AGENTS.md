@@ -17,7 +17,7 @@ src/SteamRip.Core/                 # everything testable; no Avalonia reference
   Catalog/      REST client, post/title parsing, hoster detection
   Solver/       FlareSolverrClient (sessions, request.get, actions), BrowserSolver (Playwright, headed)
   Hosters/      one IHostResolver per hoster + ResolverChain + HostPages (pure HTML parsing)
-  Downloads/    Downloader (Range resume, .part, hash verify)
+  Downloads/    Downloader (engine choice), Aria2Client (aria2c over JSON-RPC: splits, resume, torrents), ranged HTTP fallback
   Install/      ArchiveTool (unrar/7z), SaveLocator, Installer (staging → backup → swap)
   Launch/       ExeFinder, ProtonLocator (+ GE-Proton/DW-Proton keywords), ProtonDownloader, GameLauncher (umu-run / wine / direct), PrefixManager/PrefixLease (where prefixes live, what built them, who holds them)
   Updates/      UpdateService (queue, scheduler, play), UpdateDetector, Job, ManualSolve
@@ -90,6 +90,8 @@ A change to a resolver is not done until it has resolved and downloaded at least
 - `Hoster` enum values are stable identifiers used in `Settings.HosterOrder`; renaming breaks user configs.
 - Prefix behaviour goes through `PrefixManager` (path resolution, migration, health, record) and `PrefixLease` (one launch per prefix). `PrefixRecord` is read back from disk across releases: append fields, never rename them.
 - `GAMEID` for games without a Steam app id is `umu-steamrip-<slug>`; do not fall back to `umu-default` for a real game (that id is for bootstrapping a prefix).
+- Transfers go through `Downloader` only: it picks aria2 or the built-in loop. A `.torrent` a hoster publishes is a mirror type, not an archive — resolve it with `Downloader.TorrentAsync`, never hand it to the archive tool.
+- A downloaded file may only be reused when `ArchiveMarker.IsVerified` says so; do not resurrect "a file is in the folder, so it must be fine".
 - UI: CommunityToolkit.Mvvm (`[ObservableProperty]`, `[RelayCommand]`), DataTemplates keyed by ViewModel type, styles in `Views/Styles.axaml`, palette in `App.axaml` (ink `#141821`, amber `#F2B544`). No code-behind logic beyond window plumbing.
 
 ## Things not to do
@@ -102,7 +104,7 @@ A change to a resolver is not done until it has resolved and downloaded at least
 - Do not delete the old install before the new one passed `unrar t` and extracted fully. Do not delete anything that looks like a Wine prefix (`drive_c`/`system.reg`) — move it into the new tree (or, for our own prefix, to `.prefixes`).
 - Do not scan Heroic/Lutris/Steam prefixes for saves. The app owns the prefix at `<library>/.prefixes/<slug>`; that decision is recorded in `docs/decisions.md` (D11, D17).
 - Do not edit the planning file under `~/.cursor/plans/` if you have access to it; it is a historical record.
-- Do not add debrid support, a web UI, torrents, or multi-user features without the owner asking.
+- Do not add debrid support, a web UI, or multi-user features without the owner asking. Torrents are in scope only as a mirror type: hosters publish `.torrent` files instead of archives, and aria2 (when installed) pulls them (D18) — do not grow a BitTorrent client beyond that.
 
 ## Machine facts (dev box, Nov 2026)
 

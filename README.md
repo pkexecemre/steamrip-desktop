@@ -7,7 +7,7 @@ Personal-use project. The code is what one person needs to run a game library ha
 ## What it does
 
 - **Catalog**: syncs the site through the WordPress REST API (no HTML scraping of the site itself), detects updated posts by `modified` + build/version change.
-- **Download**: resolves a post's mirrors (FileDitch, GoFile, MegaDB, BuzzHeavier) to a direct URL, clears Cloudflare via a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, downloads with resume (`Range` + `.part`), verifies hashes where the hoster publishes them.
+- **Download**: resolves a post's mirrors (FileDitch, GoFile, MegaDB, BuzzHeavier) to a direct URL, clears Cloudflare via a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, then downloads through **aria2** when it is installed — 16-way splits, resume, retries, the hoster's own checksum, and the `.torrent` mirrors some hosters publish instead of an archive. Without aria2 it falls back to its own ranged HTTP loop.
 - **Install**: `unrar t`/`7z t` integrity check → extract to staging → back up saves → swap into `<library>/<slug>/` → prune old backups. The old install is untouched until the new one is verified.
 - **Play**: `umu-run` + Proton with the prefix at `<library>/.prefixes/<slug>` — outside the game folder, recorded (which Proton built it, when, how many launches), locked while it runs, and one click away from a reset that moves it aside instead of deleting it. Exe auto-detected, per-game Proton/exe/argument overrides, playtime tracking.
 - **Update**: periodic check; auto-downloads and reinstalls library games; waits for a running game to exit first; prefix and saves survive the swap.
@@ -35,6 +35,7 @@ Unsigned binaries: Windows SmartScreen will warn on first run ("More info → Ru
 | --- | --- |
 | .NET 10 SDK (to build from source only) | .NET 10 SDK (to build from source only) |
 | `unrar` or `7z` on PATH | 7-Zip or WinRAR installed, or `7za.exe` next to the binary |
+| `aria2` (recommended: multi-connection, resume, torrent mirrors) | — |
 | `umu-run` (umu-launcher) and/or `wine`; a Proton build (Steam, Proton-GE, Proton-CachyOS) | — |
 | `secret-tool` (optional, keychain) | — |
 | `notify-send` or `gdbus` (notifications) | — |

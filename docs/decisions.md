@@ -118,3 +118,21 @@ Choice:
 Rejected: one shared prefix for the whole library (one game's DLL overrides and redistributables break the next, which is why Steam keeps per-app compatdata); deleting the prefix on reset; pinning a Proton version into the prefix record and refusing to launch on a mismatch (too strict — a warning plus `wineboot -u` is what Steam does).
 
 Locks in: the prefix moves one way only (nothing migrates back); empty `PrefixRoot` means the library default; D11's rule about not scanning Heroic/Lutris/Steam prefixes for saves still stands — this is about where *our* prefix lives, not about adopting someone else's. Windows has no prefix and the setting is Linux-only.
+
+
+## D18 — aria2 is the transfer engine, torrents are a mirror type (Nov 18 2026)
+
+Owner: "i cant install shit. make the downloads more reliable + maybe use aria2."
+
+What the log showed for Red Dead Redemption 2: the only workable mirror was a **.torrent**, the pipeline downloaded its 146 KB metadata, ran `7z t` on it, reported "corrupt download", and then — because the leftover file counted as "already verified" — reused those same bytes on every retry. The job could never succeed, and the UI offered only "Retry", which fed the loop.
+
+Choice:
+- `Aria2Client` runs aria2c as a child process with JSON-RPC on loopback and drives it: `addUri`/`addTorrent`, `tellStatus` for progress/speed/failure, `forceShutdown` on cancel. No progress-line scraping, no shell quoting, and a stall (3 min HTTP / 10 min torrent with zero speed) is an explicit failure instead of a hung job.
+- Settings → Downloads picks the engine (auto / aria2c / built-in); aria2 is skipped when it is not installed, and the built-in ranged loop remains for that case.
+- A resolved `.torrent` is a mirror type, not an archive: fetch the metadata, pull the payload with aria2 (web seeds and DHT included), then take the archive the torrent produced (split volumes resolve to their first part).
+- `ArchiveMarker` (`.ok` sidecar storing the size) is the only proof that a downloaded file may be reused, so a download the archive tool rejects is discarded and fetched once more instead of being retried unchanged.
+- `ArchiveTool` sniffs magic bytes, so a mislabelled torrent or HTML error page is reported as what it is; split volumes (`.part03.rar`, `.r05`, `.7z.004`) resolve to the volume unrar/7z need.
+
+Rejected: bundling aria2 (licensing and a 4 MB binary to keep patched); a BitTorrent library in-process (a second protocol stack to maintain, and aria2 already does the HTTP side better than our loop); scraping aria2's console readout for progress.
+
+Locks in: `Downloader` stays the only entry point for transfers; anything that needs a torrent goes through `Downloader.TorrentAsync`. aria2 remains optional — the app must still install games without it.
