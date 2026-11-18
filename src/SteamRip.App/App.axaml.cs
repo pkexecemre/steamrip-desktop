@@ -419,9 +419,12 @@ public sealed class AppServices : IAsyncDisposable
             ),
         };
         log.LogInformation(
-            "Download engine: {Engine} ({Aria2})",
+            "Download engine: {Engine} ({Aria2}); challenge pages: {Browser}",
             downloader.EngineName,
-            aria2.Describe()
+            aria2.Describe(),
+            Program.PlaywrightDriverPath is { } driver
+                ? "headless Chromium (" + driver + ")"
+                : "Playwright driver not found"
         );
         var steamHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
         var steamApps = new SteamAppIdResolver(

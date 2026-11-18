@@ -115,7 +115,21 @@ public sealed class PlaywrightSolver(ILogger<PlaywrightSolver>? logger = null) :
                 }
             );
             await WaitForChallengeAsync(ct);
-            var html = await page.ContentAsync();
+            // A hoster's gate often navigates the frame while its script runs; reading the DOM mid-navigation
+            // throws. Wait for it to settle instead of failing the whole resolve.
+            string html = "";
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                try
+                {
+                    html = await page.ContentAsync();
+                    break;
+                }
+                catch (PlaywrightException) when (attempt < 19)
+                {
+                    await Task.Delay(250, ct);
+                }
+            }
             var ua = await page.EvaluateAsync<string>("navigator.userAgent");
             var cookies = (await context.CookiesAsync()).ToDictionary(c => c.Name, c => c.Value);
             log.LogInformation(
