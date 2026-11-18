@@ -8,7 +8,8 @@ namespace SteamRip.Core.Hosters;
 public sealed class ResolverChain(
     IEnumerable<IHostResolver> resolvers,
     Func<IReadOnlyList<Hoster>>? order = null,
-    ILogger<ResolverChain>? logger = null
+    ILogger<ResolverChain>? logger = null,
+    Func<bool>? allowTorrents = null
 )
 {
     public static readonly IReadOnlyList<Hoster> DefaultOrder =
@@ -25,9 +26,14 @@ public sealed class ResolverChain(
 
     // Read live so Settings → HosterOrder applies to the next job without a restart.
     private readonly Func<IReadOnlyList<Hoster>> _order = order ?? (() => DefaultOrder);
+    private readonly Func<bool> _allowTorrents = allowTorrents ?? (() => false);
     private readonly ILogger _log = logger ?? NullLogger<ResolverChain>.Instance;
 
     public IReadOnlyCollection<Hoster> Supported => _byHost.Keys;
+
+    private static bool IsTorrent(ResolvedDownload download) =>
+        download.FileName?.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase) == true
+        || download.Url.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase);
 
     private IReadOnlyList<Hoster> CurrentOrder()
     {
@@ -42,6 +48,9 @@ public sealed class ResolverChain(
     {
         var preference = CurrentOrder();
         var errors = new List<string>();
+        // A .torrent is not the archive: only one hoster's repackaging of it. Keep the first one as a last resort and
+        // look for a mirror that serves the file itself — that is what the site's own links do.
+        ResolvedDownload? torrent = null;
         _log.LogInformation(
             "Resolving: {Count} mirror(s) [{Hosts}], order [{Order}]",
             mirrors.Count,
@@ -60,6 +69,26 @@ public sealed class ResolverChain(
                 try
                 {
                     var r = await resolver.ResolveAsync(m.Url, ct);
+                    if (IsTorrent(r))
+                    {
+                        if (!_allowTorrents())
+                        {
+                            errors.Add(
+                                $"{host}: only offers a .torrent (peer-to-peer), not the file itself"
+                            );
+                            _log.LogWarning(
+                                "{Host} only offers a .torrent; skipped (torrent mirrors are off)",
+                                host
+                            );
+                            continue;
+                        }
+                        _log.LogInformation(
+                            "{Host} resolves to a .torrent; keeping it as a fallback and trying the other mirrors first",
+                            host
+                        );
+                        torrent ??= r;
+                        continue;
+                    }
                     _log.LogInformation(
                         "{Host} resolved in {Seconds:0.0}s",
                         host,
@@ -84,6 +113,14 @@ public sealed class ResolverChain(
                     );
                 }
             }
+        }
+        if (torrent is not null)
+        {
+            _log.LogInformation(
+                "No direct mirror; falling back to the .torrent from {Host}",
+                torrent.Host
+            );
+            return (torrent, errors);
         }
         if (errors.Count == 0)
             errors.Add(

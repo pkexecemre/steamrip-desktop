@@ -7,7 +7,7 @@ namespace SteamRip.Core.Hosters;
 
 /// <summary>FileDitch runs its own WASM browser check; FlareSolverr passes it and returns the real page, whose main button is a signed CDN URL that needs no cookies.</summary>
 public sealed class FileDitchResolver(
-    FlareSolverrClient solver,
+    IBrowserSolver solver,
     ILogger<FileDitchResolver>? logger = null
 ) : IHostResolver
 {

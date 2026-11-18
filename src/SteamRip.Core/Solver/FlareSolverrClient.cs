@@ -19,7 +19,7 @@ public sealed class FlareSolverrClient(
     HttpClient http,
     Func<string> baseUrl,
     ILogger<FlareSolverrClient>? logger = null
-)
+) : IBrowserSolver
 {
     private readonly ILogger _log = logger ?? NullLogger<FlareSolverrClient>.Instance;
 
@@ -154,6 +154,15 @@ public sealed class FlareSolverrClient(
         return result;
     }
 
+    async Task<SolveResult> IBrowserSolver.GetAsync(
+        string url,
+        bool disableMedia,
+        CancellationToken ct
+    ) => await GetAsync(url, null, 90_000, disableMedia, ct);
+
+    async Task<IBrowserSession> IBrowserSolver.CreateSessionAsync(CancellationToken ct) =>
+        await CreateSessionAsync(ct);
+
     public async Task<Session> CreateSessionAsync(CancellationToken ct = default)
     {
         var id = "sr-" + Guid.NewGuid().ToString("N")[..8];
@@ -197,7 +206,7 @@ public sealed class FlareSolverrClient(
         return null;
     }
 
-    public sealed class Session(FlareSolverrClient client, string id) : IAsyncDisposable
+    public sealed class Session(FlareSolverrClient client, string id) : IBrowserSession
     {
         public Task<SolveResult> GetAsync(
             string url,

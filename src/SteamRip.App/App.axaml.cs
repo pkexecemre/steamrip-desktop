@@ -375,12 +375,17 @@ public sealed class AppServices : IAsyncDisposable
             Timeout = TimeSpan.FromSeconds(60),
         };
 
+        var browser = new FallbackSolver(
+            solver,
+            new PlaywrightSolver(loggers.CreateLogger<PlaywrightSolver>()),
+            loggers.CreateLogger<FallbackSolver>()
+        );
         var resolvers = new ResolverChain(
             [
-                new FileDitchResolver(solver, loggers.CreateLogger<FileDitchResolver>()),
+                new FileDitchResolver(browser, loggers.CreateLogger<FileDitchResolver>()),
                 new GoFileResolver(apiHttp, loggers.CreateLogger<GoFileResolver>()),
                 new MegaDbResolver(logger: loggers.CreateLogger<MegaDbResolver>()),
-                new BuzzHeavierResolver(solver, loggers.CreateLogger<BuzzHeavierResolver>()),
+                new BuzzHeavierResolver(browser, loggers.CreateLogger<BuzzHeavierResolver>()),
             ],
             () =>
                 [
@@ -390,7 +395,8 @@ public sealed class AppServices : IAsyncDisposable
                         )
                         .Where(h => h != Hoster.Unknown),
                 ],
-            loggers.CreateLogger<ResolverChain>()
+            loggers.CreateLogger<ResolverChain>(),
+            () => settings.TorrentMirrors
         );
 
         var archive = new ArchiveTool(loggers.CreateLogger<ArchiveTool>());

@@ -173,7 +173,7 @@ public partial class MainViewModel : ObservableObject
         SolverHealthy = ok;
         SolverLine = ok
             ? $"FlareSolverr reachable at {_s.Solver.BaseUrl}"
-            : $"FlareSolverr unreachable at {_s.Solver.BaseUrl} — FileDitch and BuzzHeavier mirrors will fail";
+            : $"FlareSolverr unreachable at {_s.Solver.BaseUrl} — challenge pages (FileDitch, BuzzHeavier) are handled by the built-in headless browser instead";
     }
 
     public static string Humanize(DateTime utc)

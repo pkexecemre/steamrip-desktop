@@ -38,6 +38,13 @@ public sealed class Settings
     /// </summary>
     public string DownloadEngine { get; set; } = "auto";
 
+    /// <summary>
+    /// Use a hoster's <c>.torrent</c> repackaging when no direct link resolves. Off by default: a torrent of a AAA
+    /// game is a 100+ GiB peer-to-peer transfer, which is not what "download the game from the mirror" should
+    /// silently turn into.
+    /// </summary>
+    public bool TorrentMirrors { get; set; }
+
     /// <summary>Launch tweaks every game inherits unless it overrides them. Nested on purpose: the same record is stored per game.</summary>
     public Launch.LaunchOptions DefaultLaunch { get; set; } = Launch.LaunchOptions.AppDefaults;
     public string FlareSolverrUrl { get; set; } = "http://localhost:8191";

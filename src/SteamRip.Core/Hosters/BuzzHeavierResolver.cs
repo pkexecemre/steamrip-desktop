@@ -12,7 +12,7 @@ namespace SteamRip.Core.Hosters;
 /// an <c>hx-redirect</c> to a direct URL that needs no cookies.
 /// </summary>
 public sealed class BuzzHeavierResolver(
-    FlareSolverrClient solver,
+    IBrowserSolver solver,
     ILogger<BuzzHeavierResolver>? logger = null
 ) : IHostResolver
 {
