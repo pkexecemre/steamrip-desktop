@@ -133,6 +133,10 @@ Choice:
 - `ArchiveMarker` (`.ok` sidecar storing the size) is the only proof that a downloaded file may be reused, so a download the archive tool rejects is discarded and fetched once more instead of being retried unchanged.
 - `ArchiveTool` sniffs magic bytes, so a mislabelled torrent or HTML error page is reported as what it is; split volumes (`.part03.rar`, `.r05`, `.7z.004`) resolve to the volume unrar/7z need.
 
+Follow-up the same evening, after the owner pointed out that the site's own links are direct files: a .torrent is a *fallback*, never the default. `Settings.TorrentMirrors` is off, so a mirror that only offers one is skipped with "only offers a .torrent (peer-to-peer), not the file itself", and when a direct mirror resolves it wins. The chain keeps the first torrent aside and only uses it once every direct mirror has failed and the setting allows it.
+
+Also learned the hard way, and worth writing down for whoever fixes the resolvers next: BuzzHeavier's `/download` endpoint answers with `cf-mitigated: challenge` (Cloudflare Turnstile) for anything but a human-driven click, and FileDitch's button is obfuscated and sets its `href` from JS after its WASM check. Both were reachable with the FlareSolverr setup the owner used to run; neither can be faked with a plain HTTP GET.
+
 Rejected: bundling aria2 (licensing and a 4 MB binary to keep patched); a BitTorrent library in-process (a second protocol stack to maintain, and aria2 already does the HTTP side better than our loop); scraping aria2's console readout for progress.
 
 Locks in: `Downloader` stays the only entry point for transfers; anything that needs a torrent goes through `Downloader.TorrentAsync`. aria2 remains optional — the app must still install games without it.
