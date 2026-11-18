@@ -24,11 +24,6 @@ contents:
     dst: /usr/bin/steamrip-desktop
     file_info:
       mode: 0755
-  # Playwright's driver (Node + the bundled driver package) for the headless browser that clears hoster challenge
-  # pages. 14 MB next to the binary rather than inside it, because the driver is a script tree, not an assembly.
-  - src: out/linux-x64/.playwright
-    dst: /usr/lib/steamrip-desktop/.playwright
-    type: tree
   - src: packaging/linux/steamrip-desktop.desktop
     dst: /usr/share/applications/steamrip-desktop.desktop
   - src: src/SteamRip.App/Assets/app.png

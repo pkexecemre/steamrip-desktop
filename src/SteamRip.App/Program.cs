@@ -7,7 +7,6 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        PointPlaywrightAtItsDriver();
         // Single instance: a second launch hands its request to the first through a marker file it watches:
         // ".show" (bring the window up) or ".play" holding a post id (a game shortcut was clicked).
         // "Global\" matters: without it .NET scopes a named mutex to the Unix session id (/tmp/.dotnet/shm/session<sid>/),
@@ -25,41 +24,6 @@ internal static class Program
             return;
         }
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-    }
-
-    /// <summary>
-    /// Playwright looks for its driver next to the working directory, which for a packaged app is wherever it was
-    /// started from (often "/"); the published window ends up at "/.playwright/node/…" and every challenge page fails
-    /// with "Driver not found". Point it at the copy the package ships instead.
-    /// </summary>
-    /// <summary>What <see cref="PointPlaywrightAtItsDriver"/> settled on (null when nothing was shipped), for the startup log.</summary>
-    public static string? PlaywrightDriverPath { get; private set; }
-
-    private static void PointPlaywrightAtItsDriver()
-    {
-        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PLAYWRIGHT_DRIVER_PATH")))
-            return;
-        // The variable is the driver's node binary itself, not the folder that holds it.
-        var arch =
-            System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture
-            == System.Runtime.InteropServices.Architecture.Arm64
-                ? "linux-arm64"
-                : "linux-x64";
-        string[] roots =
-        [
-            "/usr/lib/steamrip-desktop/.playwright",
-            Path.Combine(AppContext.BaseDirectory, ".playwright"),
-            Path.Combine(AppContext.BaseDirectory, "..", "lib", "steamrip-desktop", ".playwright"),
-        ];
-        foreach (var root in roots)
-        {
-            var node = Path.GetFullPath(Path.Combine(root, "node", arch, "node"));
-            if (!File.Exists(node))
-                continue;
-            Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_PATH", node);
-            PlaywrightDriverPath = node;
-            return;
-        }
     }
 
     private static string MutexName =>

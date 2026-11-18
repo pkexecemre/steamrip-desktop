@@ -7,9 +7,9 @@ using SteamRip.Core.Solver;
 namespace SteamRip.Core.Hosters;
 
 /// <summary>
-/// BuzzHeavier gates on Referer == https://steamrip.com/ and Cloudflare. Flow (proven in spike): FlareSolverr session loads steamrip.com,
-/// hops to the share URL via location.href so the referer is genuine, then an in-page HTMX-style fetch of the download endpoint yields
-/// an <c>hx-redirect</c> to a direct URL that needs no cookies.
+/// BuzzHeavier gates on Referer == https://steamrip.com/ and Cloudflare, and its download endpoint answers a page's
+/// own request with an <c>hx-redirect</c> header. That header is unreadable from JavaScript (opaque redirect), so it
+/// is read from the browser's network layer instead: click the button, watch the response, take the link.
 /// </summary>
 public sealed class BuzzHeavierResolver(
     IBrowserSolver solver,
@@ -25,54 +25,78 @@ public sealed class BuzzHeavierResolver(
         CancellationToken ct = default
     )
     {
+        await using var session = await solver.CreateSessionAsync(ct);
+        SolveResult page;
         try
         {
-            await using var s = await solver.CreateSessionAsync(ct);
-            await s.GetAsync("https://steamrip.com/", disableMedia: true, ct: ct);
-            _log.LogDebug("BuzzHeavier: hopping from steamrip.com to {ShareUrl}", shareUrl);
-            var info = await s.ActionAsync(
-                [
-                    new
-                    {
-                        type = "eval",
-                        script = $"window.location.href = {JsonSerializer.Serialize(shareUrl)};",
-                        returnResult = false,
-                    },
-                    new
-                    {
-                        type = "wait_for",
-                        selector = "//a[contains(@class,'download-btn')]",
-                        timeout = 30000,
-                    },
-                    new
-                    {
-                        type = "eval",
-                        script = "return JSON.stringify({url: location.href, html: document.documentElement.outerHTML})",
-                        returnResult = true,
-                    },
-                ],
+            page = await session.GetAsync(shareUrl, disableMedia: true, ct: ct);
+        }
+        catch (SolverException e)
+        {
+            throw new HostResolveException(Host, e.Message, e);
+        }
+
+        var fileName = session is IInteractiveSession titled
+            ? (await titled.TitleAsync(ct))?.Trim()
+            : null;
+        _log.LogDebug("BuzzHeavier landed at {Url} (title {Title})", page.FinalUrl, fileName);
+
+        if (session is IInteractiveSession live)
+        {
+            var redirect = await live.RedirectFromClickAsync(
+                "/download",
+                TimeSpan.FromSeconds(45),
                 ct
             );
-            if (info is null)
-                throw new HostResolveException(Host, "no eval result from browser");
-            using var doc = JsonDocument.Parse(info);
-            var landedAt = doc.RootElement.GetProperty("url").GetString();
-            var html = doc.RootElement.GetProperty("html").GetString() ?? "";
-            var (hxPath, md5, sha256, fileName) = HostPages.ParseBzzhr(html);
-            _log.LogDebug(
-                "BuzzHeavier landed at {Url}; hx-get {HxPath}; md5 {Md5}; sha256 {Sha}",
-                landedAt,
-                hxPath,
-                md5,
-                sha256
+            if (redirect is not null)
+            {
+                _log.LogInformation(
+                    "BuzzHeavier resolved {File}: {Url}",
+                    fileName ?? "?",
+                    FileDitchResolver.Redact(redirect)
+                );
+                return new ResolvedDownload(
+                    Host,
+                    redirect,
+                    new Dictionary<string, string>(),
+                    string.IsNullOrWhiteSpace(fileName) ? null : fileName
+                );
+            }
+            _log.LogWarning(
+                "BuzzHeavier's download endpoint did not answer (page {Url}); use the browser fallback",
+                page.FinalUrl
             );
+            throw new HostResolveException(
+                Host,
+                page.FinalUrl.StartsWith("chrome-error", StringComparison.Ordinal)
+                    ? "the browser could not load the page (" + page.FinalUrl + ")"
+                    : "the download endpoint answered with a Cloudflare challenge; the visible-browser fallback can pass it"
+            );
+        }
 
+        // Session types without network access (older FlareSolverr actions) can still try the in-page fetch.
+        var inPage = await TryInPageFetchAsync(session, page, ct);
+        if (inPage is not null)
+            return inPage;
+        throw new HostResolveException(Host, "no download link from BuzzHeavier");
+    }
+
+    private async Task<ResolvedDownload?> TryInPageFetchAsync(
+        IBrowserSession session,
+        SolveResult page,
+        CancellationToken ct
+    )
+    {
+        try
+        {
+            var html = page.Html;
+            var (hxPath, md5, sha256, fileName) = HostPages.ParseBzzhr(html);
             var js =
                 "window.__sr=null; fetch("
                 + JsonSerializer.Serialize(hxPath)
                 + ", {headers:{'HX-Request':'true','HX-Current-URL':location.href}, redirect:'manual'})"
                 + ".then(r=>{window.__sr={status:r.status, redirect:r.headers.get('hx-redirect')}}).catch(e=>{window.__sr={error:String(e)}});";
-            var res = await s.ActionAsync(
+            await session.ActionAsync(
                 [
                     new
                     {
@@ -90,44 +114,41 @@ public sealed class BuzzHeavierResolver(
                 ],
                 ct
             );
-            if (res is null or "null")
-                throw new HostResolveException(Host, "download endpoint did not answer");
-            _log.LogDebug("BuzzHeavier in-page fetch result: {Result}", res);
-            using var rd = JsonDocument.Parse(res);
-            if (rd.RootElement.TryGetProperty("error", out var err))
-                throw new HostResolveException(Host, "in-page fetch failed: " + err.GetString());
-            var redirect = rd.RootElement.TryGetProperty("redirect", out var r)
-                ? r.GetString()
-                : null;
-            if (string.IsNullOrEmpty(redirect))
-                throw new HostResolveException(
+            var raw = await session.ActionAsync(
+                [
+                    new
+                    {
+                        type = "eval",
+                        script = "JSON.stringify(window.__sr)",
+                        returnResult = true,
+                    },
+                ],
+                ct
+            );
+            if (raw is null or "null")
+                return null;
+            using var doc = JsonDocument.Parse(raw);
+            if (
+                doc.RootElement.TryGetProperty("redirect", out var redirect)
+                && redirect.GetString() is { Length: > 0 } url
+            )
+                return new ResolvedDownload(
                     Host,
-                    "no hx-redirect in response (status "
-                        + rd.RootElement.GetProperty("status").GetRawText()
-                        + ")"
+                    url,
+                    new Dictionary<string, string>(),
+                    fileName,
+                    Md5: md5,
+                    Sha256: sha256
                 );
-
-            _log.LogInformation(
-                "BuzzHeavier resolved {File}: {Url}",
-                fileName,
-                FileDitchResolver.Redact(redirect)
-            );
-            return new ResolvedDownload(
-                Host,
-                redirect,
-                new Dictionary<string, string>(),
-                fileName,
-                Md5: md5,
-                Sha256: sha256
-            );
         }
-        catch (SolverException e)
+        catch (HostResolveException)
         {
-            throw new HostResolveException(Host, e.Message, e);
+            throw;
         }
-        catch (FormatException e)
+        catch (Exception e) when (e is FormatException or JsonException or SolverException)
         {
-            throw new HostResolveException(Host, e.Message, e);
+            _log.LogDebug("BuzzHeavier in-page fallback failed: {Error}", e.Message);
         }
+        return null;
     }
 }

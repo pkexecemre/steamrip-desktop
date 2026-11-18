@@ -54,19 +54,6 @@ dotnet publish "$proj" -c Release -r linux-x64 -o out/linux-x64 --nologo -v quie
   -p:Version="$version" -p:DebugType=none -p:TreatWarningsAsErrors=true
 mkdir -p "$dist"
 
-# Polite note: "dotnet publish" prunes the Playwright driver tree down to its LICENSE (the node binary and the driver
-# package are not managed assemblies), which leaves the app unable to open a challenge page with "Driver not found".
-# Copy the driver the way the package ships it.
-pw="$(find "$HOME/.nuget/packages/microsoft.playwright" -maxdepth 4 -type d -name .playwright 2>/dev/null | head -1)"
-if [ -n "$pw" ]; then
-  echo "== playwright driver from $pw"
-  cp -a "$pw/." "$out/linux-x64/.playwright/"
-fi
-if [ ! -x "$out/linux-x64/.playwright/node/linux-x64/node" ]; then
-  echo "!! Playwright driver missing from out/linux-x64/.playwright — the headless browser will not start" >&2
-  exit 1
-fi
-
 for pkg in deb rpm archlinux; do
   echo "== nfpm $pkg"
   nfpm package --config packaging/nfpm.yaml --packager "$pkg" --target "$dist/"

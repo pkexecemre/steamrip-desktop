@@ -15,7 +15,7 @@ SteamRip.sln
 Directory.Build.props              # net10.0, nullable, implicit usings, warnings as errors off
 src/SteamRip.Core/                 # everything testable; no Avalonia reference
   Catalog/      REST client, post/title parsing, hoster detection
-  Solver/       FlareSolverrClient (sessions, request.get, actions), BrowserSolver (Playwright, headed)
+  Solver/       FlareSolverrClient (optional, sessions/actions), CdpBrowser/CdpSolver (system Chromium over DevTools), FallbackSolver
   Hosters/      one IHostResolver per hoster + ResolverChain + HostPages (pure HTML parsing)
   Downloads/    Downloader (engine choice), Aria2Client (aria2c over JSON-RPC: splits, resume, torrents), ranged HTTP fallback
   Install/      ArchiveTool (unrar/7z), SaveLocator, Installer (staging → backup → swap)
@@ -104,6 +104,7 @@ A change to a resolver is not done until it has resolved and downloaded at least
 - Do not delete the old install before the new one passed `unrar t` and extracted fully. Do not delete anything that looks like a Wine prefix (`drive_c`/`system.reg`) — move it into the new tree (or, for our own prefix, to `.prefixes`).
 - Do not scan Heroic/Lutris/Steam prefixes for saves. The app owns the prefix at `<library>/.prefixes/<slug>`; that decision is recorded in `docs/decisions.md` (D11, D17).
 - Do not edit the planning file under `~/.cursor/plans/` if you have access to it; it is a historical record.
+- Do not add a browser runtime to the package. The challenge solver drives the system Chromium over DevTools (`CdpBrowser`); Playwright and its 140 MB driver were removed for exactly this reason (D19).
 - Do not add debrid support, a web UI, or multi-user features without the owner asking. Torrents are in scope only as a mirror type: hosters publish `.torrent` files instead of archives, and aria2 (when installed) pulls them (D18) — do not grow a BitTorrent client beyond that.
 
 ## Machine facts (dev box, Nov 2026)

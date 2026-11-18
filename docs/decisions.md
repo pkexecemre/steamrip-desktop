@@ -140,3 +140,20 @@ Also learned the hard way, and worth writing down for whoever fixes the resolver
 Rejected: bundling aria2 (licensing and a 4 MB binary to keep patched); a BitTorrent library in-process (a second protocol stack to maintain, and aria2 already does the HTTP side better than our loop); scraping aria2's console readout for progress.
 
 Locks in: `Downloader` stays the only entry point for transfers; anything that needs a torrent goes through `Downloader.TorrentAsync`. aria2 remains optional — the app must still install games without it.
+
+
+## D19 — The browser solver is the user's Chromium over DevTools, not a bundled one (Nov 18 2026)
+
+Owner: "make sure u keep the app size small ... dont have dependency issues."
+
+Playwright as the challenge solver cost 140 MB of package (its Node driver) and broke in the packaged app with "Driver not found" because `dotnet publish` prunes the driver tree. The package went from 95 MB to **293 MB**, the install to 579 MB — for one feature.
+
+Choice: `CdpBrowser` speaks the DevTools protocol over a WebSocket to a Chromium the user already has (PATH: chromium, chromium-browser, Chrome, Brave, Edge, Vivaldi; last resort the Chromium Playwright left in `~/.cache/ms-playwright`). No bundled runtime, no Node, no package growth: the rpm is **42 MB**, installed 50 MB. If no browser exists the app says so instead of pretending.
+
+Two things learned while making the hosters work:
+- `--no-proxy-server`: Chromium obeys the desktop's proxy settings; a broken system proxy turns every hoster into `ERR_PROXY_CONNECTION_FAILED` while curl goes out fine. And distro builds differ — the solver probes `https://steamrip.com/` and moves to the next browser if the page fails.
+- `Page.navigate` with a `referrer` is what makes the hosters serve their real page (a bare navigation has no referer and gets bounced to the homepage).
+
+With that, both gates resolve without FlareSolverr: FileDitch sets its link on the main button when the gate's script runs, and BuzzHeavier's `hx-redirect` is read from the browser's network layer (the page's own JS cannot see it). Verified against live mirrors: HTTP 206, `application/vnd.rar`, real bytes.
+
+Rejected: keeping Playwright and shipping the driver (size, and it is only a wrapper around what the system browser already is); a BitTorrent-style client for the browser part; requiring the user to run FlareSolverr (it stays supported when present, as a preference).

@@ -375,11 +375,8 @@ public sealed class AppServices : IAsyncDisposable
             Timeout = TimeSpan.FromSeconds(60),
         };
 
-        var browser = new FallbackSolver(
-            solver,
-            new PlaywrightSolver(loggers.CreateLogger<PlaywrightSolver>()),
-            loggers.CreateLogger<FallbackSolver>()
-        );
+        var cdp = new CdpSolver(loggers.CreateLogger<CdpSolver>());
+        var browser = new FallbackSolver(solver, cdp, loggers.CreateLogger<FallbackSolver>());
         var resolvers = new ResolverChain(
             [
                 new FileDitchResolver(browser, loggers.CreateLogger<FileDitchResolver>()),
@@ -422,9 +419,9 @@ public sealed class AppServices : IAsyncDisposable
             "Download engine: {Engine} ({Aria2}); challenge pages: {Browser}",
             downloader.EngineName,
             aria2.Describe(),
-            Program.PlaywrightDriverPath is { } driver
-                ? "headless Chromium (" + driver + ")"
-                : "Playwright driver not found"
+            CdpSolver.Executable is { } chromium
+                ? "Chromium via DevTools (" + chromium + ")"
+                : "no Chromium found — hoster checks will fail"
         );
         var steamHttp = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
         var steamApps = new SteamAppIdResolver(
