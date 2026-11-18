@@ -19,7 +19,7 @@ src/SteamRip.Core/                 # everything testable; no Avalonia reference
   Hosters/      one IHostResolver per hoster + ResolverChain + HostPages (pure HTML parsing)
   Downloads/    Downloader (Range resume, .part, hash verify)
   Install/      ArchiveTool (unrar/7z), SaveLocator, Installer (staging → backup → swap)
-  Launch/       ExeFinder, ProtonLocator (+ GE-Proton/DW-Proton keywords), ProtonDownloader, GameLauncher (umu-run / wine / direct)
+  Launch/       ExeFinder, ProtonLocator (+ GE-Proton/DW-Proton keywords), ProtonDownloader, GameLauncher (umu-run / wine / direct), PrefixManager/PrefixLease (where prefixes live, what built them, who holds them)
   Updates/      UpdateService (queue, scheduler, play), UpdateDetector, Job, ManualSolve
   Data/         Database (hand-written migrations), Settings (JSON)
   Platform/     ISecretStore, Notifier, Autostart, Shortcuts (Linux + Windows shims)
@@ -39,7 +39,7 @@ Keep this shape. Do not add a project per hoster, a plugin system, DI container,
 ```sh
 make setup        # once per clone: dotnet tools (CSharpier, ReSharper CLI), git hooks, restore
 make build        # whole solution; analyzers on, warnings are errors
-make test         # 67 tests, ~1 s, no network
+make test         # 96 tests, ~1 s, no network
 make run-dev      # app against the throwaway profile (/tmp/sr-cfg), --show --verbose
 make check        # all gates: format-check, clean build, tests, ReSharper at WARNING+
 make inspect-all  # ReSharper at the highest level (every hint/suggestion); a report, never fails
@@ -88,6 +88,8 @@ A change to a resolver is not done until it has resolved and downloaded at least
 - DB schema changes go in `Database.Migrations[]` as a new entry (append only, never edit a shipped one). Add the column to the matching record and to the SELECT/INSERT in `Database.cs`.
 - Mark knowingly-limited code with a `// ponytail: <what the ceiling is>` comment, e.g. the GoFile salt, the FileDitch expiry assumption, the save-dir heuristic.
 - `Hoster` enum values are stable identifiers used in `Settings.HosterOrder`; renaming breaks user configs.
+- Prefix behaviour goes through `PrefixManager` (path resolution, migration, health, record) and `PrefixLease` (one launch per prefix). `PrefixRecord` is read back from disk across releases: append fields, never rename them.
+- `GAMEID` for games without a Steam app id is `umu-steamrip-<slug>`; do not fall back to `umu-default` for a real game (that id is for bootstrapping a prefix).
 - UI: CommunityToolkit.Mvvm (`[ObservableProperty]`, `[RelayCommand]`), DataTemplates keyed by ViewModel type, styles in `Views/Styles.axaml`, palette in `App.axaml` (ink `#141821`, amber `#F2B544`). No code-behind logic beyond window plumbing.
 
 ## Things not to do
@@ -97,8 +99,8 @@ A change to a resolver is not done until it has resolved and downloaded at least
 - Do not route file bytes through FlareSolverr. It clears landing pages only; every download goes through `HttpClient` with `Range`.
 - Do not trust hoster-published hashes blindly. MegaDB's page hash does not match the file; the archive CRC test (`unrar t`) is the integrity check. BuzzHeavier's MD5/SHA-256 do match and are verified.
 - Do not open a browser window unprompted. Headed-browser solving happens only when the user clicks "Solve in browser".
-- Do not delete the old install before the new one passed `unrar t` and extracted fully. Do not delete anything that looks like a Wine prefix (`drive_c`/`system.reg`) — move it into the new tree.
-- Do not scan Heroic/Lutris/Steam prefixes for saves. The app owns the prefix at `<game>/prefix`; that decision is recorded in `docs/decisions.md`.
+- Do not delete the old install before the new one passed `unrar t` and extracted fully. Do not delete anything that looks like a Wine prefix (`drive_c`/`system.reg`) — move it into the new tree (or, for our own prefix, to `.prefixes`).
+- Do not scan Heroic/Lutris/Steam prefixes for saves. The app owns the prefix at `<library>/.prefixes/<slug>`; that decision is recorded in `docs/decisions.md` (D11, D17).
 - Do not edit the planning file under `~/.cursor/plans/` if you have access to it; it is a historical record.
 - Do not add debrid support, a web UI, torrents, or multi-user features without the owner asking.
 

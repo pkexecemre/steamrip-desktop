@@ -15,7 +15,7 @@ flowchart LR
     RC --> DL[Downloader<br/>Range + .part + hash]
     DL --> INST[Installer<br/>unrar t → staging → save backup → swap]
     INST --> LIB[(library/&lt;slug&gt;/)]
-    LIB --> GL[GameLauncher<br/>umu-run + Proton, prefix inside game dir]
+    LIB --> GL[GameLauncher<br/>umu-run + Proton, prefix at .prefixes/&lt;slug&gt;]
     GL --> DB
 ```
 
@@ -28,7 +28,7 @@ flowchart LR
 | `Hosters` | `IHostResolver`, `FileDitchResolver`, `GoFileResolver`, `MegaDbResolver`, `BuzzHeavierResolver`, `ResolverChain`, `HostPages`, `ResolvedDownload` | Share URL → direct URL + headers + optional hashes/expiry. See `hosters.md`. |
 | `Downloads` | `Downloader`, `DownloadProgress`, `DownloadException` | Ranged resume into `<file>.part`, 416 = complete, 302/401/403/HTML body → `retryResolve`, SHA-256/MD5 verify, 30 s debug progress lines. |
 | `Install` | `ArchiveTool`, `SaveLocator`, `Installer`, `InstallOptions`, `InstallResult` | See "Install flow". |
-| `Launch` | `ExeFinder`, `ProtonLocator`, `ProtonDownloader`, `GameLauncher`, `LaunchSpec`, `LaunchCommand`, `RunningGame`, `LaunchOptions`, `HostCapabilities` | See "Launch flow" and "Launch tweaks". |
+| `Launch` | `ExeFinder`, `ProtonLocator`, `ProtonDownloader`, `GameLauncher`, `LaunchSpec`, `LaunchCommand`, `RunningGame`, `LaunchOptions`, `HostCapabilities`, `PrefixManager`, `PrefixLease`, `PrefixRecord`, `PrefixStatus` | See "Launch flow", "Prefix management" and "Launch tweaks". |
 | `Updates` | `UpdateService`, `UpdateDetector`, `Job`, `JobStage`, `ManualSolve` | Scheduler, queue, play; the only place that stitches the others together. |
 | `Data` | `Database`, `Settings`, `InstalledGame`, `InstallState` | SQLite with hand-written migrations; JSON settings. |
 | `Platform` | `ISecretStore` (+ `SecretToolStore`, `DpapiFileStore`, `FileSecretStore`), `Notifier`, `Autostart`, `Shortcuts` | OS shims, Linux + Windows. |
@@ -97,8 +97,8 @@ Migrations are appended to `Database.Migrations[]`; never edit an existing entry
 
 1. `ArchiveTool.TestAsync` (`unrar t` / `7z t`) — the integrity check, since hoster hashes are unreliable.
 2. Extract into `<library>/.staging/<slug>/`; collapse a single top-level directory (moving `_CommonRedist`-style siblings inside).
-3. Save backup from the **old** install into `<library>/.backups/<slug>/<old-version>/`: in-folder save-like dirs (`Save*`, `Saves`, `SaveGames`, `Profiles`, `Saved`, `UserData`… skipping engine dirs like `Engine`, `Content`, `Binaries`, `drive_c`), and Goldberg/GSE dirs (`GSE Saves`, `Goldberg SteamEmu Saves/<steam_app_id>`) found inside the game's own prefix.
-4. Preserve the Wine prefix: any directory under the old install that looks like a prefix (`drive_c` + `system.reg`) is **moved** into the new tree at the same relative path. In-folder save dirs are copied across too.
+3. Save backup from the **old** install into `<library>/.backups/<slug>/<old-version>/`: in-folder save-like dirs (`Save*`, `Saves`, `SaveGames`, `Profiles`, `Saved`, `UserData`… skipping engine dirs like `Engine`, `Content`, `Binaries`, `drive_c`), and Goldberg/GSE dirs (`GSE Saves`, `Goldberg SteamEmu Saves/<steam_app_id>`) found in `InstallOptions.PrefixDir` — the game's prefix, which normally lives outside the install folder.
+4. Preserve a foreign Wine prefix: any directory under the old install that looks like a prefix (`drive_c` + `system.reg`, e.g. a Heroic/Lutris-era one, or ours from before the `.prefixes` layout) is **moved** into the new tree at the same relative path. In-folder save dirs are copied across too.
 5. Swap: old folder → temp name, staging → `<library>/<slug>/`, delete old. Failure before the swap leaves the old install untouched.
 6. Prune backups to `KeepBackups`. Optionally delete the archive.
 
@@ -115,12 +115,21 @@ Linux writes `steamrip-game-<postId>.desktop` to `$XDG_DATA_HOME/applications` (
 1. Exe: stored `exe_rel`, else `ExeFinder.Best(gameRoot, name)` (scores name-token match +10, squashed-name match +10, `*-Shipping.exe` +8, `Binaries` +3, root depth +2, >50 MB +3; penalises launchers and tiny files; skips redist/uninstaller/crash-handler/`steam_api`/anything under `prefix` or a `drive_c`). Saved back to the DB.
 2. Proton: `ProtonLocator.Effective(per-game proton column ?? Settings.DefaultProtonPath)`; empty means `GE-Proton`. The `GE-Proton` keyword is passed straight through as `PROTONPATH` (umu resolves, downloads and updates it under `~/.local/share/Steam/compatibilitytools.d/`). `DW-Proton` goes through `ProtonDownloader.EnsureDwProtonAsync`: GitHub `dawn-winery/dwproton-mirror` latest release → `<tag>-x86_64.tar.xz` + `.sha512sum` → `Downloader` into `compatibilitytools.d/.downloads` → SHA-512 check → `tar -xJf` into a staging dir → move to `compatibilitytools.d/<tag>`; the resolved directory is what `PROTONPATH` gets. One release check per 6 h; offline it uses the newest installed `dwproton-*` and fails the launch with a `LaunchException` only if there is none. `ProtonLocator.ResolveInstalled` picks the newest installed dir for a keyword (numeric version order) so `HostCapabilities` can reason about it.
 3. Options: `UpdateService.EffectiveLaunch(g)` = per-game `launch_json` over `Settings.DefaultLaunch` over `LaunchOptions.AppDefaults` (null and blank fields inherit).
-4. VC redist (Linux, first play only): if `prefix/.steamrip-vc-redist` is missing, `RedistInstaller` runs VC++ installers from `gameRoot/_CommonRedist` into the prefix via umu/wine (`VisualCppRedist_AIO*` if present, else `vcredist*` / `vc_redist*`, silent). Skips DirectX/OpenAL/.NET/XNA. Marker is written after the attempt so a bad installer cannot loop every launch. The library card ⋯ menu also has **Winetricks** (GUI with that game's Proton `wine`/`wineserver` + `WINEPREFIX`) and **Run exe…** (file picker → same prefix runner) for everything else.
-5. `GameLauncher.Compose(spec, runner, exe, prefix, findTool, screen)` is a pure function that returns the command line, the environment and warnings. Linux: `[wrapper] [gamemoderun] [gamescope <args> [-W w -H h] [--hdr-enabled] [--mangoapp] --] umu-run "<exe>" <args>` with env `WINEPREFIX=<gameRoot>/prefix`, `GAMEID=umu-<steam_app_id>` (or `umu-default`), `STORE=none`, `PROTONPATH=<proton>` when set, plus whatever the options add (next section); working directory = exe directory. Fallback without umu: `wine`. Windows: run the exe directly; only the wrapper and the free-form environment apply.
+4. VC redist (Linux, first play only): if `<prefix>/.steamrip-vc-redist` is missing, `RedistInstaller` runs VC++ installers from `gameRoot/_CommonRedist` into the prefix via umu/wine (`VisualCppRedist_AIO*` if present, else `vcredist*` / `vc_redist*`, silent). Skips DirectX/OpenAL/.NET/XNA. Marker is written after the attempt so a bad installer cannot loop every launch. The library card ⋯ menu also has **Winetricks** (GUI with that game's Proton `wine`/`wineserver` + `WINEPREFIX`, holding the prefix lease while it is open), **Run exe…** (file picker → same prefix runner, lease held for the run), **Prefix info** and **Reset prefix**.
+5. `GameLauncher.Compose(spec, runner, exe, prefix, findTool, screen)` is a pure function that returns the command line, the environment and warnings. Linux: `[wrapper] [gamemoderun] [gamescope <args> [-W w -H h] [--hdr-enabled] [--mangoapp] --] umu-run "<exe>" <args>` with env `WINEPREFIX=<prefixRoot>/<slug>`, `GAMEID=umu-<steam_app_id>` (or `umu-steamrip-<slug>` when the catalog has no app id, so two games never share one), `STORE=none`, `PROTONPATH=<proton>` when set, plus whatever the options add (next section); working directory = exe directory. Fallback without umu: `wine`. Windows: run the exe directly; only the wrapper and the free-form environment apply.
 6. Process stdout/stderr tail is logged at Trace; exit is logged (user Stop at Information, unexpected non-zero or <10 s runs at Warning with the output tail). `Exited(postId, played, code)` adds playtime; `last_played_utc` is set at launch.
-7. `Stop`: `Process.Kill(entireProcessTree)` then `umu-run wineboot -k` in the same prefix.
+7. `Stop`: `Process.Kill(entireProcessTree)` then `umu-run wineboot -k` in the same prefix; the lease is released when the process exits.
 
-The prefix lives inside the game folder on purpose: one directory per game to back up, move or delete, and the installer's prefix-preservation step is what makes updates safe.
+### Prefix management (`PrefixManager`, `PrefixLease`)
+
+A prefix is a ~40–800 MB Wine tree, so it is treated as its own artifact instead of a subfolder of the game:
+
+- **Location**: `<library>/.prefixes/<slug>/` by default, `Settings.PrefixRoot` overrides the root (e.g. put prefixes on a faster disk). A prefix found at the old `<game>/prefix` is moved there by `PrefixManager.Prepare` on the next launch/uninstall — a rename, so it costs milliseconds and never doubles the disk use. Nothing is ever copied twice and nothing is deleted.
+- **Record**: `.steamrip-prefix.json` inside the prefix holds creation/last-use time, launch count, the Proton setting, the resolved build directory and the `GAMEID`. It travels with the folder, so a backed-up prefix keeps its history.
+- **Proton switch**: when the resolved build differs from the recorded one (including a GE-Proton update), `GameLauncher` runs `wineboot -u` through the same umu/wine runner before the game starts, and logs the old and new build. This is the case that used to surface as "the game broke after I changed Proton".
+- **Lease**: `PrefixLease` is an advisory `flock` on `.steamrip-prefix.lock`, held for the game's lifetime, for the run-exe/winetricks dialogs, and refused with a plain "prefix is in use by another launch" instead of two wineservers fighting over one prefix. A crashed process cannot leave it stuck: the lock dies with the file descriptor. The lock file itself is never unlinked (unlinking would let two processes lock two different inodes).
+- **Health**: `Missing` / `Fresh` / `Ready` / `Damaged` from `system.reg` + the record; the ⋯ menu's **Prefix info** reports size, build, launch count and last use, **Reset prefix** moves the tree to `<prefix>.bak-<utc>` and lets the next launch bootstrap a clean one.
+- **Uninstall**: `DeletePrefixOnUninstall` (off by default) decides whether removing a game takes its prefix with it. Deleting the game folder never touches the prefix, and before a delete-files uninstall a legacy in-folder prefix is moved out first.
 
 ### Launch tweaks (`LaunchOptions`, `HostCapabilities`)
 
@@ -152,7 +161,7 @@ Wine's Wayland driver treats an output as HDR only when the compositor's maximum
 
 ## Testing
 
-`tests/SteamRip.Core.Tests` (xunit, 58 tests, no network): catalog/title parsing against `Fixtures/posts_page1.json`; `HostPages` against saved FileDitch (solved + interstitial), BuzzHeavier and MegaDB HTML; `Downloader` against an in-process `HttpListener` that serves ranges and injected failures; `Installer`/`SaveLocator` against temp directory trees (collapse, backups, prefix preservation, prune); `FileLoggerProvider`; `ExeFinder` and `ProtonLocator`. Live hoster and site behaviour is exercised through throwaway harnesses under `/tmp`, never in the suite.
+`tests/SteamRip.Core.Tests` (xunit, 96 tests, no network): catalog/title parsing against `Fixtures/posts_page1.json`; `HostPages` against saved FileDitch (solved + interstitial), BuzzHeavier and MegaDB HTML; `Downloader` against an in-process `HttpListener` that serves ranges and injected failures; `Installer`/`SaveLocator` against temp directory trees (collapse, backups, prefix preservation, prune); `FileLoggerProvider`; `ExeFinder` and `ProtonLocator`. Live hoster and site behaviour is exercised through throwaway harnesses under `/tmp`, never in the suite.
 
 ## Publishing
 

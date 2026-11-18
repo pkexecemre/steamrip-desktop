@@ -50,6 +50,8 @@ Choice: each game gets a Wine prefix at `<library>/<slug>/prefix`, created on fi
 
 Locks in: the prefix is a per-game artifact that lives and dies with the game folder; deleting a game deletes its prefix and saves (after backup). Revisit if the owner wants a shared prefix, Steam shortcuts, or a Heroic sideload export.
 
+Superseded in part by D17 (Nov 18 2026): the prefix is still per game and owned by the app, but it no longer lives inside the game folder, and deleting a game no longer takes it by default.
+
 ## D12 — No spikes or scratch files in the repo
 
 Throwaway harnesses live under `/tmp/steamrip-spikes`, test profiles under `/tmp/sr-cfg`, test libraries under `/tmp/sr-lib`. Findings that matter are written into `docs/` and, where parseable, saved as fixtures under `tests/…/Fixtures/`.
@@ -97,3 +99,22 @@ Choice: `PostSort` (updated, added, name, size desc/asc) is applied in `Database
 Rejected: Steam store genres via the Steam API (per-app requests for 5,000 games, rate limited, and the site's categories are good enough); WordPress `tags` (one per post, useless); sorting/filtering client-side; popularity from Steam (`GetMostPlayedGames` is 100 games, 56 of which are on the site) or SteamSpy (`request=all` answered "Too many connections" on every try).
 
 Locks in: `PostSort` values are not persisted; category ids are the site's and may change meaning if the site re-tags, in which case the next full sync rewrites `post_categories`.
+
+## D17 — Prefixes live outside the game folder, with a record, a lease and a reset (Nov 18 2026)
+
+Owner: "make the proton prefix kinda stuff better."
+
+Three things were wrong with `<game>/prefix`: a "delete files" uninstall took the saves with it; every update had to shuffle a multi-hundred-MB tree around the archive swap; and nothing remembered which Proton built it, so switching Proton (or a GE-Proton update landing between two launches) showed up later as a game that suddenly stopped working. Two launches could also start into one prefix and fight over its `wineserver`.
+
+Choice:
+- Prefixes at `<library>/.prefixes/<slug>` (`Settings.PrefixRoot` overrides the root). `PrefixManager.Prepare` moves a legacy in-folder prefix there on the next launch or uninstall — `Directory.Move`, so it is a rename, not a copy. A folder that only looks like `prefix` by name is left alone unless it really holds `drive_c`/`system.reg`.
+- `.steamrip-prefix.json` inside the prefix records dates, launch count, the Proton setting, the resolved build and the `GAMEID`, so a backed-up or moved prefix keeps its history.
+- A changed Proton build triggers `wineboot -u` through the same umu/wine runner before the game starts, logged as "prefix was created with X; switching to Y".
+- `PrefixLease` (`flock` on `.steamrip-prefix.lock`) is held for the game's lifetime (and for Winetricks/Run exe), so a second launch says "the prefix is in use" instead of corrupting it. A crashed process releases it with its file descriptor; the lock file is never unlinked, because unlinking lets two processes lock two different inodes.
+- Uninstall keeps the prefix unless `DeletePrefixOnUninstall` is set; a delete-files uninstall moves a legacy in-folder prefix out first. Goldberg/GSE saves are now backed up from the out-of-folder prefix (`InstallOptions.PrefixDir`).
+- The ⋯ menu gained **Prefix info** (size, build, launches, last use) and **Reset prefix** (moves the tree to `<prefix>.bak-<utc>`, deletes nothing).
+- Games without a Steam app id get `umu-steamrip-<slug>` as their `GAMEID` instead of every one of them sharing `umu-default`.
+
+Rejected: one shared prefix for the whole library (one game's DLL overrides and redistributables break the next, which is why Steam keeps per-app compatdata); deleting the prefix on reset; pinning a Proton version into the prefix record and refusing to launch on a mismatch (too strict — a warning plus `wineboot -u` is what Steam does).
+
+Locks in: the prefix moves one way only (nothing migrates back); empty `PrefixRoot` means the library default; D11's rule about not scanning Heroic/Lutris/Steam prefixes for saves still stands — this is about where *our* prefix lives, not about adopting someone else's. Windows has no prefix and the setting is Linux-only.

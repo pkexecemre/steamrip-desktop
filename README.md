@@ -9,7 +9,7 @@ Personal-use project. The code is what one person needs to run a game library ha
 - **Catalog**: syncs the site through the WordPress REST API (no HTML scraping of the site itself), detects updated posts by `modified` + build/version change.
 - **Download**: resolves a post's mirrors (FileDitch, GoFile, MegaDB, BuzzHeavier) to a direct URL, clears Cloudflare via a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, downloads with resume (`Range` + `.part`), verifies hashes where the hoster publishes them.
 - **Install**: `unrar t`/`7z t` integrity check → extract to staging → back up saves → swap into `<library>/<slug>/` → prune old backups. The old install is untouched until the new one is verified.
-- **Play**: `umu-run` + Proton with `WINEPREFIX=<game>/prefix`, exe auto-detected, per-game Proton/exe/argument overrides, playtime tracking. On Windows the exe runs directly.
+- **Play**: `umu-run` + Proton with the prefix at `<library>/.prefixes/<slug>` — outside the game folder, recorded (which Proton built it, when, how many launches), locked while it runs, and one click away from a reset that moves it aside instead of deleting it. Exe auto-detected, per-game Proton/exe/argument overrides, playtime tracking.
 - **Update**: periodic check; auto-downloads and reinstalls library games; waits for a running game to exit first; prefix and saves survive the swap.
 - **Tray**: open library / check now / pause auto-updates / quit; OS notifications; autostart; hidden start.
 - **Covers**: game art from Steam's public CDN via `steam_app_id`, lazy-loaded per card, cached on disk.
@@ -75,7 +75,7 @@ The [Release workflow](.github/workflows/release.yml) builds the Linux packages 
 | --- | --- | --- |
 | Config, DB, logs, cover cache | `~/.config/steamrip-desktop/` (`settings.json`, `steamrip.db`, `logs/`, `covers/`) | `%APPDATA%\steamrip-desktop\` |
 | Library (default) | `~/Games/SteamRIP/<slug>/` | `%USERPROFILE%\Games\SteamRIP\<slug>\` |
-| Game prefix | `<library>/<slug>/prefix/` | n/a |
+| Game prefix | `<library>/.prefixes/<slug>/` (or `Settings.PrefixRoot`) | n/a |
 | Downloads (default) | `~/Games/SteamRIP/.downloads/<slug>/` | `%USERPROFILE%\Games\SteamRIP\.downloads\<slug>\` |
 | Staging during install | `<library>/.staging/<slug>/` | same |
 | Save backups | `<library>/.backups/<slug>/<old-version>/` | same |
