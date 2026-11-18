@@ -18,6 +18,13 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial string DownloadsRoot { get; set; }
 
+    /// <summary>Where Wine prefixes live; empty means <c>&lt;library&gt;/.prefixes</c>.</summary>
+    [ObservableProperty]
+    public partial string PrefixRoot { get; set; }
+
+    [ObservableProperty]
+    public partial bool DeletePrefixOnUninstall { get; set; }
+
     [ObservableProperty]
     public partial ProtonBuild? DefaultProton { get; set; }
     public ObservableCollection<ProtonBuild> Protons { get; } = [];
@@ -99,6 +106,8 @@ public partial class SettingsViewModel : ObservableObject
         _ = ShowCapabilitiesAsync(s.Capabilities);
         LibraryRoot = c.LibraryRoot;
         DownloadsRoot = c.DownloadsRoot;
+        PrefixRoot = c.PrefixRoot;
+        DeletePrefixOnUninstall = c.DeletePrefixOnUninstall;
         foreach (var p in ProtonLocator.Managed.Concat(ProtonLocator.Find()))
             Protons.Add(p);
         var current = ProtonLocator.Effective(c.DefaultProtonPath);
@@ -157,6 +166,8 @@ public partial class SettingsViewModel : ObservableObject
         var c = _s.Settings;
         c.LibraryRoot = LibraryRoot.Trim();
         c.DownloadsRoot = DownloadsRoot.Trim();
+        c.PrefixRoot = PrefixRoot.Trim();
+        c.DeletePrefixOnUninstall = DeletePrefixOnUninstall;
         c.DefaultProtonPath = DefaultProton?.Path ?? ProtonLocator.GeProton;
         c.FlareSolverrUrl = Core.Solver.FlareSolverrClient.NormalizeUrl(FlareSolverrUrl);
         var sgdbKey = SteamGridDbApiKey.Trim();

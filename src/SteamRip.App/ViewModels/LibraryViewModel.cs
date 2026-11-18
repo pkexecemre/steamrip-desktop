@@ -130,13 +130,74 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
 
     public void OpenFolder(LibraryItem item) => OpenPath(item.ResolvedPath);
 
+    /// <summary>Where the game's prefix lives: the new out-of-folder root, or a not-yet-migrated legacy one.</summary>
+    private string ExistingPrefix(LibraryItem item)
+    {
+        var dir = PrefixManager.Dir(s.Updates.PrefixRoot, item.Game.Slug);
+        if (Directory.Exists(dir))
+            return dir;
+        return PrefixManager.LegacyDir(item.ResolvedPath) ?? dir;
+    }
+
     public void OpenPrefix(LibraryItem item)
     {
-        var p = GameLauncher.PrefixDir(item.ResolvedPath);
+        var p = ExistingPrefix(item);
         if (Directory.Exists(p))
             OpenPath(p);
         else
             LastError = $"{item.Name}: no prefix yet — it is created on first launch.";
+    }
+
+    /// <summary>Moves the prefix aside (never deletes it) so the next launch bootstraps a clean one.</summary>
+    public void ResetPrefix(LibraryItem item)
+    {
+        LastError = null;
+        if (s.Launcher.IsRunning(item.Game.PostId))
+        {
+            LastError = $"{item.Name}: stop the game before resetting its prefix.";
+            return;
+        }
+        var p = ExistingPrefix(item);
+        if (!Directory.Exists(p))
+        {
+            LastError = $"{item.Name}: no prefix yet — nothing to reset.";
+            return;
+        }
+        try
+        {
+            var aside = PrefixManager.Reset(p);
+            s.Log.LogInformation(
+                "{Name}: prefix reset; old prefix moved to {Aside}",
+                item.Name,
+                aside ?? "n/a"
+            );
+            _ = s.Notifier.NotifyAsync(
+                item.Name,
+                aside is null
+                    ? "No prefix to reset."
+                    : "Prefix moved aside; the next launch builds a clean one."
+            );
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            LastError = $"{item.Name}: could not reset the prefix: {e.Message}";
+            s.Log.LogWarning("{Name}: prefix reset failed: {Error}", item.Name, e.Message);
+        }
+    }
+
+    /// <summary>What the prefix is right now (size, Proton, launches), in the log and as a notification.</summary>
+    public void PrefixInfo(LibraryItem item)
+    {
+        var status = PrefixManager.Inspect(ExistingPrefix(item));
+        var line =
+            $"{status.Summary} — {status.Path}"
+            + (
+                status.Record?.LastUsedUtc is { } used
+                    ? $" (last used {used.ToLocalTime():yyyy-MM-dd HH:mm})"
+                    : ""
+            );
+        s.Log.LogInformation("{Name}: prefix {Line}", item.Name, line);
+        _ = s.Notifier.NotifyAsync(item.Name, line);
     }
 
     public void OpenPage(LibraryItem item)
@@ -150,7 +211,7 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
         LastError = null;
         try
         {
-            s.Launcher.OpenWinetricks(item.ResolvedPath, ProtonFor(item));
+            s.Launcher.OpenWinetricks(item.ResolvedPath, ProtonFor(item), ExistingPrefix(item));
         }
         catch (Exception e)
         {
@@ -196,7 +257,15 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
                 return;
             s.Log.LogInformation("{Name}: run in prefix {Exe}", item.Name, path);
             await s.Notifier.NotifyAsync(item.Name, $"Running {Path.GetFileName(path)}…");
-            var code = await s.Launcher.RunInPrefixAsync(item.ResolvedPath, ProtonFor(item), path);
+            var prefix = s.Updates.PrefixFor(item.Game);
+            int code;
+            using (PrefixLease.Acquire(prefix))
+                code = await s.Launcher.RunInPrefixAsync(
+                    item.ResolvedPath,
+                    ProtonFor(item),
+                    path,
+                    prefixDir: prefix
+                );
             s.Log.LogInformation(
                 "{Name}: {Exe} exited {Code}",
                 item.Name,
@@ -565,6 +634,12 @@ public sealed partial class LibraryItem : ObservableObject
 
     [RelayCommand]
     private void OpenPrefix() => _owner.OpenPrefix(this);
+
+    [RelayCommand]
+    private void PrefixInfo() => _owner.PrefixInfo(this);
+
+    [RelayCommand]
+    private void ResetPrefix() => _owner.ResetPrefix(this);
 
     [RelayCommand]
     private void OpenPage() => _owner.OpenPage(this);

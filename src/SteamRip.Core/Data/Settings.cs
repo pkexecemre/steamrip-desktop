@@ -23,6 +23,15 @@ public sealed class Settings
     /// <summary>Proton used for games without their own: a build directory or a keyword (<c>GE-Proton</c>, <c>DW-Proton</c>). Empty also means GE-Proton; UMU-Proton is never the default.</summary>
     public string DefaultProtonPath { get; set; } = Launch.ProtonLocator.GeProton;
 
+    /// <summary>
+    /// Where Wine prefixes live. Empty means <c>&lt;LibraryRoot&gt;/.prefixes/&lt;slug&gt;</c> — outside the game
+    /// folders, so an update swap, an uninstall or "delete files" cannot take the saves with it.
+    /// </summary>
+    public string PrefixRoot { get; set; } = "";
+
+    /// <summary>Uninstall with "delete files" removes the prefix too (saves included). Off by default.</summary>
+    public bool DeletePrefixOnUninstall { get; set; }
+
     /// <summary>Launch tweaks every game inherits unless it overrides them. Nested on purpose: the same record is stored per game.</summary>
     public Launch.LaunchOptions DefaultLaunch { get; set; } = Launch.LaunchOptions.AppDefaults;
     public string FlareSolverrUrl { get; set; } = "http://localhost:8191";

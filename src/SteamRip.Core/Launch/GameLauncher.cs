@@ -14,10 +14,17 @@ public sealed record LaunchSpec(
     string? ProtonPath,
     string? Arguments,
     long? SteamAppId,
-    LaunchOptions? Options = null
+    LaunchOptions? Options = null,
+    string? PrefixDir = null,
+    string? Slug = null
 );
 
-public sealed record RunningGame(LaunchSpec Spec, Process Process, DateTime StartedUtc);
+public sealed record RunningGame(
+    LaunchSpec Spec,
+    Process Process,
+    DateTime StartedUtc,
+    PrefixLease? Lease = null
+);
 
 /// <summary>The fully composed process: wrappers, runner, exe, args and the env to add. Pure data so it can be asserted in tests.</summary>
 public sealed record LaunchCommand(
@@ -70,21 +77,37 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
 
         string? runner = null;
         string? prefix = null;
+        PrefixLease? lease = null;
         if (!OperatingSystem.IsWindows())
         {
-            prefix = PrefixDir(spec.GameRoot);
+            prefix = spec.PrefixDir ?? PrefixDir(spec.GameRoot);
             Directory.CreateDirectory(prefix);
+            // One wineserver per prefix: a second launch, a redistributable install or a second app instance must not
+            // start into a prefix that is already booted. The lease is held until the game exits.
+            lease = PrefixLease.Acquire(prefix);
             runner = UmuPath ?? WinePath;
             if (runner is null)
+            {
+                lease.Dispose();
                 throw new LaunchException(
                     "Neither umu-run nor wine is installed. Install umu-launcher (recommended) to play."
                 );
+            }
             if (UmuPath is null)
                 _log.LogWarning(
                     "umu-run not found; falling back to plain wine for {Name} (no Proton, no game fixes)",
                     spec.Name
                 );
-            await EnsureVcRedistAsync(spec.GameRoot, spec.ProtonPath);
+            try
+            {
+                await PreparePrefixAsync(spec, prefix);
+                await EnsureVcRedistAsync(spec.GameRoot, spec.ProtonPath, prefix);
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
         }
         var cmd = Compose(
             spec,
@@ -163,6 +186,9 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                     sw.Elapsed.TotalMinutes
                 );
             Exited?.Invoke(spec.PostId, sw.Elapsed, code);
+            // The lease lasts exactly as long as the game: released here, or in the catch below if the start fails.
+            // ReSharper disable once AccessToDisposedClosure -- disposing it from this handler is the whole point
+            lease?.Dispose();
             proc.Dispose();
         };
         try
@@ -171,13 +197,14 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         }
         catch (Exception e)
         {
+            lease?.Dispose();
             throw new LaunchException(
                 $"Could not start {Path.GetFileName(psi.FileName)}: {e.Message}"
             );
         }
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
-        var running = new RunningGame(spec, proc, started);
+        var running = new RunningGame(spec, proc, started, lease);
         _running[spec.PostId] = running;
         Started?.Invoke(spec.PostId);
         return running;
@@ -194,18 +221,106 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
     }
 
     /// <summary>
+    /// Reads what built this prefix, notices a Proton switch and lets Wine upgrade the prefix before the game
+    /// boots, then records this launch. Diagnostics only: nothing here may stop a launch.
+    /// </summary>
+    private async Task PreparePrefixAsync(LaunchSpec spec, string prefix)
+    {
+        var record = PrefixManager.Read(prefix) ?? new PrefixRecord();
+        var build = PrefixManager.ResolveBuild(spec.ProtonPath);
+        var previous = record.ProtonBuild;
+        if (PrefixManager.NeedsUpgrade(previous, build))
+        {
+            _log.LogWarning(
+                "{Name}: prefix was created with {Was}; switching to {Now} (wineboot -u upgrades it)",
+                spec.Name,
+                PrefixManager.ProtonLabel(previous),
+                PrefixManager.ProtonLabel(build)
+            );
+            await UpgradePrefixAsync(prefix, spec.ProtonPath, spec.Name);
+        }
+        var gameId = PrefixManager.GameId(spec.SteamAppId, spec.Slug);
+        PrefixManager.Write(
+            prefix,
+            record with
+            {
+                CreatedUtc = record.CreatedUtc == default ? DateTime.UtcNow : record.CreatedUtc,
+                LastUsedUtc = DateTime.UtcNow,
+                Launches = record.Launches + 1,
+                ProtonPath = spec.ProtonPath,
+                ProtonBuild = build ?? previous,
+                GameId = gameId,
+            }
+        );
+        if (PrefixManager.Check(prefix, record) is PrefixHealth.Damaged)
+            _log.LogWarning(
+                "{Name}: the prefix lost its registry (system.reg); Wine rebuilds it during this launch — saves inside it cannot be recovered",
+                spec.Name
+            );
+    }
+
+    /// <summary><c>wineboot -u</c> through the same runner the game uses, so a Proton switch migrates the prefix instead of confusing the game. Best effort.</summary>
+    private async Task UpgradePrefixAsync(string prefix, string? protonPath, string name)
+    {
+        var runner = UmuPath ?? WinePath;
+        if (runner is null)
+            return;
+        var psi = new ProcessStartInfo(runner)
+        {
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true,
+        };
+        psi.ArgumentList.Add("wineboot");
+        psi.ArgumentList.Add("-u");
+        psi.Environment["WINEPREFIX"] = prefix;
+        psi.Environment["GAMEID"] = "umu-default";
+        psi.Environment["STORE"] = "none";
+        if (!string.IsNullOrEmpty(protonPath))
+            psi.Environment["PROTONPATH"] = protonPath;
+        psi.Environment.Remove("UMU_RUNTIME_UPDATE");
+        try
+        {
+            using var p = Process.Start(psi);
+            if (p is null)
+                return;
+            var finished = await Task.Run(() => p.WaitForExit(90_000));
+            if (!finished)
+            {
+                _log.LogWarning("{Name}: wineboot -u did not finish in 90 s; continuing", name);
+                try
+                {
+                    p.Kill(entireProcessTree: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // already gone
+                }
+                return;
+            }
+            _log.LogInformation("{Name}: wineboot -u exited {Code}", name, p.ExitCode);
+        }
+        catch (Exception e) when (e is IOException or System.ComponentModel.Win32Exception)
+        {
+            _log.LogWarning("{Name}: wineboot -u could not run ({Error})", name, e.Message);
+        }
+    }
+
+    /// <summary>
     /// Once per prefix: run VC++ installers from <c>_CommonRedist</c> into the Wine prefix so games
     /// that need <c>mfc140.dll</c> / VC runtimes start without winetricks.
     /// </summary>
     public async Task EnsureVcRedistAsync(
         string gameRoot,
         string? protonPath,
+        string? prefixDir = null,
         CancellationToken ct = default
     )
     {
         if (OperatingSystem.IsWindows())
             return;
-        var prefix = PrefixDir(gameRoot);
+        var prefix = prefixDir ?? PrefixDir(gameRoot);
         if (!RedistInstaller.NeedsInstall(prefix))
             return;
         var installers = RedistInstaller.FindVcInstallers(gameRoot);
@@ -230,6 +345,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                     protonPath,
                     inst.FilePath,
                     inst.Args,
+                    prefixDir: prefix,
                     ct: ct
                 );
                 _log.LogInformation(
@@ -260,6 +376,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         string windowsExe,
         IReadOnlyList<string>? args = null,
         TimeSpan? timeout = null,
+        string? prefixDir = null,
         CancellationToken ct = default
     )
     {
@@ -273,7 +390,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             ?? throw new LaunchException(
                 "Neither umu-run nor wine is installed. Install umu-launcher (recommended)."
             );
-        var prefix = PrefixDir(gameRoot);
+        var prefix = prefixDir ?? PrefixDir(gameRoot);
         Directory.CreateDirectory(prefix);
         var psi = new ProcessStartInfo(runner)
         {
@@ -347,7 +464,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
     /// <summary>
     /// Open winetricks GUI against this game's prefix, using the same Proton wine binary Play would use.
     /// </summary>
-    public void OpenWinetricks(string gameRoot, string? protonPath)
+    public void OpenWinetricks(string gameRoot, string? protonPath, string? prefixDir = null)
     {
         if (OperatingSystem.IsWindows())
             throw new LaunchException("Winetricks is a Linux tool.");
@@ -356,7 +473,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             ?? throw new LaunchException(
                 "winetricks is not installed. Install it to manage this game's prefix."
             );
-        var prefix = PrefixDir(gameRoot);
+        var prefix = prefixDir ?? PrefixDir(gameRoot);
         Directory.CreateDirectory(prefix);
         var psi = new ProcessStartInfo(wt) { UseShellExecute = false, WorkingDirectory = gameRoot };
         psi.ArgumentList.Add("--gui");
@@ -377,7 +494,24 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                 prefix,
                 protonPath ?? "default"
             );
-        Process.Start(psi);
+        // The GUI can sit open for minutes; hold the prefix so a game cannot start behind it.
+        var lease = PrefixLease.Acquire(prefix);
+        Process proc;
+        try
+        {
+            proc = Process.Start(psi) ?? throw new LaunchException("Could not start winetricks.");
+        }
+        catch
+        {
+            lease.Dispose();
+            throw;
+        }
+        proc.EnableRaisingEvents = true;
+        proc.Exited += (_, _) =>
+        {
+            lease.Dispose();
+            proc.Dispose();
+        };
     }
 
     /// <summary>Proton's <c>files/bin/wine</c> + <c>wineserver</c> for a stored path or GE/DW keyword.</summary>
@@ -429,7 +563,7 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         if (runner is not null)
         {
             env["WINEPREFIX"] = prefix!;
-            env["GAMEID"] = spec.SteamAppId is { } id ? $"umu-{id}" : "umu-default";
+            env["GAMEID"] = PrefixManager.GameId(spec.SteamAppId, spec.Slug);
             env["STORE"] = "none";
             if (!string.IsNullOrEmpty(spec.ProtonPath))
                 env["PROTONPATH"] = spec.ProtonPath;
@@ -553,8 +687,8 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             };
             psi.ArgumentList.Add("wineboot");
             psi.ArgumentList.Add("-k");
-            psi.Environment["WINEPREFIX"] = PrefixDir(r.Spec.GameRoot);
-            psi.Environment["GAMEID"] = "umu-default";
+            psi.Environment["WINEPREFIX"] = r.Spec.PrefixDir ?? PrefixDir(r.Spec.GameRoot);
+            psi.Environment["GAMEID"] = PrefixManager.GameId(r.Spec.SteamAppId, r.Spec.Slug);
             if (!string.IsNullOrEmpty(r.Spec.ProtonPath))
                 psi.Environment["PROTONPATH"] = r.Spec.ProtonPath;
             using var p = Process.Start(psi);

@@ -137,6 +137,7 @@ public sealed class UpdateService : IAsyncDisposable
         var steamAppId = _steamApps is null
             ? post?.SteamAppId
             : await _steamApps.ResolveAsync(post?.SteamAppId, post?.Name ?? g.Name, _cts.Token);
+        var prefix = PrefixManager.Prepare(path, PrefixRoot, g.Slug, _log);
         await _launcher.LaunchAsync(
             new LaunchSpec(
                 postId,
@@ -146,13 +147,22 @@ public sealed class UpdateService : IAsyncDisposable
                 proton,
                 g.LaunchArgs,
                 steamAppId,
-                EffectiveLaunch(g)
+                EffectiveLaunch(g),
+                prefix,
+                g.Slug
             )
         );
         _db.UpsertInstall((_db.GetInstall(postId) ?? g) with { LastPlayedUtc = DateTime.UtcNow });
         _db.LogEvent("play", g.Name, postId);
         JobsChanged?.Invoke();
     }
+
+    /// <summary>Where this library's prefixes live: <c>&lt;library&gt;/.prefixes</c> unless the setting overrides it.</summary>
+    public string PrefixRoot => PrefixManager.Root(_settings.LibraryRoot, _settings.PrefixRoot);
+
+    /// <summary>The prefix a game uses today; a legacy in-folder one is moved out on first sight.</summary>
+    public string PrefixFor(InstalledGame g) =>
+        PrefixManager.Prepare(g.ResolvePath(_settings.LibraryRoot), PrefixRoot, g.Slug, _log);
 
     /// <summary>Game override → user defaults → app defaults, so nothing that matters is null.</summary>
     public LaunchOptions EffectiveLaunch(InstalledGame g) =>
@@ -411,8 +421,53 @@ public sealed class UpdateService : IAsyncDisposable
             path,
             deleteFiles
         );
+        var prefix = PrefixManager.Dir(PrefixRoot, g.Slug);
         if (deleteFiles && Directory.Exists(path))
+        {
+            // Save the prefix before the folder goes away unless the user asked for it to go too.
+            if (!_settings.DeletePrefixOnUninstall)
+            {
+                try
+                {
+                    PrefixFor(g);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    _log.LogWarning(
+                        "{Name}: could not rescue the prefix: {Error}",
+                        g.Name,
+                        e.Message
+                    );
+                }
+            }
             Directory.Delete(path, true);
+        }
+        if (Directory.Exists(prefix))
+        {
+            if (_settings.DeletePrefixOnUninstall)
+            {
+                _log.LogInformation("{Name}: removing prefix {Prefix}", g.Name, prefix);
+                try
+                {
+                    Directory.Delete(prefix, true);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    _log.LogWarning(
+                        "{Name}: could not remove {Prefix}: {Error}",
+                        g.Name,
+                        prefix,
+                        e.Message
+                    );
+                }
+            }
+            else
+                _log.LogInformation(
+                    "{Name}: prefix kept at {Prefix} (saves live there; 'delete prefix on uninstall' removes it)",
+                    g.Name,
+                    prefix
+                );
+        }
         _db.RemoveInstall(postId);
         try
         {
@@ -556,7 +611,12 @@ public sealed class UpdateService : IAsyncDisposable
             var custom = string.IsNullOrWhiteSpace(previous?.InstallPath)
                 ? null
                 : previous.InstallPath;
-            var opt = new InstallOptions(_settings.LibraryRoot, _settings.KeepBackups, custom);
+            var opt = new InstallOptions(
+                _settings.LibraryRoot,
+                _settings.KeepBackups,
+                custom,
+                PrefixManager.Dir(PrefixRoot, post.Slug)
+            );
             var result = await _installer.InstallAsync(
                 archivePath,
                 post.Slug,

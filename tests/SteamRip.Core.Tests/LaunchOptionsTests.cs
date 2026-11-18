@@ -181,6 +181,32 @@ public class LaunchOptionsTests
     }
 
     [Fact]
+    public void Compose_gives_every_game_without_a_steam_id_its_own_game_id()
+    {
+        var spec = new LaunchSpec(
+            2,
+            "Hollow Knight",
+            "/lib/hk",
+            "hk.exe",
+            "/proton/ge",
+            null,
+            null,
+            LaunchOptions.AppDefaults,
+            "/lib/.prefixes/Hollow-Knight",
+            "Hollow Knight"
+        );
+        var c = GameLauncher.Compose(
+            spec,
+            "/usr/bin/umu-run",
+            "/lib/hk/hk.exe",
+            "/lib/.prefixes/Hollow-Knight",
+            Tools
+        );
+        Assert.Equal("umu-steamrip-hollow-knight", c.Environment["GAMEID"]);
+        Assert.Equal("/lib/.prefixes/Hollow-Knight", c.Environment["WINEPREFIX"]);
+    }
+
+    [Fact]
     public void Launch_options_round_trip_through_the_database()
     {
         var path = Path.Combine(Path.GetTempPath(), $"sr-launch-{Guid.NewGuid():N}.db");

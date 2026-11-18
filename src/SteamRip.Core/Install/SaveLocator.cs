@@ -100,11 +100,23 @@ public static class SaveLocator
         ];
     }
 
-    /// <summary>Goldberg/GSE save dirs for <paramref name="steamAppId"/> inside the game's own Wine prefix(es); on Windows, the real user profile.</summary>
-    public static IReadOnlyList<string> FindEmulatorSaves(long steamAppId, string gameRoot)
+    /// <summary>
+    /// Goldberg/GSE save dirs for <paramref name="steamAppId"/> inside the game's own Wine prefix(es) plus
+    /// <paramref name="extraPrefix"/>, which is where the app keeps the prefix now; on Windows, the real user profile.
+    /// </summary>
+    public static IReadOnlyList<string> FindEmulatorSaves(
+        long steamAppId,
+        string gameRoot,
+        string? extraPrefix = null
+    )
     {
-        var userDirs = FindWinePrefixes(gameRoot)
-            .Select(prefix => Path.Combine(gameRoot, prefix, "drive_c", "users"))
+        var prefixes = FindWinePrefixes(gameRoot)
+            .Select(prefix => Path.Combine(gameRoot, prefix))
+            .ToList();
+        if (extraPrefix is not null && IsWinePrefix(extraPrefix))
+            prefixes.Add(extraPrefix);
+        var userDirs = prefixes
+            .Select(prefix => Path.Combine(prefix, "drive_c", "users"))
             .Where(Directory.Exists)
             .SelectMany(Directory.EnumerateDirectories)
             .ToList();

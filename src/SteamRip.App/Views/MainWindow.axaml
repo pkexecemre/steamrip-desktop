@@ -309,6 +309,18 @@
                                                         IsVisible="{Binding IsLinux}"
                                                         ToolTip.Tip="Run an .exe or .msi (for example from _CommonRedist) inside this game's prefix"
                                                     />
+                                                    <MenuItem
+                                                        Header="Prefix info"
+                                                        Command="{Binding PrefixInfoCommand}"
+                                                        IsVisible="{Binding IsLinux}"
+                                                        ToolTip.Tip="Size, Proton build and launch count of this game's Wine prefix (also in the log)"
+                                                    />
+                                                    <MenuItem
+                                                        Header="Reset prefix (moves it aside)"
+                                                        Command="{Binding ResetPrefixCommand}"
+                                                        IsVisible="{Binding IsLinux}"
+                                                        ToolTip.Tip="Move the prefix to a .bak folder and let the next launch build a clean one. Nothing is deleted."
+                                                    />
                                                     <Separator />
                                                     <MenuItem
                                                         Header="Forget (keep files)"
@@ -678,13 +690,28 @@
                             <TextBlock FontWeight="SemiBold" Text="Folders" />
                             <TextBlock
                                 Classes="muted"
-                                Text="Games are extracted to &lt;library&gt;/&lt;game-slug&gt;; each gets its own Wine prefix at &lt;game&gt;/prefix on first launch, so saves live with the game and survive updates. Archives land in the downloads folder and are deleted after install unless you say otherwise."
+                                Text="Games are extracted to &lt;library&gt;/&lt;game-slug&gt;. Each keeps its own Wine prefix outside the game folder (default &lt;library&gt;/.prefixes/&lt;game-slug&gt;), so an update swap, an uninstall or a delete cannot take the saves with it; prefixes still sitting in a game folder are moved there on the next launch. Archives land in the downloads folder and are deleted after install unless you say otherwise."
                                 TextWrapping="Wrap"
                             />
                             <TextBlock Text="Library folder" Classes="muted" />
                             <TextBox Text="{Binding LibraryRoot}" />
                             <TextBlock Text="Downloads folder" Classes="muted" />
                             <TextBox Text="{Binding DownloadsRoot}" />
+                            <StackPanel Spacing="10">
+                                <TextBlock
+                                    Text="Prefixes folder (empty = &lt;library&gt;/.prefixes)"
+                                    Classes="muted"
+                                />
+                                <TextBox
+                                    Text="{Binding PrefixRoot}"
+                                    PlaceholderText="{Binding LibraryRoot}"
+                                />
+                                <ToggleSwitch
+                                    IsChecked="{Binding DeletePrefixOnUninstall}"
+                                    OnContent="Delete the prefix when uninstalling (saves go too)"
+                                    OffContent="Keep the prefix when uninstalling (saves stay)"
+                                />
+                            </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="16">
                                 <StackPanel>
                                     <TextBlock
@@ -1137,6 +1164,11 @@
                                     Classes="quiet"
                                     Content="Prefix folder"
                                     Command="{Binding OpenPrefixCommand}"
+                                />
+                                <Button
+                                    Classes="quiet"
+                                    Content="Prefix info"
+                                    Command="{Binding PrefixInfoCommand}"
                                 />
                                 <Button
                                     Classes="quiet"

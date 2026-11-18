@@ -3,10 +3,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SteamRip.Core.Install;
 
+/// <summary>What an install needs besides the archive. <c>PrefixDir</c> is the game's prefix, which lives outside the install folder: Goldberg/GSE saves inside it are backed up on update.</summary>
 public sealed record InstallOptions(
     string LibraryRoot,
     int KeepBackups = 2,
-    string? CustomInstallPath = null
+    string? CustomInstallPath = null,
+    string? PrefixDir = null
 );
 
 public sealed record InstallResult(
@@ -106,7 +108,7 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
             if (steamAppId is { } appId)
                 foreach (
                     var (emuDir, i) in SaveLocator
-                        .FindEmulatorSaves(appId, target)
+                        .FindEmulatorSaves(appId, target, opt.PrefixDir)
                         .Select((d, i) => (d, i))
                 )
                 {
