@@ -86,6 +86,19 @@ check: format-check rebuild test inspect ## All gates, same as the pre-push hook
 
 ci: check ## Alias for what CI runs
 
+## ---- rust port -----------------------------------------------------------------------------
+
+golden: ## Re-record the behaviour fixtures the Rust port is checked against (rust/fixtures)
+	SR_GOLDEN_DIR=$(CURDIR)/rust/fixtures dotnet test $(SLN) -c $(CONFIG) --nologo --filter "FullyQualifiedName~GoldenTests"
+
+rust-test: ## Parity: replay every recorded case against the Rust port
+	cargo test --manifest-path rust/Cargo.toml
+
+rust-check: ## Rust gates: fmt, clippy (warnings are errors) and parity
+	cargo fmt --manifest-path rust/Cargo.toml --check
+	cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings
+	cargo test --manifest-path rust/Cargo.toml
+
 ## ---- publish ------------------------------------------------------------------------------
 
 publish: $(addprefix publish-,$(RIDS)) ## Self-contained single-file builds for every RID into $(OUT)/

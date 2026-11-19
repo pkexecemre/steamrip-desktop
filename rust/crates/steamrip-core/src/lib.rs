@@ -1,0 +1,5 @@
+//! Ported pieces of SteamRip Desktop's C# core, with parity checked against recordings
+//! of the original (`rust/fixtures`). Every unit here answers exactly what the C#
+//! implementation answers for the recorded cases; new units follow the same shape.
+
+pub mod catalog;
