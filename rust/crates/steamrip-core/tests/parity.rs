@@ -1012,3 +1012,22 @@ fn redist_selection_matches_the_original() {
         assert_eq!(got, expected, "selection for {:?}", case.files);
     }
 }
+
+#[derive(Deserialize)]
+struct TimestampCase {
+    input: Option<String>,
+    unix: Option<i64>,
+}
+
+#[test]
+fn timestamps_match_the_original() {
+    let cases: Vec<TimestampCase> = load("timestamps.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got = case
+            .input
+            .as_deref()
+            .and_then(steamrip_core::dates::parse_utc_text);
+        assert_eq!(got, case.unix, "unix for {:?}", case.input);
+    }
+}

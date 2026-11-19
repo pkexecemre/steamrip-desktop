@@ -160,16 +160,25 @@ public static partial class CatalogParser
             if (
                 p.TryGetProperty(n, out var el)
                 && el.ValueKind == JsonValueKind.String
-                && DateTime.TryParse(
-                    el.GetString(),
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                    out var dt
-                )
+                && ParseUtcText(el.GetString()) is { } unix
             )
-                return dt;
+                return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime;
         return DateTime.MinValue;
     }
+
+    /// <summary>
+    /// One timestamp from the REST payload as unix seconds, or null when it cannot be read.
+    /// A value without an offset is taken as UTC, which is what the site's *_gmt fields are.
+    /// </summary>
+    public static long? ParseUtcText(string? text) =>
+        DateTime.TryParse(
+            text,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out var dt
+        )
+            ? ((DateTimeOffset)dt).ToUnixTimeSeconds()
+            : null;
 
     private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 }

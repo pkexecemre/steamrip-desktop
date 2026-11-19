@@ -5,6 +5,7 @@
 pub mod archive;
 pub mod autostart;
 pub mod catalog;
+pub mod dates;
 pub mod downloader;
 pub mod host_caps;
 pub mod hoster;

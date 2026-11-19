@@ -1512,4 +1512,32 @@ public class GoldenTests
 
         RecordOrCheck("redist_selection.json", cases);
     }
+
+    [Fact]
+    public void Timestamp_recordings_match()
+    {
+        string?[] texts =
+        [
+            null,
+            "",
+            "   ",
+            "not a date",
+            "2026-11-19T12:34:56",
+            "2026-11-19T12:34:56Z",
+            "2026-11-19T12:34:56+03:00",
+            "2026-11-19T12:34:56-05:00",
+            "2026-11-19T12:34:56.789Z",
+            "2026-11-19",
+            "2026-11-19 12:34:56",
+            "11/19/2026 12:34:56",
+            "1970-01-01T00:00:00Z",
+            "2026-13-45T99:99:99",
+        ];
+
+        var cases = texts
+            .Select(text => new { input = text, unix = CatalogParser.ParseUtcText(text) })
+            .ToList();
+
+        RecordOrCheck("timestamps.json", cases);
+    }
 }
