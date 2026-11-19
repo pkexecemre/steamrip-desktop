@@ -149,21 +149,20 @@ public sealed class Downloader(
                 );
             }
 
-            var resumed = resp.StatusCode == HttpStatusCode.PartialContent && have > 0;
-            if (have > 0 && !resumed)
+            var plan = PlanRange(
+                (int)resp.StatusCode,
+                have,
+                resp.Content.Headers.ContentRange?.Length,
+                resp.Content.Headers.ContentLength
+            );
+            if (have > 0 && !plan.Append)
                 _log.LogWarning(
                     "Server ignored the Range header (HTTP {Status}); restarting from 0",
                     (int)resp.StatusCode
                 );
-            if (!resumed)
-                have = 0;
-            var total =
-                resp.Content.Headers.ContentRange?.Length
-                ?? (
-                    resp.Content.Headers.ContentLength is { } len
-                        ? len + (resumed ? have : 0)
-                        : null
-                );
+            var resumed = plan.Append;
+            have = plan.Start;
+            var total = plan.Total;
 
             await using var fs = new FileStream(
                 part,
@@ -229,6 +228,24 @@ public sealed class Downloader(
         await VerifyAsync(part, src, ct);
         File.Move(part, destinationPath, overwrite: true);
         return destinationPath;
+    }
+
+    /// <summary>
+    /// The byte math for one ranged response: append to the .part or restart it, where the transfer starts, and
+    /// the total the "connection closed early" check compares against. Pure so the arithmetic is testable.
+    /// </summary>
+    public static (bool Append, long Start, long? Total) PlanRange(
+        int status,
+        long have,
+        long? contentRangeLength,
+        long? contentLength
+    )
+    {
+        var resumed = status == (int)HttpStatusCode.PartialContent && have > 0;
+        var start = resumed ? have : 0;
+        long? total =
+            contentRangeLength ?? (contentLength is { } len ? len + (resumed ? have : 0) : null);
+        return (resumed, start, total);
     }
 
     private async Task VerifyAsync(string path, ResolvedDownload src, CancellationToken ct)

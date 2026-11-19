@@ -18,6 +18,32 @@ pub fn is_torrent(file_name: Option<&str>, url: &str) -> bool {
         || url.to_ascii_lowercase().ends_with(".torrent")
 }
 
+/// The resume math for one ranged response: append to the .part or restart it, where the transfer
+/// starts, and the total the "connection closed early" check compares against.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RangePlan {
+    pub append: bool,
+    pub start: i64,
+    pub total: Option<i64>,
+}
+
+pub fn plan_range(
+    status: u16,
+    have: i64,
+    content_range_length: Option<i64>,
+    content_length: Option<i64>,
+) -> RangePlan {
+    let resumed = status == 206 && have > 0;
+    let start = if resumed { have } else { 0 };
+    let total = content_range_length
+        .or_else(|| content_length.map(|len| len + if resumed { have } else { 0 }));
+    RangePlan {
+        append: resumed,
+        start,
+        total,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

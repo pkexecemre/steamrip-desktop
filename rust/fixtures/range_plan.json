@@ -1,0 +1,94 @@
+{
+  "cases": [
+    {
+      "status": 206,
+      "have": 100,
+      "content_range_length": 500,
+      "content_length": null,
+      "append": true,
+      "start": 100,
+      "total": 500
+    },
+    {
+      "status": 206,
+      "have": 100,
+      "content_range_length": null,
+      "content_length": 500,
+      "append": true,
+      "start": 100,
+      "total": 600
+    },
+    {
+      "status": 206,
+      "have": 0,
+      "content_range_length": 500,
+      "content_length": 500,
+      "append": false,
+      "start": 0,
+      "total": 500
+    },
+    {
+      "status": 200,
+      "have": 100,
+      "content_range_length": null,
+      "content_length": 500,
+      "append": false,
+      "start": 0,
+      "total": 500
+    },
+    {
+      "status": 200,
+      "have": 0,
+      "content_range_length": null,
+      "content_length": 500,
+      "append": false,
+      "start": 0,
+      "total": 500
+    },
+    {
+      "status": 200,
+      "have": 0,
+      "content_range_length": 500,
+      "content_length": 500,
+      "append": false,
+      "start": 0,
+      "total": 500
+    },
+    {
+      "status": 416,
+      "have": 500,
+      "content_range_length": null,
+      "content_length": null,
+      "append": false,
+      "start": 0,
+      "total": null
+    },
+    {
+      "status": 302,
+      "have": 100,
+      "content_range_length": null,
+      "content_length": 500,
+      "append": false,
+      "start": 0,
+      "total": 500
+    },
+    {
+      "status": 206,
+      "have": 100,
+      "content_range_length": null,
+      "content_length": null,
+      "append": true,
+      "start": 100,
+      "total": null
+    },
+    {
+      "status": 200,
+      "have": 100,
+      "content_range_length": null,
+      "content_length": null,
+      "append": false,
+      "start": 0,
+      "total": null
+    }
+  ]
+}
