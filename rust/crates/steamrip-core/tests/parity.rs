@@ -982,3 +982,33 @@ fn torrent_and_engine_match_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct RedistSelected {
+    file: String,
+    args: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct RedistCase {
+    files: Vec<String>,
+    selected: Vec<RedistSelected>,
+}
+
+#[test]
+fn redist_selection_matches_the_original() {
+    let cases: Vec<RedistCase> = load("redist_selection.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got: Vec<(String, Vec<String>)> = steamrip_core::redist::select_installers(&case.files)
+            .into_iter()
+            .map(|v| (v.file, v.args))
+            .collect();
+        let expected: Vec<(String, Vec<String>)> = case
+            .selected
+            .into_iter()
+            .map(|s| (s.file, s.args))
+            .collect();
+        assert_eq!(got, expected, "selection for {:?}", case.files);
+    }
+}

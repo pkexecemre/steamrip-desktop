@@ -61,6 +61,7 @@ applied by hand because its CLI does not target .NET:
 | `catalog::parse_categories` | `CatalogParser.ParseCategories` | `fixtures/categories.json` |
 | `downloader::engine_name` | `Downloader.EngineNameFor` | `fixtures/torrent_engine.json` |
 | `downloader::is_torrent` | `Downloader.IsTorrent` | `fixtures/torrent_engine.json` |
+| `redist::select_installers` | `RedistInstaller.SelectVcInstallers` | `fixtures/redist_selection.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

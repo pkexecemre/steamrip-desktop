@@ -1481,4 +1481,35 @@ public class GoldenTests
 
         RecordOrCheck("torrent_engine.json", new[] { new { torrents, engineNames } });
     }
+
+    [Fact]
+    public void Redist_selection_recordings_match()
+    {
+        string[][] lists =
+        [
+            [],
+            ["readme.txt"],
+            ["/r/VisualCppRedist_AIO_x86_x64.exe", "/r/vcredist_x64.exe"],
+            ["/r/VisualCppRedist_AIO_x86_x64.exe", "/r/VisualCppRedist_AIO_b.exe"],
+            ["/r/vcredist_x64.exe", "/r/vcredist_x86.exe"],
+            ["/r/vcredist_x86.exe", "/r/vcredist_x64.exe"],
+            ["/r/vcredist_2019_x64.exe", "/r/vcredist_x64.exe"],
+            ["/r/vc_redist.x64.exe", "/r/other.exe"],
+            ["/r/vcredist_x64.EXE"],
+            ["/r/VC_REDIST_X86.EXE", "/r/vcredist_x64.exe"],
+        ];
+
+        var cases = lists
+            .Select(files => new
+            {
+                files,
+                selected = RedistInstaller
+                    .SelectVcInstallers(files)
+                    .Select(v => new { file = v.FilePath, args = v.Args })
+                    .ToList(),
+            })
+            .ToList();
+
+        RecordOrCheck("redist_selection.json", cases);
+    }
 }

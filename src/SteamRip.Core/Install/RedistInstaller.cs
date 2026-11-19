@@ -31,12 +31,20 @@ public static class RedistInstaller
         if (dir is null)
             return [];
 
-        var files = Directory
-            .EnumerateFiles(dir)
+        return SelectVcInstallers([.. Directory.EnumerateFiles(dir)]);
+    }
+
+    /// <summary>
+    /// Which installers to run out of a folder's file list, in order: the AIO when it is there,
+    /// else every vcredist/vc_redist executable, x64 before x86.
+    /// </summary>
+    public static IReadOnlyList<VcInstaller> SelectVcInstallers(IReadOnlyList<string> files)
+    {
+        var executables = files
             .Where(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        var aio = files
+        var aio = executables
             .Where(f =>
                 Path.GetFileName(f)
                     .Contains("VisualCppRedist_AIO", StringComparison.OrdinalIgnoreCase)
@@ -48,7 +56,7 @@ public static class RedistInstaller
 
         return
         [
-            .. files
+            .. executables
                 .Where(IsVcRedistName)
                 .OrderBy(VcSortKey)
                 .ThenBy(f => f, StringComparer.OrdinalIgnoreCase)
