@@ -98,6 +98,13 @@ pub fn parse_environment(text: Option<&str>) -> Vec<(String, String)> {
     out
 }
 
+/// The options a launch actually uses: the per-game override wins over the user's defaults, which win
+/// over the app defaults. An empty override inherits everything.
+pub fn effective_launch(game: &LaunchOptions, user: &LaunchOptions) -> LaunchOptions {
+    game.merge_over(user)
+        .merge_over(&LaunchOptions::app_defaults())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
