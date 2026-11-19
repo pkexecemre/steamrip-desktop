@@ -286,4 +286,32 @@ public sealed class PrefixManagerTests : IDisposable
         Assert.Equal(Path.Combine("/lib", ".prefixes"), PrefixManager.Root("/lib", null));
         Assert.Equal("/mnt/games/prefixes", PrefixManager.Root("/lib", " /mnt/games/prefixes "));
     }
+
+    [Fact]
+    public void Reset_prunes_old_prefix_backups()
+    {
+        var root = Directory.CreateTempSubdirectory("sr-prefix-");
+        try
+        {
+            var prefix = Path.Combine(root.FullName, "game");
+            Directory.CreateDirectory(Path.Combine(prefix, "drive_c"));
+            var older = Path.Combine(root.FullName, "game.bak-20200101-000000");
+            var newer = Path.Combine(root.FullName, "game.bak-20200102-000000");
+            Directory.CreateDirectory(older);
+            Directory.CreateDirectory(newer);
+
+            var aside = PrefixManager.Reset(prefix, keepBackups: 1);
+
+            Assert.NotNull(aside);
+            Assert.True(Directory.Exists(aside));
+            // keepBackups counts the backup just made: both older ones go.
+            Assert.False(Directory.Exists(older));
+            Assert.False(Directory.Exists(newer));
+            Assert.False(Directory.Exists(prefix));
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
 }

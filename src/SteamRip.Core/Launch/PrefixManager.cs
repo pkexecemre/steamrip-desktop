@@ -226,13 +226,43 @@ public static class PrefixManager
         );
 
     /// <summary>Moves a prefix aside (<c>&lt;prefix&gt;.bak-&lt;utc&gt;</c>) so the next launch builds a clean one. Returns the backup path.</summary>
-    public static string? Reset(string prefixDir)
+    public static string? Reset(string prefixDir, int keepBackups = 2)
     {
         if (!Directory.Exists(prefixDir))
             return null;
         var aside = AsidePath(prefixDir, DateTime.UtcNow);
         MoveDirectory(prefixDir, aside);
+        PruneAside(prefixDir, keepBackups);
         return aside;
+    }
+
+    /// <summary>
+    /// Deletes older <c>&lt;prefix&gt;.bak-*</c> siblings, keeping the newest <paramref name="keep"/>: a reset
+    /// used to leave every backed-up prefix behind, and a prefix is not small.
+    /// </summary>
+    public static void PruneAside(string prefixDir, int keep)
+    {
+        var trimmed = prefixDir.TrimEnd(Path.DirectorySeparatorChar);
+        var parent = Path.GetDirectoryName(trimmed);
+        if (parent is null || !Directory.Exists(parent))
+            return;
+        var name = Path.GetFileName(trimmed);
+        // The stamps are yyyyMMdd-HHmmss, so ordering by name is ordering by time.
+        var old = Directory
+            .GetDirectories(parent, name + ".bak-*")
+            .OrderByDescending(d => Path.GetFileName(d), StringComparer.Ordinal)
+            .Skip(Math.Max(keep, 0));
+        foreach (var dir in old)
+        {
+            try
+            {
+                Directory.Delete(dir, true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // a locked file keeps this one; the next reset tries again
+            }
+        }
     }
 
     /// <summary>Where a reset prefix is moved to: sibling with a UTC stamp, so two resets never collide.</summary>
