@@ -1,0 +1,29 @@
+{
+  "cases": [
+    {
+      "token": "tok",
+      "unix_seconds": 14400000,
+      "expected": "8ec5f0396ed30bc72f2a864f8095c0abc53f2aeb68ae681675ba2d481899be51"
+    },
+    {
+      "token": "tok",
+      "unix_seconds": 14400060,
+      "expected": "8ec5f0396ed30bc72f2a864f8095c0abc53f2aeb68ae681675ba2d481899be51"
+    },
+    {
+      "token": "tok",
+      "unix_seconds": 14414400,
+      "expected": "c9780ada58586b39cd87da5c646457db422517c1f52f61c4dd8be74b9f6b554d"
+    },
+    {
+      "token": "",
+      "unix_seconds": 0,
+      "expected": "9cf60a998fec415f9d74f4154bb223834d6ab2ecdedf645c8e3101199bf363ac"
+    },
+    {
+      "token": "account-token-with-dashes",
+      "unix_seconds": 1794000000,
+      "expected": "172c4728b3c3d4441f1c65477da9ce2ca72ebc4027dbcd7ce346b161d99eb618"
+    }
+  ]
+}

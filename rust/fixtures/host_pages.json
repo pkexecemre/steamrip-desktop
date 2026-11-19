@@ -1,0 +1,71 @@
+{
+  "cases": [
+    {
+      "kind": "fileditch",
+      "html_file": "fileditch_solved.html",
+      "html": null,
+      "url": "https://lumisleepsby10pm.xyz/MTc5NDAzMzQ3Njpya29ZQndlUkhFM2ltZVhydURhSk5HN2tNcHMwYXo2ZlFSNWZpMVk3bmNNOjExMzYvYmFscGhhMjUvM2FkMmE4YzBhNGFhMDMyYTcyMWEvQ09OVFJPTC1SZXNvbmFudC1TdGVhbVJJUC5jb20ucmFy",
+      "expires": 1794033476,
+      "file_name": "CONTROL-Resonant-SteamRIP.com.rar",
+      "error": null
+    },
+    {
+      "kind": "fileditch",
+      "html_file": "fileditch_interstitial.html",
+      "html": null,
+      "url": null,
+      "expires": null,
+      "file_name": null,
+      "error": "FileDitch: page is still the browser-verification interstitial (needs a real browser solve)"
+    },
+    {
+      "kind": "fileditch",
+      "html_file": null,
+      "html": "\u003Chtml\u003E\u003Chead\u003E\u003Ctitle\u003ENothing\u003C/title\u003E\u003C/head\u003E\u003Cbody\u003E\u003C/body\u003E\u003C/html\u003E",
+      "url": null,
+      "expires": null,
+      "file_name": null,
+      "error": "FileDitch: no btn-main download link in page"
+    },
+    {
+      "kind": "bzzhr",
+      "html_file": "bzzhr_solved.html",
+      "html": null,
+      "hx": "/abc123XYZ/download?t=1762464000",
+      "md5": "0123456789abcdef0123456789abcdef",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "file_name": "LEGO-Batman-SteamRIP.com.rar",
+      "error": null
+    },
+    {
+      "kind": "bzzhr",
+      "html_file": null,
+      "html": "\u003Chtml\u003E\u003Chead\u003E\u003Ctitle\u003ENothing\u003C/title\u003E\u003C/head\u003E\u003C/html\u003E",
+      "hx": null,
+      "md5": null,
+      "sha256": null,
+      "file_name": null,
+      "error": "BuzzHeavier: no hx-get download path in page"
+    },
+    {
+      "kind": "megadb",
+      "html_file": "megadb_landing.html",
+      "html": null,
+      "url": "https://megadb.net/235fbe4f4789793f?pt=UFNjR2U1RFhVQWhnc0FKRzc4WGljbU42VDBvd0wyRkVlbVZYV1ZSaVJHdDRjakI0TjBFOVBRPT0%3D",
+      "wait": 10,
+      "hash": "5c759169364b30f29cedf71c690ce9f46bc07e9972091dbea2d3bfd4de3ea2a0",
+      "file_name": "Hull-Rupture-SteamRIP.com.rar",
+      "error": null
+    },
+    {
+      "kind": "megadb",
+      "html_file": null,
+      "html": "\u003Chtml\u003E\u003Chead\u003E\u003Ctitle\u003ENothing\u003C/title\u003E\u003C/head\u003E\u003C/html\u003E",
+      "url": null,
+      "wait": null,
+      "hash": null,
+      "file_name": null,
+      "error": "MegaDB: no finalDownloadUrl in page"
+    }
+  ]
+}

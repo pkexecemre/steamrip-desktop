@@ -320,3 +320,94 @@ fn compose_matches_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct HostPageCase {
+    kind: String,
+    html_file: Option<String>,
+    html: Option<String>,
+    url: Option<String>,
+    hx: Option<String>,
+    expires: Option<i64>,
+    md5: Option<String>,
+    sha256: Option<String>,
+    wait: Option<u32>,
+    hash: Option<String>,
+    file_name: Option<String>,
+    error: Option<String>,
+}
+
+fn page_html(case: &HostPageCase) -> String {
+    match &case.html_file {
+        Some(file) => {
+            let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../tests/SteamRip.Core.Tests/Fixtures")
+                .join(file);
+            std::fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("fixture {}: {e}", path.display()))
+        }
+        None => case.html.clone().unwrap_or_default(),
+    }
+}
+
+#[test]
+fn host_pages_match_the_original() {
+    let cases: Vec<HostPageCase> = load("host_pages.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let html = page_html(&case);
+        match case.kind.as_str() {
+            "fileditch" => match steamrip_core::hosters::parse_file_ditch(&html) {
+                Ok(page) => {
+                    assert!(case.error.is_none(), "unexpected success: {}", case.kind);
+                    assert_eq!(Some(page.url), case.url, "url");
+                    assert_eq!(page.expires, case.expires, "expires");
+                    assert_eq!(page.file_name, case.file_name, "file name");
+                }
+                Err(err) => assert_eq!(Some(err), case.error, "error"),
+            },
+            "bzzhr" => match steamrip_core::hosters::parse_bzzhr(&html) {
+                Ok(page) => {
+                    assert!(case.error.is_none(), "unexpected success");
+                    assert_eq!(Some(page.hx_path), case.hx, "hx");
+                    assert_eq!(page.md5, case.md5, "md5");
+                    assert_eq!(page.sha256, case.sha256, "sha256");
+                    assert_eq!(page.file_name, case.file_name, "file name");
+                }
+                Err(err) => assert_eq!(Some(err), case.error, "error"),
+            },
+            "megadb" => match steamrip_core::hosters::parse_megadb(&html) {
+                Ok(page) => {
+                    assert!(case.error.is_none(), "unexpected success");
+                    assert_eq!(Some(page.pt_url), case.url, "url");
+                    assert_eq!(Some(page.wait_seconds), case.wait, "wait");
+                    assert_eq!(page.hash, case.hash, "hash");
+                    assert_eq!(page.file_name, case.file_name, "file name");
+                }
+                Err(err) => assert_eq!(Some(err), case.error, "error"),
+            },
+            other => panic!("unknown kind {other}"),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct GofileTokenCase {
+    token: String,
+    unix_seconds: i64,
+    expected: String,
+}
+
+#[test]
+fn gofile_token_matches_the_original() {
+    let cases: Vec<GofileTokenCase> = load("gofile_token.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got = steamrip_core::hosters::gofile_website_token(&case.token, case.unix_seconds);
+        assert_eq!(
+            got, case.expected,
+            "token for {} at {}",
+            case.token, case.unix_seconds
+        );
+    }
+}

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SteamRip.Core.Catalog;
+using SteamRip.Core.Hosters;
 using SteamRip.Core.Install;
 using SteamRip.Core.Launch;
 
@@ -597,5 +598,161 @@ public class GoldenTests
             .ToList();
 
         RecordOrCheck("compose.json", recorded);
+    }
+
+    [Fact]
+    public void Host_page_recordings_match()
+    {
+        var cases = new List<object>();
+
+        void FileDitch(string? file, string? html)
+        {
+            try
+            {
+                var (url, expires, fileName) = HostPages.ParseFileDitch(
+                    html ?? Fixture.Read(file!)
+                );
+                cases.Add(
+                    new
+                    {
+                        kind = "fileditch",
+                        html_file = file,
+                        html,
+                        url,
+                        expires = expires is { } e
+                            ? new DateTimeOffset(e, TimeSpan.Zero).ToUnixTimeSeconds()
+                            : (long?)null,
+                        file_name = fileName,
+                        error = (string?)null,
+                    }
+                );
+            }
+            catch (FormatException ex)
+            {
+                cases.Add(
+                    new
+                    {
+                        kind = "fileditch",
+                        html_file = file,
+                        html,
+                        url = (string?)null,
+                        expires = (long?)null,
+                        file_name = (string?)null,
+                        error = ex.Message,
+                    }
+                );
+            }
+        }
+
+        void Bzzhr(string? file, string? html)
+        {
+            try
+            {
+                var (hx, md5, sha, fileName) = HostPages.ParseBzzhr(html ?? Fixture.Read(file!));
+                cases.Add(
+                    new
+                    {
+                        kind = "bzzhr",
+                        html_file = file,
+                        html,
+                        hx,
+                        md5,
+                        sha256 = sha,
+                        file_name = fileName,
+                        error = (string?)null,
+                    }
+                );
+            }
+            catch (FormatException ex)
+            {
+                cases.Add(
+                    new
+                    {
+                        kind = "bzzhr",
+                        html_file = file,
+                        html,
+                        hx = (string?)null,
+                        md5 = (string?)null,
+                        sha256 = (string?)null,
+                        file_name = (string?)null,
+                        error = ex.Message,
+                    }
+                );
+            }
+        }
+
+        void MegaDb(string? file, string? html)
+        {
+            try
+            {
+                var (pt, wait, hash, fileName) = HostPages.ParseMegaDb(html ?? Fixture.Read(file!));
+                cases.Add(
+                    new
+                    {
+                        kind = "megadb",
+                        html_file = file,
+                        html,
+                        url = pt,
+                        wait,
+                        hash,
+                        file_name = fileName,
+                        error = (string?)null,
+                    }
+                );
+            }
+            catch (FormatException ex)
+            {
+                cases.Add(
+                    new
+                    {
+                        kind = "megadb",
+                        html_file = file,
+                        html,
+                        url = (string?)null,
+                        wait = (int?)null,
+                        hash = (string?)null,
+                        file_name = (string?)null,
+                        error = ex.Message,
+                    }
+                );
+            }
+        }
+
+        FileDitch("fileditch_solved.html", null);
+        FileDitch("fileditch_interstitial.html", null);
+        FileDitch(null, "<html><head><title>Nothing</title></head><body></body></html>");
+        Bzzhr("bzzhr_solved.html", null);
+        Bzzhr(null, "<html><head><title>Nothing</title></head></html>");
+        MegaDb("megadb_landing.html", null);
+        MegaDb(null, "<html><head><title>Nothing</title></head></html>");
+
+        RecordOrCheck("host_pages.json", cases);
+    }
+
+    [Fact]
+    public void Gofile_token_recordings_match()
+    {
+        (string Token, long Seconds)[] cases =
+        [
+            ("tok", 14400L * 1000),
+            ("tok", 14400L * 1000 + 60),
+            ("tok", 14400L * 1001),
+            ("", 0),
+            ("account-token-with-dashes", 1794000000),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                token = c.Token,
+                unix_seconds = c.Seconds,
+                expected = GoFileResolver.WebsiteToken(
+                    c.Token,
+                    DateTimeOffset.FromUnixTimeSeconds(c.Seconds)
+                ),
+            })
+            .ToList();
+
+        RecordOrCheck("gofile_token.json", recorded);
     }
 }

@@ -33,6 +33,10 @@ applied by hand because its CLI does not target .NET:
 | `launch_options::merge_over` | `LaunchOptions.MergeOver` | `fixtures/merge.json` |
 | `launch_options::parse_environment` | `LaunchOptions.ParseEnvironment` | `fixtures/environment.json` |
 | `launch::compose` | `GameLauncher.Compose` | `fixtures/compose.json` |
+| `hosters::parse_file_ditch` | `HostPages.ParseFileDitch` | `fixtures/host_pages.json` |
+| `hosters::parse_bzzhr` | `HostPages.ParseBzzhr` | `fixtures/host_pages.json` |
+| `hosters::parse_megadb` | `HostPages.ParseMegaDb` | `fixtures/host_pages.json` |
+| `hosters::gofile_website_token` | `GoFileResolver.WebsiteToken` | `fixtures/gofile_token.json` |
 | `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
 
 ## Adding a unit
