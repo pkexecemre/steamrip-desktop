@@ -44,6 +44,10 @@ applied by hand because its CLI does not target .NET:
 | `archive::percent_values` | `ArchiveTool.PercentValues` | `fixtures/percent_values.json` |
 | `save_locator::is_save_dir_name` | `SaveLocator.IsSaveDirName` | `fixtures/save_walk.json` |
 | `save_locator::is_skipped_dir` | `SaveLocator.IsSkippedDir` | `fixtures/save_walk.json` |
+| `save_locator::find_in_game_folder` | `SaveLocator.SelectInGameFolder` | `fixtures/save_walk_tree.json` |
+| `installer::pick_archive` | `UpdateService.PickArchive` | `fixtures/pick_archive.json` |
+| `installer::archive_file_name` | `UpdateService.ArchiveFileName` | `fixtures/pick_archive.json` |
+| `installer::torrent_file_name` | `UpdateService.TorrentFileName` | `fixtures/pick_archive.json` |
 | `proton_release::parse_latest` | `ProtonDownloader.ParseLatest` | `fixtures/proton_release.json` |
 | `proton_release::parse_checksum` | `ProtonDownloader.ParseChecksum` | `fixtures/proton_checksum.json` |
 | `catalog::parse_top_games` | `CatalogParser.ParseTopGames` | `fixtures/top_games.json` |
