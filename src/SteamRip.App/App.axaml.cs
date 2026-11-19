@@ -173,6 +173,13 @@ public partial class App : Application
             };
             _playWatcher.Created += (_, _) => Dispatcher.UIThread.Post(OnPlayRequested);
             _playWatcher.Changed += (_, _) => Dispatcher.UIThread.Post(OnPlayRequested);
+            // A second launch can write the marker while this instance is still starting (DB open, Proton
+            // probe, secret read) - FileSystemWatcher never reports files that already exist, so that click
+            // would be dropped and the user would see nothing at all.
+            if (File.Exists(Program.PlayRequestPath))
+                Dispatcher.UIThread.Post(OnPlayRequested);
+            if (File.Exists(Program.ShowRequestPath))
+                Dispatcher.UIThread.Post(OnShowRequested);
         }
         catch
         { /* not fatal */
@@ -185,9 +192,11 @@ public partial class App : Application
         try
         {
             var text = File.ReadAllText(Program.PlayRequestPath).Trim();
-            File.Delete(Program.PlayRequestPath);
+            // Created fires as soon as the writer opens the file, before the id is flushed; parsing first and
+            // only deleting on success means the Changed event that follows still has something to read.
             if (!long.TryParse(text, out id))
                 return;
+            File.Delete(Program.PlayRequestPath);
         }
         catch (IOException)
         {

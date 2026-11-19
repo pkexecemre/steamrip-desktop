@@ -11,6 +11,7 @@ namespace SteamRip.App.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly AppServices _s;
+    private string? _keyAtLoad;
 
     [ObservableProperty]
     public partial string LibraryRoot { get; set; }
@@ -141,9 +142,19 @@ public partial class SettingsViewModel : ObservableObject
         foreach (var p in ProtonLocator.Managed.Concat(ProtonLocator.Find()))
             Protons.Add(p);
         var current = ProtonLocator.Effective(c.DefaultProtonPath);
-        DefaultProton = Protons.FirstOrDefault(p => p.Path == current) ?? Protons[0];
+        var stored = Protons.FirstOrDefault(p => p.Path == current);
+        if (stored is null)
+        {
+            // The stored build is not in the probed list right now (an unmounted Steam library, a renamed
+            // folder, a hand-set path). Showing the first entry instead would rewrite the setting to
+            // GE-Proton the next time any field on this page is saved.
+            stored = new ProtonBuild(Path.GetFileName(current), current);
+            Protons.Insert(0, stored);
+        }
+        DefaultProton = stored;
         FlareSolverrUrl = c.FlareSolverrUrl;
         SteamGridDbApiKey = s.Secrets.Read(Core.Catalog.SteamGridDb.SecretKey) ?? "";
+        _keyAtLoad = SteamGridDbApiKey;
         CheckIntervalMinutes = c.CheckIntervalMinutes;
         NotifyNewGames = c.NotifyNewGames;
         StartHidden = c.StartHidden;
@@ -208,7 +219,16 @@ public partial class SettingsViewModel : ObservableObject
         c.DefaultProtonPath = DefaultProton?.Path ?? ProtonLocator.GeProton;
         c.FlareSolverrUrl = Core.Solver.FlareSolverrClient.NormalizeUrl(FlareSolverrUrl);
         var sgdbKey = SteamGridDbApiKey.Trim();
-        _s.Secrets.Write(Core.Catalog.SteamGridDb.SecretKey, sgdbKey.Length > 0 ? sgdbKey : null);
+        // Every settled edit on this page runs Save(); writing the same key back each time spawns a
+        // secret-tool store process for nothing and can freeze the page while the keyring answers.
+        if (!string.Equals(sgdbKey, _keyAtLoad ?? "", StringComparison.Ordinal))
+        {
+            _s.Secrets.Write(
+                Core.Catalog.SteamGridDb.SecretKey,
+                sgdbKey.Length > 0 ? sgdbKey : null
+            );
+            _keyAtLoad = sgdbKey;
+        }
         c.CheckIntervalMinutes = Math.Max(5, CheckIntervalMinutes);
         c.NotifyNewGames = NotifyNewGames;
         c.StartHidden = StartHidden;
@@ -242,6 +262,8 @@ public partial class SettingsViewModel : ObservableObject
             return;
         }
         c.Save();
+        // A changed check interval must not wait out the old one.
+        _s.Updates.NudgeScheduler();
         Saved?.Invoke("Settings saved");
     }
 

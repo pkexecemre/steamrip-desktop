@@ -76,9 +76,24 @@ internal sealed class SecretToolStore(string exe, ISecretStore fallback) : ISecr
         try
         {
             using var p = Process.Start(Psi(args))!;
-            var o = p.StandardOutput.ReadToEnd();
-            p.WaitForExit(5000);
-            return (p.ExitCode, o);
+            // ReadToEnd() blocks until the child closes its stdout, so waiting afterwards made the 5s budget a
+            // no-op: a locked keyring with a prompt agent hung the caller forever. Start the read, then bound the
+            // wait and kill what is left.
+            var reading = p.StandardOutput.ReadToEndAsync();
+            if (!p.WaitForExit(5000))
+            {
+                try
+                {
+                    p.Kill(entireProcessTree: true);
+                }
+                catch (Exception e)
+                    when (e is InvalidOperationException or System.ComponentModel.Win32Exception)
+                {
+                    // already gone
+                }
+                return (-1, "");
+            }
+            return (p.ExitCode, reading.GetAwaiter().GetResult());
         }
         catch
         {
