@@ -1237,3 +1237,45 @@ fn vulkan_and_screen_match_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct SavePathsCase {
+    users: Vec<String>,
+    paths: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct GofileLinkCase {
+    link: String,
+    id: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct EmulatorGofileCase {
+    paths: Vec<SavePathsCase>,
+    gofile: Vec<GofileLinkCase>,
+}
+
+#[test]
+fn emulator_and_gofile_match_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("emulator_gofile.json"))
+        .expect("emulator_gofile fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("json");
+    let case: EmulatorGofileCase = serde_json::from_value(doc["cases"][0].clone()).expect("case");
+    for row in &case.paths {
+        assert_eq!(
+            steamrip_core::save_locator::emulator_save_paths(&row.users, 2483190),
+            row.paths,
+            "paths for {:?}",
+            row.users
+        );
+    }
+    for row in &case.gofile {
+        assert_eq!(
+            steamrip_core::hosters::gofile_content_id(&row.link),
+            row.id,
+            "id for {:?}",
+            row.link
+        );
+    }
+}

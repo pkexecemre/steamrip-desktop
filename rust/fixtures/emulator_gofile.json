@@ -1,0 +1,74 @@
+{
+  "cases": [
+    {
+      "paths": [
+        {
+          "users": [],
+          "paths": []
+        },
+        {
+          "users": [
+            "/p/drive_c/users/steamuser"
+          ],
+          "paths": [
+            "/p/drive_c/users/steamuser/AppData/Roaming/GSE Saves/2483190",
+            "/p/drive_c/users/steamuser/AppData/Roaming/Goldberg SteamEmu Saves/2483190"
+          ]
+        },
+        {
+          "users": [
+            "/p/drive_c/users/steamuser",
+            "/p/drive_c/users/steamuser"
+          ],
+          "paths": [
+            "/p/drive_c/users/steamuser/AppData/Roaming/GSE Saves/2483190",
+            "/p/drive_c/users/steamuser/AppData/Roaming/Goldberg SteamEmu Saves/2483190"
+          ]
+        },
+        {
+          "users": [
+            "/p/drive_c/users/steamuser",
+            "/p/drive_c/users/Public"
+          ],
+          "paths": [
+            "/p/drive_c/users/steamuser/AppData/Roaming/GSE Saves/2483190",
+            "/p/drive_c/users/steamuser/AppData/Roaming/Goldberg SteamEmu Saves/2483190",
+            "/p/drive_c/users/Public/AppData/Roaming/GSE Saves/2483190",
+            "/p/drive_c/users/Public/AppData/Roaming/Goldberg SteamEmu Saves/2483190"
+          ]
+        },
+        {
+          "users": [
+            "C:/Users/x"
+          ],
+          "paths": [
+            "C:/Users/x/AppData/Roaming/GSE Saves/2483190",
+            "C:/Users/x/AppData/Roaming/Goldberg SteamEmu Saves/2483190"
+          ]
+        }
+      ],
+      "gofile": [
+        {
+          "link": "https://gofile.io/d/AbC123",
+          "id": "AbC123"
+        },
+        {
+          "link": "https://gofile.io/d/abc-123",
+          "id": "abc"
+        },
+        {
+          "link": "https://gofile.io/d/",
+          "id": null
+        },
+        {
+          "link": "https://example.com/x",
+          "id": null
+        },
+        {
+          "link": "",
+          "id": null
+        }
+      ]
+    }
+  ]
+}

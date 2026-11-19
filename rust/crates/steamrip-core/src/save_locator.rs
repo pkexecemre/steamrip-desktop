@@ -43,6 +43,23 @@ pub fn is_skipped_dir(name: &str, depth: i32) -> bool {
         || (depth > 0 && SKIP_BELOW_ROOT.iter().any(|s| s.eq_ignore_ascii_case(name)))
 }
 
+/// Where Goldberg/GSE keep their saves for one app id, for each user directory, in probe order.
+pub fn emulator_save_paths(user_dirs: &[String], steam_app_id: i64) -> Vec<String> {
+    let mut users: Vec<String> = Vec::new();
+    for user in user_dirs {
+        if !users.contains(user) {
+            users.push(user.clone());
+        }
+    }
+    let mut paths = Vec::new();
+    for user in &users {
+        for emu in EMU_SAVE_DIR_NAMES {
+            paths.push(format!("{user}/AppData/Roaming/{emu}/{steam_app_id}"));
+        }
+    }
+    paths
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

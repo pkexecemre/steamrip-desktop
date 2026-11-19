@@ -22,6 +22,10 @@ public sealed partial class GoFileResolver(HttpClient http, ILogger<GoFileResolv
     [GeneratedRegex(@"gofile\.io/d/([A-Za-z0-9]+)")]
     private static partial Regex ContentId();
 
+    /// <summary>The share id in a gofile.io/d/&lt;id&gt; link, or null when the link is not one.</summary>
+    public static string? ContentIdOf(string shareUrl) =>
+        ContentId().Match(shareUrl) is { Success: true } m ? m.Groups[1].Value : null;
+
     public static string WebsiteToken(string accountToken, DateTimeOffset now)
     {
         var slot = now.ToUnixTimeSeconds() / 14400;

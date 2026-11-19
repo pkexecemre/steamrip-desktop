@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace SteamRip.Core.Install;
 
 /// <summary>Finds save-like directories: inside the game folder (heuristic names) and in Goldberg/GSE emulator dirs under Wine prefixes keyed by Steam app id.</summary>
@@ -125,16 +127,30 @@ public static class SaveLocator
         if (OperatingSystem.IsWindows())
             userDirs.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 
-        return
+        return [.. EmulatorSavePaths(userDirs, steamAppId).Where(Directory.Exists)];
+    }
+
+    /// <summary>
+    /// Where Goldberg/GSE keep their saves for one app id, for each user directory, in the order
+    /// they are probed. Kept pure so the layout can be checked without a prefix.
+    /// </summary>
+    public static IReadOnlyList<string> EmulatorSavePaths(
+        IEnumerable<string> userDirs,
+        long steamAppId
+    ) =>
         [
             .. userDirs
                 .Distinct()
                 .SelectMany(user =>
                     EmuSaveDirNames.Select(emu =>
-                        Path.Combine(user, "AppData", "Roaming", emu, steamAppId.ToString())
+                        Path.Combine(
+                            user,
+                            "AppData",
+                            "Roaming",
+                            emu,
+                            steamAppId.ToString(CultureInfo.InvariantCulture)
+                        )
                     )
-                )
-                .Where(Directory.Exists),
+                ),
         ];
-    }
 }

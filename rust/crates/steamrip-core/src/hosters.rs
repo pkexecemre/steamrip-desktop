@@ -163,6 +163,18 @@ pub fn gofile_website_token(account_token: &str, unix_seconds: i64) -> String {
     digest.iter().map(|b| format!("{b:02x}")).collect()
 }
 
+fn gofile_content_id_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"gofile\.io/d/([A-Za-z0-9]+)")
+}
+
+/// The share id in a gofile.io/d/<id> link, or None when the link is not one.
+pub fn gofile_content_id(share_url: &str) -> Option<String> {
+    gofile_content_id_regex()
+        .captures(share_url)
+        .map(|c| c[1].to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

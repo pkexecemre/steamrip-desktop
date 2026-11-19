@@ -1724,4 +1724,37 @@ public class GoldenTests
         var payload = new[] { new { vulkan, screens } };
         RecordOrCheck("vulkan_screen.json", payload);
     }
+
+    [Fact]
+    public void Emulator_and_gofile_recordings_match()
+    {
+        string[][] userSets =
+        [
+            [],
+            ["/p/drive_c/users/steamuser"],
+            ["/p/drive_c/users/steamuser", "/p/drive_c/users/steamuser"],
+            ["/p/drive_c/users/steamuser", "/p/drive_c/users/Public"],
+            ["C:/Users/x"],
+        ];
+
+        var paths = userSets
+            .Select(users => new { users, paths = SaveLocator.EmulatorSavePaths(users, 2483190) })
+            .ToList();
+
+        string[] links =
+        [
+            "https://gofile.io/d/AbC123",
+            "https://gofile.io/d/abc-123",
+            "https://gofile.io/d/",
+            "https://example.com/x",
+            "",
+        ];
+
+        var gofile = links
+            .Select(link => new { link, id = GoFileResolver.ContentIdOf(link) })
+            .ToList();
+
+        var payload = new[] { new { paths, gofile } };
+        RecordOrCheck("emulator_gofile.json", payload);
+    }
 }
