@@ -90,6 +90,7 @@ Override the config directory with `XDG_CONFIG_HOME` (handy for a throwaway test
 - [`docs/hosters.md`](docs/hosters.md) — the exact resolution protocol per hoster, verified end to end, with the gotchas.
 - [`docs/architecture.md`](docs/architecture.md) — pipeline, components, DB schema, settings, install/update/launch flows, logging, secrets.
 - [`docs/decisions.md`](docs/decisions.md) — decision log, including the two course corrections (logging over screenshots; the app launches games itself).
+- [`docs/troubleshooting.md`](docs/troubleshooting.md) — symptom-first fixes: exit codes and OnlineFix/Steam DRM, slow first Play, hoster gates, downloads, prefix reset, missing updates, packaging.
 - [`rust/README.md`](rust/README.md) — the Rust port of the core: what is ported and the recording/parity loop.
 - [`AGENTS.md`](AGENTS.md) — working agreements for contributors and AI agents: layout, conventions, how to verify, what not to do.
 
