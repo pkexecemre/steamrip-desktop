@@ -37,6 +37,10 @@ applied by hand because its CLI does not target .NET:
 | `hosters::parse_bzzhr` | `HostPages.ParseBzzhr` | `fixtures/host_pages.json` |
 | `hosters::parse_megadb` | `HostPages.ParseMegaDb` | `fixtures/host_pages.json` |
 | `hosters::gofile_website_token` | `GoFileResolver.WebsiteToken` | `fixtures/gofile_token.json` |
+| `updates::normalize` | `UpdateDetector.Normalize` | `fixtures/normalize.json` |
+| `updates::is_update` | `UpdateDetector.IsUpdate` | `fixtures/is_update.json` |
+| `proton::is_keyword/effective` | `ProtonLocator.IsKeyword/Effective` | `fixtures/proton_selection.json` |
+| `archive::is_verified` | `ArchiveMarker.IsVerified(length, text)` | `fixtures/archive_marker.json` |
 | `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
 
 ## Adding a unit

@@ -8,3 +8,5 @@ pub mod hosters;
 pub mod launch;
 pub mod launch_options;
 pub mod prefix;
+pub mod proton;
+pub mod updates;

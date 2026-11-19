@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "input": null,
+      "normalized": null
+    },
+    {
+      "input": "",
+      "normalized": null
+    },
+    {
+      "input": "   ",
+      "normalized": null
+    },
+    {
+      "input": "v1.0",
+      "normalized": "v1.0"
+    },
+    {
+      "input": " Build 26315250 ",
+      "normalized": "26315250"
+    },
+    {
+      "input": "build 12",
+      "normalized": "12"
+    },
+    {
+      "input": "BUILD 7 ",
+      "normalized": "7"
+    },
+    {
+      "input": "Build Build 5",
+      "normalized": "5"
+    },
+    {
+      "input": "  v1.0 ",
+      "normalized": "v1.0"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "stored": null,
+      "effective": "GE-Proton",
+      "is_keyword": false
+    },
+    {
+      "stored": "",
+      "effective": "GE-Proton",
+      "is_keyword": false
+    },
+    {
+      "stored": "GE-Proton",
+      "effective": "GE-Proton",
+      "is_keyword": true
+    },
+    {
+      "stored": "DW-Proton",
+      "effective": "DW-Proton",
+      "is_keyword": true
+    },
+    {
+      "stored": "/opt/proton",
+      "effective": "/opt/proton",
+      "is_keyword": false
+    },
+    {
+      "stored": "ge-proton",
+      "effective": "ge-proton",
+      "is_keyword": false
+    },
+    {
+      "stored": "Proton-CachyOS",
+      "effective": "Proton-CachyOS",
+      "is_keyword": false
+    }
+  ]
+}

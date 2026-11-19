@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "installed": "v1",
+      "version_key": "v1",
+      "is_update": false
+    },
+    {
+      "installed": "v1",
+      "version_key": "V1",
+      "is_update": false
+    },
+    {
+      "installed": "v1",
+      "version_key": "v2",
+      "is_update": true
+    },
+    {
+      "installed": null,
+      "version_key": "v1",
+      "is_update": true
+    },
+    {
+      "installed": "v1",
+      "version_key": null,
+      "is_update": false
+    },
+    {
+      "installed": "v1",
+      "version_key": " Build v1 ",
+      "is_update": false
+    },
+    {
+      "installed": "",
+      "version_key": "x",
+      "is_update": true
+    },
+    {
+      "installed": null,
+      "version_key": null,
+      "is_update": false
+    }
+  ]
+}

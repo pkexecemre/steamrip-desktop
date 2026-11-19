@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SteamRip.Core.Catalog;
+using SteamRip.Core.Data;
 using SteamRip.Core.Hosters;
 using SteamRip.Core.Install;
 using SteamRip.Core.Launch;
+using SteamRip.Core.Updates;
 
 namespace SteamRip.Core.Tests;
 
@@ -754,5 +756,130 @@ public class GoldenTests
             .ToList();
 
         RecordOrCheck("gofile_token.json", recorded);
+    }
+
+    [Fact]
+    public void Normalize_recordings_match()
+    {
+        string?[] versionKeys =
+        [
+            null,
+            "",
+            "   ",
+            "v1.0",
+            " Build 26315250 ",
+            "build 12",
+            "BUILD 7 ",
+            "Build Build 5",
+            "  v1.0 ",
+        ];
+
+        var cases = versionKeys
+            .Select(v => new { input = v, normalized = UpdateDetector.Normalize(v) })
+            .ToList();
+
+        RecordOrCheck("normalize.json", cases);
+    }
+
+    [Fact]
+    public void Is_update_recordings_match()
+    {
+        (string? Installed, string? Key)[] keys =
+        [
+            ("v1", "v1"),
+            ("v1", "V1"),
+            ("v1", "v2"),
+            (null, "v1"),
+            ("v1", null),
+            ("v1", " Build v1 "),
+            ("", "x"),
+            (null, null),
+        ];
+
+        var post = CatalogParser.Parse(Fixture.Read("posts_page1.json"))[0];
+        var installed = new InstalledGame(
+            post.Id,
+            post.Slug,
+            post.Name,
+            null,
+            "/x",
+            DateTime.UtcNow,
+            true,
+            InstallState.Installed,
+            null
+        );
+
+        var cases = keys.Select(k => new
+            {
+                installed = k.Installed,
+                version_key = k.Key,
+                is_update = UpdateDetector.IsUpdate(
+                    installed with
+                    {
+                        InstalledVersion = k.Installed,
+                    },
+                    post with
+                    {
+                        Build = k.Key,
+                        TitleVersion = null,
+                    }
+                ),
+            })
+            .ToList();
+
+        RecordOrCheck("is_update.json", cases);
+    }
+
+    [Fact]
+    public void Proton_selection_recordings_match()
+    {
+        string?[] stored =
+        [
+            null,
+            "",
+            "GE-Proton",
+            "DW-Proton",
+            "/opt/proton",
+            "ge-proton",
+            "Proton-CachyOS",
+        ];
+
+        var cases = stored
+            .Select(value => new
+            {
+                stored = value,
+                effective = ProtonLocator.Effective(value),
+                is_keyword = ProtonLocator.IsKeyword(value),
+            })
+            .ToList();
+
+        RecordOrCheck("proton_selection.json", cases);
+    }
+
+    [Fact]
+    public void Archive_marker_recordings_match()
+    {
+        (long Length, string? Marker)[] cases =
+        [
+            (100, "100\n2026-11-19T00:00:00Z"),
+            (100, "100\r\n2026-11-19T00:00:00Z"),
+            (100, "99\n2026-11-19T00:00:00Z"),
+            (100, null),
+            (0, "0"),
+            (100, ""),
+            (100, " 100 "),
+            (100, "100abc"),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                length = c.Length,
+                marker = c.Marker,
+                verified = ArchiveMarker.IsVerified(c.Length, c.Marker),
+            })
+            .ToList();
+
+        RecordOrCheck("archive_marker.json", recorded);
     }
 }

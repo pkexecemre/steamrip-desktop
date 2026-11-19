@@ -411,3 +411,88 @@ fn gofile_token_matches_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct NormalizeCase {
+    input: Option<String>,
+    normalized: Option<String>,
+}
+
+#[test]
+fn normalize_matches_the_original() {
+    let cases: Vec<NormalizeCase> = load("normalize.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got = steamrip_core::updates::normalize(case.input.as_deref());
+        assert_eq!(got, case.normalized, "normalize {:?}", case.input);
+    }
+}
+
+#[derive(Deserialize)]
+struct IsUpdateCase {
+    installed: Option<String>,
+    version_key: Option<String>,
+    is_update: bool,
+}
+
+#[test]
+fn is_update_matches_the_original() {
+    let cases: Vec<IsUpdateCase> = load("is_update.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got = steamrip_core::updates::is_update(
+            case.installed.as_deref(),
+            case.version_key.as_deref(),
+        );
+        assert_eq!(
+            got, case.is_update,
+            "is_update {:?} vs {:?}",
+            case.installed, case.version_key
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct ProtonCase {
+    stored: Option<String>,
+    effective: String,
+    is_keyword: bool,
+}
+
+#[test]
+fn proton_selection_matches_the_original() {
+    let cases: Vec<ProtonCase> = load("proton_selection.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let stored = case.stored.as_deref();
+        assert_eq!(
+            steamrip_core::proton::effective(stored),
+            case.effective,
+            "effective for {:?}",
+            case.stored
+        );
+        assert_eq!(
+            steamrip_core::proton::is_keyword(stored),
+            case.is_keyword,
+            "is_keyword for {:?}",
+            case.stored
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct MarkerCase {
+    length: i64,
+    marker: Option<String>,
+    verified: bool,
+}
+
+#[test]
+fn archive_marker_matches_the_original() {
+    let cases: Vec<MarkerCase> = load("archive_marker.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let got = steamrip_core::archive::is_verified(case.length, case.marker.as_deref());
+        assert_eq!(got, case.verified, "verified for {:?}", case.marker);
+    }
+}

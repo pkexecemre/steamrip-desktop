@@ -22,14 +22,21 @@ public static class ArchiveMarker
             var marker = PathFor(archive);
             if (!File.Exists(archive) || !File.Exists(marker))
                 return false;
-            var recorded = File.ReadAllText(marker).Split('\n')[0].Trim();
-            return recorded == new FileInfo(archive).Length.ToString(CultureInfo.InvariantCulture);
+            return IsVerified(new FileInfo(archive).Length, File.ReadAllText(marker));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return false;
         }
     }
+
+    /// <summary>
+    /// The marker rule without disk access: the recorded first line must equal the archive size.
+    /// A null marker text means there is no marker, which is never verified.
+    /// </summary>
+    public static bool IsVerified(long archiveLength, string? markerText) =>
+        markerText is not null
+        && markerText.Split('\n')[0].Trim() == archiveLength.ToString(CultureInfo.InvariantCulture);
 
     public static void Mark(string archive)
     {

@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "length": 100,
+      "marker": "100\n2026-11-19T00:00:00Z",
+      "verified": true
+    },
+    {
+      "length": 100,
+      "marker": "100\r\n2026-11-19T00:00:00Z",
+      "verified": true
+    },
+    {
+      "length": 100,
+      "marker": "99\n2026-11-19T00:00:00Z",
+      "verified": false
+    },
+    {
+      "length": 100,
+      "marker": null,
+      "verified": false
+    },
+    {
+      "length": 0,
+      "marker": "0",
+      "verified": true
+    },
+    {
+      "length": 100,
+      "marker": "",
+      "verified": false
+    },
+    {
+      "length": 100,
+      "marker": " 100 ",
+      "verified": true
+    },
+    {
+      "length": 100,
+      "marker": "100abc",
+      "verified": false
+    }
+  ]
+}

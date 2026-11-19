@@ -132,6 +132,17 @@ pub fn is_torrent(head: &[u8], path: &str) -> bool {
     sniff(head) == Some("torrent") || path.to_ascii_lowercase().ends_with(".torrent")
 }
 
+/// True when the archive was marked and still has the size it was marked at.
+/// A missing marker is never verified; the marker's first line carries the size.
+pub fn is_verified(archive_length: i64, marker_text: Option<&str>) -> bool {
+    match marker_text {
+        Some(text) => {
+            text.split('\n').next().unwrap_or_default().trim() == archive_length.to_string()
+        }
+        None => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,6 +158,13 @@ mod tests {
         assert_eq!(sniff(b"\xef\xbb\xbf"), None);
         assert_eq!(sniff(b"\x00\x01"), None);
         assert_eq!(sniff(b""), None);
+    }
+
+    #[test]
+    fn marker_must_match_the_size() {
+        assert!(is_verified(100, Some("100\n2026-11-19T00:00:00Z")));
+        assert!(!is_verified(100, Some("99\n2026-11-19T00:00:00Z")));
+        assert!(!is_verified(100, None));
     }
 
     #[test]
