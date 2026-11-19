@@ -1,0 +1,892 @@
+{
+  "cases": [
+    {
+      "name": "ue shipping binary wins",
+      "game": "Saturn Return",
+      "entries": [
+        {
+          "path": "Saturn Return",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Saturn Return/Binaries",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Saturn Return/Binaries/Win64",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 3
+        },
+        {
+          "path": "Saturn Return/Binaries/Win64/SaturnReturn-Win64-Shipping.exe",
+          "directory": false,
+          "link": false,
+          "size": 60000000,
+          "depth": 3
+        },
+        {
+          "path": "Saturn Return/SaturnReturn.exe",
+          "directory": false,
+          "link": false,
+          "size": 8000000,
+          "depth": 1
+        },
+        {
+          "path": "Saturn Return/Launcher.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 1
+        },
+        {
+          "path": "Saturn Return/unins000.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        },
+        {
+          "path": "Saturn Return/crashhandler.exe",
+          "directory": false,
+          "link": false,
+          "size": 900000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Saturn Return/Binaries/Win64/SaturnReturn-Win64-Shipping.exe",
+          "size": 60000000,
+          "depth": 3,
+          "score": 26
+        },
+        {
+          "path": "Saturn Return/SaturnReturn.exe",
+          "size": 8000000,
+          "depth": 1,
+          "score": 10
+        },
+        {
+          "path": "Saturn Return/Launcher.exe",
+          "size": 5000000,
+          "depth": 1,
+          "score": -3
+        }
+      ]
+    },
+    {
+      "name": "top-level exe beats a nested tiny helper",
+      "game": null,
+      "entries": [
+        {
+          "path": "Tiny Top.exe",
+          "directory": false,
+          "link": false,
+          "size": 100000,
+          "depth": 0
+        },
+        {
+          "path": "bin",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "bin/normal.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        },
+        {
+          "path": "bin/helper.exe",
+          "directory": false,
+          "link": false,
+          "size": 400000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Tiny Top.exe",
+          "size": 100000,
+          "depth": 0,
+          "score": 0
+        },
+        {
+          "path": "bin/normal.exe",
+          "size": 1000000,
+          "depth": 1,
+          "score": 0
+        },
+        {
+          "path": "bin/helper.exe",
+          "size": 400000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "launcher penalty",
+      "game": "Some Game",
+      "entries": [
+        {
+          "path": "Some Game",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/Launcher.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/Some Game.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Some Game/Some Game.exe",
+          "size": 5000000,
+          "depth": 1,
+          "score": 30
+        },
+        {
+          "path": "Some Game/Launcher.exe",
+          "size": 5000000,
+          "depth": 1,
+          "score": -3
+        }
+      ]
+    },
+    {
+      "name": "tiny helper is pushed down",
+      "game": "Big Adventure",
+      "entries": [
+        {
+          "path": "Big Adventure",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Big Adventure/Adventure.exe",
+          "directory": false,
+          "link": false,
+          "size": 10000000,
+          "depth": 1
+        },
+        {
+          "path": "Big Adventure/tiny.exe",
+          "directory": false,
+          "link": false,
+          "size": 100000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Big Adventure/Adventure.exe",
+          "size": 10000000,
+          "depth": 1,
+          "score": 20
+        },
+        {
+          "path": "Big Adventure/tiny.exe",
+          "size": 100000,
+          "depth": 1,
+          "score": -2
+        }
+      ]
+    },
+    {
+      "name": "huge blob gets a nudge",
+      "game": null,
+      "entries": [
+        {
+          "path": "A",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "A/blob.exe",
+          "directory": false,
+          "link": false,
+          "size": 60000000,
+          "depth": 1
+        },
+        {
+          "path": "A/mid.exe",
+          "directory": false,
+          "link": false,
+          "size": 10000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "A/blob.exe",
+          "size": 60000000,
+          "depth": 1,
+          "score": 3
+        },
+        {
+          "path": "A/mid.exe",
+          "size": 10000000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "redist and tool folders are ignored",
+      "game": "Neon Drift",
+      "entries": [
+        {
+          "path": "Neon Drift",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Neon Drift/_commonredist",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/_commonredist/vcredist",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 3
+        },
+        {
+          "path": "Neon Drift/_commonredist/vcredist/vcredist_x64.exe",
+          "directory": false,
+          "link": false,
+          "size": 20000000,
+          "depth": 3
+        },
+        {
+          "path": "Neon Drift/_redist",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/_redist/dxsetup.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/prefix",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/prefix/drive_c",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 3
+        },
+        {
+          "path": "Neon Drift/prefix/drive_c/Neon.exe",
+          "directory": false,
+          "link": false,
+          "size": 30000000,
+          "depth": 3
+        },
+        {
+          "path": "Neon Drift/engine",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/engine/engine.exe",
+          "directory": false,
+          "link": false,
+          "size": 2000000,
+          "depth": 2
+        },
+        {
+          "path": "Neon Drift/NeonDrift.exe",
+          "directory": false,
+          "link": false,
+          "size": 20000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Neon Drift/NeonDrift.exe",
+          "size": 20000000,
+          "depth": 1,
+          "score": 10
+        }
+      ]
+    },
+    {
+      "name": "a folder that holds drive_c is pruned whole",
+      "game": "Some Game",
+      "entries": [
+        {
+          "path": "Some Game",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/drive_c",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Some Game/drive_c/real.exe",
+          "directory": false,
+          "link": false,
+          "size": 30000000,
+          "depth": 2
+        },
+        {
+          "path": "Some Game/bin",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Some Game/bin/real.exe",
+          "directory": false,
+          "link": false,
+          "size": 30000000,
+          "depth": 2
+        },
+        {
+          "path": "Other.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Other.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "drive_c directly under the root is not pruned",
+      "game": null,
+      "entries": [
+        {
+          "path": "drive_c",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "drive_c/Tool.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "drive_c/Tool.exe",
+          "size": 1000000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "symlinked directory is skipped",
+      "game": null,
+      "entries": [
+        {
+          "path": "linked",
+          "directory": true,
+          "link": true,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "linked/Game.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 1
+        },
+        {
+          "path": "Real.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Real.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "installer and helper names are filtered",
+      "game": null,
+      "entries": [
+        {
+          "path": "unins000.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "setup.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "UnityCrashHandler64.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "EasyAntiCheat.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "BattlEye.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "steam_api64.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "dxsetup.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "game_update.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "GameTrainer.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "vcredist_x64.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "Real Game.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 0
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Real Game.exe",
+          "size": 5000000,
+          "depth": 0,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "squashed name match",
+      "game": "5D Chess With Multiverse Time Travel",
+      "entries": [
+        {
+          "path": "5dchesswithmultiversetimetravel.exe",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 0
+        },
+        {
+          "path": "Chess.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Chess.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 22
+        },
+        {
+          "path": "5dchesswithmultiversetimetravel.exe",
+          "size": 5000000,
+          "depth": 0,
+          "score": 12
+        }
+      ]
+    },
+    {
+      "name": "tokenizer match only",
+      "game": "Lara\u2019s Quest",
+      "entries": [
+        {
+          "path": "Lara\u0027s Journey.exe",
+          "directory": false,
+          "link": false,
+          "size": 500000,
+          "depth": 0
+        },
+        {
+          "path": "Journey.exe",
+          "directory": false,
+          "link": false,
+          "size": 500000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Lara\u0027s Journey.exe",
+          "size": 500000,
+          "depth": 0,
+          "score": 12
+        },
+        {
+          "path": "Journey.exe",
+          "size": 500000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "stop words do not match",
+      "game": "The Last of Us",
+      "entries": [
+        {
+          "path": "The Last of Us Part II.exe",
+          "directory": false,
+          "link": false,
+          "size": 2000000,
+          "depth": 0
+        },
+        {
+          "path": "Us.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "The.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        }
+      ],
+      "ranked": [
+        {
+          "path": "The Last of Us Part II.exe",
+          "size": 2000000,
+          "depth": 0,
+          "score": 32
+        },
+        {
+          "path": "Us.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 12
+        },
+        {
+          "path": "The.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 2
+        }
+      ]
+    },
+    {
+      "name": "one-letter tokens are dropped",
+      "game": "D Day",
+      "entries": [
+        {
+          "path": "D-Day.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 0
+        },
+        {
+          "path": "Daybreak.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "D-Day.exe",
+          "size": 1000000,
+          "depth": 0,
+          "score": 22
+        },
+        {
+          "path": "Daybreak.exe",
+          "size": 1000000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "same score: bigger file first, then input order",
+      "game": null,
+      "entries": [
+        {
+          "path": "z",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "z/one.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        },
+        {
+          "path": "z/two.exe",
+          "directory": false,
+          "link": false,
+          "size": 2000000,
+          "depth": 1
+        },
+        {
+          "path": "z/three.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 1
+        }
+      ],
+      "ranked": [
+        {
+          "path": "z/two.exe",
+          "size": 2000000,
+          "depth": 1,
+          "score": 0
+        },
+        {
+          "path": "z/one.exe",
+          "size": 1000000,
+          "depth": 1,
+          "score": 0
+        },
+        {
+          "path": "z/three.exe",
+          "size": 1000000,
+          "depth": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "non executables are ignored",
+      "game": "Some Game",
+      "entries": [
+        {
+          "path": "Some Game",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/readme.txt",
+          "directory": false,
+          "link": false,
+          "size": 1000,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/game.EXE",
+          "directory": false,
+          "link": false,
+          "size": 5000000,
+          "depth": 1
+        },
+        {
+          "path": "Some Game/data",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "Some Game/data/notes.exe.bak",
+          "directory": false,
+          "link": false,
+          "size": 1000,
+          "depth": 2
+        }
+      ],
+      "ranked": [
+        {
+          "path": "Some Game/game.EXE",
+          "size": 5000000,
+          "depth": 1,
+          "score": 20
+        }
+      ]
+    },
+    {
+      "name": "beyond the depth cap",
+      "game": null,
+      "entries": [
+        {
+          "path": "a",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 1
+        },
+        {
+          "path": "a/b",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 2
+        },
+        {
+          "path": "a/b/c",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 3
+        },
+        {
+          "path": "a/b/c/d",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 4
+        },
+        {
+          "path": "a/b/c/d/e",
+          "directory": true,
+          "link": false,
+          "size": 0,
+          "depth": 5
+        },
+        {
+          "path": "a/b/c/d/keep.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 4
+        },
+        {
+          "path": "a/b/c/d/e/drop.exe",
+          "directory": false,
+          "link": false,
+          "size": 1000000,
+          "depth": 5
+        }
+      ],
+      "ranked": [
+        {
+          "path": "a/b/c/d/keep.exe",
+          "size": 1000000,
+          "depth": 4,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "name": "empty tree",
+      "game": null,
+      "entries": [],
+      "ranked": []
+    }
+  ]
+}

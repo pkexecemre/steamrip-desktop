@@ -8,6 +8,7 @@ pub mod catalog;
 pub mod chain;
 pub mod dates;
 pub mod downloader;
+pub mod exe_finder;
 pub mod host_caps;
 pub mod hoster;
 pub mod hosters;
