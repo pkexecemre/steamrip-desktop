@@ -83,6 +83,14 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
         return archive;
     }
 
+    /// <summary>Every percentage the tool printed in a chunk, in order, without the state the caller keeps.</summary>
+    public static IReadOnlyList<int> PercentValues(string chunk) =>
+        [
+            .. Percent()
+                .Matches(chunk)
+                .Select(m => int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)),
+        ];
+
     /// <summary>What the first bytes of a file say it is: <c>rar</c>, <c>7z</c>, <c>zip</c>, <c>torrent</c>, <c>html</c>, else null.</summary>
     public static string? SniffKind(string path)
     {
@@ -223,9 +231,8 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
                     var chunk = new string(buf, 0, n);
                     if (tail.Length < 4000)
                         tail.Append(chunk);
-                    foreach (Match m in Percent().Matches(chunk))
+                    foreach (var v in PercentValues(chunk))
                     {
-                        var v = int.Parse(m.Groups[1].Value);
                         if (v == last || v > 100)
                             continue;
                         last = v;

@@ -577,3 +577,52 @@ fn host_displays_match_the_original() {
         assert_eq!(got, expected, "{kind} for {input:.40?}");
     }
 }
+
+#[derive(Deserialize)]
+struct SaveWalkCase {
+    name: String,
+    depth: i32,
+    is_save: bool,
+    is_skipped: bool,
+}
+
+#[test]
+fn save_walk_matches_the_original() {
+    let cases: Vec<SaveWalkCase> = load("save_walk.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::save_locator::is_save_dir_name(&case.name),
+            case.is_save,
+            "is_save for {:?}",
+            case.name
+        );
+        assert_eq!(
+            steamrip_core::save_locator::is_skipped_dir(&case.name, case.depth),
+            case.is_skipped,
+            "is_skipped for {:?} at {}",
+            case.name,
+            case.depth
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct PercentCase {
+    input: String,
+    values: Vec<i32>,
+}
+
+#[test]
+fn percent_values_match_the_original() {
+    let cases: Vec<PercentCase> = load("percent_values.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::archive::percent_values(&case.input),
+            case.values,
+            "percentages for {:?}",
+            case.input
+        );
+    }
+}

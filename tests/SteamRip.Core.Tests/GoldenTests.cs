@@ -1024,4 +1024,78 @@ public class GoldenTests
 
         RecordOrCheck("host_displays.json", cases);
     }
+
+    [Fact]
+    public void Save_walk_recordings_match()
+    {
+        string[] names =
+        [
+            "Save",
+            "save",
+            "SAVES",
+            "SaveGames",
+            "UserData",
+            "Saves_old",
+            "Saved",
+            "SaveData",
+            "MySave",
+            "Saver",
+            "savepoint",
+            "Profiles",
+            "Profile",
+            "Data",
+            "resources",
+            "",
+            "_CommonRedist",
+            "_Redist",
+            "redist",
+            "drive_c",
+            "Engine",
+            "Content",
+            "Binaries",
+            "Shaders",
+            "Win64",
+            "Win32",
+            "resources",
+            "Plugins",
+            "SavesDir",
+        ];
+        int[] depths = [0, 1, 3];
+
+        var cases = names
+            .SelectMany(name =>
+                depths.Select(depth => new
+                {
+                    name,
+                    depth,
+                    is_save = SaveLocator.IsSaveDirName(name),
+                    is_skipped = SaveLocator.IsSkippedDir(name, depth),
+                })
+            )
+            .ToList();
+
+        RecordOrCheck("save_walk.json", cases);
+    }
+
+    [Fact]
+    public void Percent_values_recordings_match()
+    {
+        string[] chunks =
+        [
+            "",
+            " 45%",
+            "100% 101% 7%",
+            "no numbers here",
+            "150%",
+            "0%",
+            "99%done 45% 46% 47%",
+            "Extracting  3%",
+        ];
+
+        var cases = chunks
+            .Select(chunk => new { input = chunk, values = ArchiveTool.PercentValues(chunk) })
+            .ToList();
+
+        RecordOrCheck("percent_values.json", cases);
+    }
 }

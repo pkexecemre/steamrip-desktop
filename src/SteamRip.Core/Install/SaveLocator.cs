@@ -56,24 +56,14 @@ public static class SaveLocator
             {
                 if (child.LinkTarget is not null)
                     continue;
-                if (
-                    SaveDirNames.Any(n => n.Equals(child.Name, StringComparison.OrdinalIgnoreCase))
-                    || child.Name.StartsWith("Save", StringComparison.OrdinalIgnoreCase)
-                )
+                if (IsSaveDirName(child.Name))
                 {
                     results.Add(Path.GetRelativePath(gameRoot, child.FullName));
                     continue;
                 }
                 if (depth + 1 >= maxDepth)
                     continue;
-                if (SkipDirs.Any(s => s.Equals(child.Name, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-                if (
-                    depth > 0
-                    && SkipBelowRoot.Any(s =>
-                        s.Equals(child.Name, StringComparison.OrdinalIgnoreCase)
-                    )
-                )
+                if (IsSkippedDir(child.Name, depth))
                     continue;
                 if (IsWinePrefix(child.FullName))
                     continue;
@@ -81,6 +71,18 @@ public static class SaveLocator
             }
         }
     }
+
+    /// <summary>True for a directory name that looks like a save folder (exact list, or any Save prefix).</summary>
+    public static bool IsSaveDirName(string name) =>
+        SaveDirNames.Any(n => n.Equals(name, StringComparison.OrdinalIgnoreCase))
+        || name.StartsWith("Save", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Directories the save walk does not descend into: engine/redist bulk, and the deep-only ones.</summary>
+    public static bool IsSkippedDir(string name, int depth) =>
+        SkipDirs.Any(s => s.Equals(name, StringComparison.OrdinalIgnoreCase))
+        || (
+            depth > 0 && SkipBelowRoot.Any(s => s.Equals(name, StringComparison.OrdinalIgnoreCase))
+        );
 
     public static bool IsWinePrefix(string dir) =>
         Directory.Exists(Path.Combine(dir, "drive_c"))

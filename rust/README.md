@@ -41,6 +41,9 @@ applied by hand because its CLI does not target .NET:
 | `updates::is_update` | `UpdateDetector.IsUpdate` | `fixtures/is_update.json` |
 | `proton::is_keyword/effective` | `ProtonLocator.IsKeyword/Effective` | `fixtures/proton_selection.json` |
 | `archive::is_verified` | `ArchiveMarker.IsVerified(length, text)` | `fixtures/archive_marker.json` |
+| `archive::percent_values` | `ArchiveTool.PercentValues` | `fixtures/percent_values.json` |
+| `save_locator::is_save_dir_name` | `SaveLocator.IsSaveDirName` | `fixtures/save_walk.json` |
+| `save_locator::is_skipped_dir` | `SaveLocator.IsSkippedDir` | `fixtures/save_walk.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

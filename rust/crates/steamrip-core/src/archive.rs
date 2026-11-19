@@ -143,6 +143,19 @@ pub fn is_verified(archive_length: i64, marker_text: Option<&str>) -> bool {
     }
 }
 
+fn percent_regex() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| Regex::new(r"(\d{1,3})%").expect("valid"))
+}
+
+/// Every percentage the archive tool printed in a chunk, in order.
+pub fn percent_values(chunk: &str) -> Vec<i32> {
+    percent_regex()
+        .captures_iter(chunk)
+        .filter_map(|c| c[1].parse::<i32>().ok())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,6 +171,12 @@ mod tests {
         assert_eq!(sniff(b"\xef\xbb\xbf"), None);
         assert_eq!(sniff(b"\x00\x01"), None);
         assert_eq!(sniff(b""), None);
+    }
+
+    #[test]
+    fn reads_percentages_in_order() {
+        assert_eq!(percent_values("100% 101% 7%"), vec![100, 101, 7]);
+        assert!(percent_values("no numbers").is_empty());
     }
 
     #[test]

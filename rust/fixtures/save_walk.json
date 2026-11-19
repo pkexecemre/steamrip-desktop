@@ -1,0 +1,526 @@
+{
+  "cases": [
+    {
+      "name": "Save",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Save",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Save",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "save",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "save",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "save",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SAVES",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SAVES",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SAVES",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveGames",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveGames",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveGames",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "UserData",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "UserData",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "UserData",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saves_old",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saves_old",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saves_old",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saved",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saved",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saved",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveData",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveData",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SaveData",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "MySave",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "MySave",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "MySave",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Saver",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saver",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Saver",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "savepoint",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "savepoint",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "savepoint",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Profiles",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Profiles",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Profiles",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "Profile",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Profile",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Profile",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Data",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Data",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Data",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "resources",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "resources",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "resources",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "_CommonRedist",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "_CommonRedist",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "_CommonRedist",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "_Redist",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "_Redist",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "_Redist",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "redist",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "redist",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "redist",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "drive_c",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "drive_c",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "drive_c",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Engine",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Engine",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Engine",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Content",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Content",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Content",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Binaries",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Binaries",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Binaries",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Shaders",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Shaders",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Shaders",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win64",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win64",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win64",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win32",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win32",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Win32",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "resources",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "resources",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "resources",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Plugins",
+      "depth": 0,
+      "is_save": false,
+      "is_skipped": false
+    },
+    {
+      "name": "Plugins",
+      "depth": 1,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "Plugins",
+      "depth": 3,
+      "is_save": false,
+      "is_skipped": true
+    },
+    {
+      "name": "SavesDir",
+      "depth": 0,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SavesDir",
+      "depth": 1,
+      "is_save": true,
+      "is_skipped": false
+    },
+    {
+      "name": "SavesDir",
+      "depth": 3,
+      "is_save": true,
+      "is_skipped": false
+    }
+  ]
+}

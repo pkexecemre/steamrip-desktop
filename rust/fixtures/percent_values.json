@@ -1,0 +1,53 @@
+{
+  "cases": [
+    {
+      "input": "",
+      "values": []
+    },
+    {
+      "input": " 45%",
+      "values": [
+        45
+      ]
+    },
+    {
+      "input": "100% 101% 7%",
+      "values": [
+        100,
+        101,
+        7
+      ]
+    },
+    {
+      "input": "no numbers here",
+      "values": []
+    },
+    {
+      "input": "150%",
+      "values": [
+        150
+      ]
+    },
+    {
+      "input": "0%",
+      "values": [
+        0
+      ]
+    },
+    {
+      "input": "99%done 45% 46% 47%",
+      "values": [
+        99,
+        45,
+        46,
+        47
+      ]
+    },
+    {
+      "input": "Extracting  3%",
+      "values": [
+        3
+      ]
+    }
+  ]
+}
