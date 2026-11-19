@@ -46,6 +46,9 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
     private readonly ILogger _log = logger ?? NullLogger<GameLauncher>.Instance;
     private readonly ConcurrentDictionary<long, RunningGame> _running = new();
 
+    // Why the last launch of each game died, for the card's status line; cleared when that game is launched again.
+    private readonly ConcurrentDictionary<long, LaunchHint> _hints = new();
+
     public static string? UmuPath => ArchiveTool.Find("umu-run");
     public static string? WinePath => ArchiveTool.Find("wine");
 
@@ -53,6 +56,10 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
 
     public event Action<long>? Started;
     public event Action<long, TimeSpan, int>? Exited;
+
+    /// <summary>The hint for a game whose last launch failed during startup, or null. Cleared by the next launch.</summary>
+    public LaunchHint? HintFor(long postId) =>
+        _hints.TryGetValue(postId, out var hint) ? hint : null;
 
     public bool IsRunning(long postId)
     {
@@ -170,12 +177,15 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         var started = DateTime.UtcNow;
         var sw = Stopwatch.StartNew();
         var tail = new ConcurrentQueue<string>();
+        // A hint is about one launch; the one we are starting now cannot inherit the last one's verdict.
+        _hints.TryRemove(spec.PostId, out _);
         proc.OutputDataReceived += (_, e) => Keep(e.Data);
         proc.ErrorDataReceived += (_, e) => Keep(e.Data);
         proc.Exited += (_, _) =>
         {
             var code = proc.ExitCode;
             _running.TryRemove(spec.PostId, out _);
+            Diagnose(code);
             if (_stopped.TryRemove(spec.PostId, out _))
                 _log.LogInformation(
                     "{Name} stopped after {Minutes:0.0} min",
@@ -239,6 +249,49 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             Started?.Invoke(spec.PostId);
         }
         return running;
+
+        // A game that dies during startup has already told us why in its own output or in the files it shipped;
+        // turn that into a card line and a log paragraph while the evidence is still here.
+        void Diagnose(int code)
+        {
+            if (OperatingSystem.IsWindows() || code == 0)
+            {
+                _hints.TryRemove(spec.PostId, out _);
+                return;
+            }
+            LaunchHint? hint;
+            try
+            {
+                hint = LaunchHints.Explain(
+                    new LaunchFailure(
+                        code,
+                        sw.Elapsed,
+                        exe,
+                        spec.ProtonPath,
+                        [.. tail],
+                        LaunchHints.SteamFiles(exe, spec.GameRoot),
+                        Directory.Exists(Path.Combine(spec.GameRoot, "_CommonRedist"))
+                    )
+                );
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // Diagnostics only: never let a read of the game folder change what the exit means.
+                _log.LogDebug(
+                    "{Name}: could not inspect the game folder for launch hints: {Error}",
+                    spec.Name,
+                    e.Message
+                );
+                return;
+            }
+            if (hint is null)
+            {
+                _hints.TryRemove(spec.PostId, out _);
+                return;
+            }
+            _hints[spec.PostId] = hint;
+            _log.LogWarning("{Name}: {Card}\n{Detail}", spec.Name, hint.Card, hint.Detail);
+        }
 
         void Keep(string? line)
         {

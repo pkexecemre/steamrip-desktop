@@ -43,6 +43,9 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
 
     internal void RequestOptions(LibraryItem item) => OptionsRequested?.Invoke(item);
 
+    /// <summary>Why this game's last launch failed during startup, if it did; null once it is launched again.</summary>
+    internal LaunchHint? LaunchHint(long postId) => s.Launcher.HintFor(postId);
+
     public void Refresh()
     {
         var installs = s.Db.GetInstalls();
@@ -570,6 +573,8 @@ public sealed partial class LibraryItem : ObservableObject
         IsRunning ? "Running"
         : _job is not null && IsBusy ? _job.Status
         : NeedsAttention ? Game.LastError?.Split('\n')[0] ?? "Needs attention"
+        // A launch that died during startup explains itself here until the next Play; the log has the paragraph.
+        : _owner.LaunchHint(Game.PostId) is { } hint ? hint.Card
         : HasUpdate
             ? "Update available"
                 + (Game.AutoUpdate ? " · installs automatically" : " · auto-update off")
