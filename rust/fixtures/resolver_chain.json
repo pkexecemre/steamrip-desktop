@@ -1,0 +1,273 @@
+{
+  "cases": [
+    {
+      "name": "direct first",
+      "order": [
+        "FileDitch",
+        "GoFile"
+      ],
+      "mirrors": [
+        {
+          "host": "FileDitch",
+          "url": "https://fd/a"
+        },
+        {
+          "host": "GoFile",
+          "url": "https://gf/b"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [
+        {
+          "url": "https://fd/a",
+          "kind": "direct",
+          "message": null,
+          "prefixed": false
+        },
+        {
+          "url": "https://gf/b",
+          "kind": "fail",
+          "message": "down",
+          "prefixed": false
+        }
+      ],
+      "chosen": {
+        "host": "FileDitch",
+        "url": "https://fd/a",
+        "is_torrent": false
+      },
+      "errors": []
+    },
+    {
+      "name": "second host wins after a plain failure",
+      "order": [
+        "FileDitch",
+        "GoFile"
+      ],
+      "mirrors": [
+        {
+          "host": "FileDitch",
+          "url": "https://fd/a"
+        },
+        {
+          "host": "GoFile",
+          "url": "https://gf/b"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [
+        {
+          "url": "https://fd/a",
+          "kind": "fail",
+          "message": "boom",
+          "prefixed": false
+        },
+        {
+          "url": "https://gf/b",
+          "kind": "direct",
+          "message": null,
+          "prefixed": false
+        }
+      ],
+      "chosen": {
+        "host": "GoFile",
+        "url": "https://gf/b",
+        "is_torrent": false
+      },
+      "errors": [
+        "FileDitch: boom"
+      ]
+    },
+    {
+      "name": "host exception keeps its own prefix",
+      "order": [
+        "FileDitch",
+        "GoFile"
+      ],
+      "mirrors": [
+        {
+          "host": "FileDitch",
+          "url": "https://fd/a"
+        },
+        {
+          "host": "GoFile",
+          "url": "https://gf/b"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [
+        {
+          "url": "https://fd/a",
+          "kind": "fail",
+          "message": "link expired",
+          "prefixed": true
+        },
+        {
+          "url": "https://gf/b",
+          "kind": "direct",
+          "message": null,
+          "prefixed": false
+        }
+      ],
+      "chosen": {
+        "host": "GoFile",
+        "url": "https://gf/b",
+        "is_torrent": false
+      },
+      "errors": [
+        "FileDitch: link expired"
+      ]
+    },
+    {
+      "name": "torrent only, torrents off",
+      "order": [
+        "FileDitch",
+        "MegaDb"
+      ],
+      "mirrors": [
+        {
+          "host": "MegaDb",
+          "url": "https://md/a"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [
+        {
+          "url": "https://md/a",
+          "kind": "torrent",
+          "message": null,
+          "prefixed": false
+        }
+      ],
+      "chosen": null,
+      "errors": [
+        "MegaDb: only offers a .torrent (peer-to-peer), not the file itself"
+      ]
+    },
+    {
+      "name": "torrent only, torrents on",
+      "order": [
+        "FileDitch",
+        "MegaDb"
+      ],
+      "mirrors": [
+        {
+          "host": "MegaDb",
+          "url": "https://md/a"
+        }
+      ],
+      "allow_torrents": true,
+      "outcomes": [
+        {
+          "url": "https://md/a",
+          "kind": "torrent",
+          "message": null,
+          "prefixed": false
+        }
+      ],
+      "chosen": {
+        "host": "MegaDb",
+        "url": "https://md/a",
+        "is_torrent": true
+      },
+      "errors": []
+    },
+    {
+      "name": "direct beats an earlier torrent",
+      "order": [
+        "MegaDb",
+        "FileDitch"
+      ],
+      "mirrors": [
+        {
+          "host": "MegaDb",
+          "url": "https://md/a"
+        },
+        {
+          "host": "FileDitch",
+          "url": "https://fd/b"
+        }
+      ],
+      "allow_torrents": true,
+      "outcomes": [
+        {
+          "url": "https://md/a",
+          "kind": "torrent",
+          "message": null,
+          "prefixed": false
+        },
+        {
+          "url": "https://fd/b",
+          "kind": "direct",
+          "message": null,
+          "prefixed": false
+        }
+      ],
+      "chosen": {
+        "host": "FileDitch",
+        "url": "https://fd/b",
+        "is_torrent": false
+      },
+      "errors": []
+    },
+    {
+      "name": "all fail",
+      "order": [
+        "FileDitch",
+        "GoFile"
+      ],
+      "mirrors": [
+        {
+          "host": "FileDitch",
+          "url": "https://fd/a"
+        },
+        {
+          "host": "GoFile",
+          "url": "https://gf/b"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [
+        {
+          "url": "https://fd/a",
+          "kind": "fail",
+          "message": "one",
+          "prefixed": false
+        },
+        {
+          "url": "https://gf/b",
+          "kind": "fail",
+          "message": "two",
+          "prefixed": false
+        }
+      ],
+      "chosen": null,
+      "errors": [
+        "FileDitch: one",
+        "GoFile: two"
+      ]
+    },
+    {
+      "name": "no supported mirror",
+      "order": [
+        "FileDitch"
+      ],
+      "mirrors": [
+        {
+          "host": "MegaDb",
+          "url": "https://md/a"
+        },
+        {
+          "host": "MegaDb",
+          "url": "https://md/b"
+        }
+      ],
+      "allow_torrents": false,
+      "outcomes": [],
+      "chosen": null,
+      "errors": [
+        "No supported mirror on this post (MegaDb)"
+      ]
+    }
+  ]
+}
