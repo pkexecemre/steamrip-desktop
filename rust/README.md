@@ -80,6 +80,10 @@ applied by hand because its CLI does not target .NET:
 | `save_locator::emulator_save_paths` | `SaveLocator.EmulatorSavePaths` | `fixtures/emulator_gofile.json` |
 | `hosters::gofile_content_id` | `GoFileResolver.ContentIdOf` | `fixtures/emulator_gofile.json` |
 | `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
+| `url_rules::looks_like_archive` | `InteractivePage.LooksLikeArchive` | `fixtures/url_rules.json` |
+| `url_rules::is_download_link` | `InteractivePage.IsDownloadLink` | `fixtures/url_rules.json` |
+| `launch_options::effective_launch` | `UpdateService.EffectiveLaunch` | `fixtures/effective_launch.json` |
+| `exe_finder::rank/best` | `ExeFinder.Rank` | `fixtures/exe_finder.json` |
 
 ## Adding a unit
 
