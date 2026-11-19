@@ -1031,3 +1031,78 @@ fn timestamps_match_the_original() {
         assert_eq!(got, case.unix, "unix for {:?}", case.input);
     }
 }
+
+#[derive(Deserialize)]
+struct UpgradeRow {
+    previous: Option<String>,
+    current: Option<String>,
+    needs_upgrade: bool,
+}
+
+#[derive(Deserialize)]
+struct AsideRow {
+    dir: String,
+    path: String,
+}
+
+#[derive(Deserialize)]
+struct PrefixUpgradeCase {
+    upgrades: Vec<UpgradeRow>,
+    aside: Vec<AsideRow>,
+}
+
+#[test]
+fn prefix_upgrade_matches_the_original() {
+    let cases: Vec<PrefixUpgradeCase> = load("prefix_upgrade.json");
+    let case = cases.first().expect("prefix upgrade case");
+    for row in &case.upgrades {
+        assert_eq!(
+            steamrip_core::prefix::needs_upgrade(row.previous.as_deref(), row.current.as_deref()),
+            row.needs_upgrade,
+            "upgrade {:?} -> {:?}",
+            row.previous,
+            row.current
+        );
+    }
+    for row in &case.aside {
+        assert_eq!(
+            steamrip_core::prefix::aside_path(&row.dir, (2026, 11, 19, 20, 30, 45)),
+            row.path,
+            "aside for {:?}",
+            row.dir
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct OrderCase {
+    configured: Vec<String>,
+    effective: Vec<String>,
+}
+
+fn hoster(name: &str) -> steamrip_core::hoster::Hoster {
+    match name {
+        "BuzzHeavier" => steamrip_core::hoster::Hoster::BuzzHeavier,
+        "FileDitch" => steamrip_core::hoster::Hoster::FileDitch,
+        "GoFile" => steamrip_core::hoster::Hoster::GoFile,
+        "MegaDb" => steamrip_core::hoster::Hoster::MegaDb,
+        "Fichier" => steamrip_core::hoster::Hoster::Fichier,
+        "FileCrypt" => steamrip_core::hoster::Hoster::FileCrypt,
+        other => panic!("unknown hoster {other}"),
+    }
+}
+
+#[test]
+fn hoster_order_matches_the_original() {
+    let cases: Vec<OrderCase> = load("hoster_order.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let configured: Vec<steamrip_core::hoster::Hoster> =
+            case.configured.iter().map(|n| hoster(n)).collect();
+        let got: Vec<String> = steamrip_core::chain::effective_order(&configured)
+            .into_iter()
+            .map(|h| format!("{h:?}"))
+            .collect();
+        assert_eq!(got, case.effective, "order for {:?}", case.configured);
+    }
+}

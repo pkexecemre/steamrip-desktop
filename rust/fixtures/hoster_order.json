@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "configured": [],
+      "effective": [
+        "FileDitch",
+        "GoFile",
+        "MegaDb",
+        "BuzzHeavier"
+      ]
+    },
+    {
+      "configured": [
+        "GoFile"
+      ],
+      "effective": [
+        "GoFile"
+      ]
+    },
+    {
+      "configured": [
+        "BuzzHeavier",
+        "FileDitch"
+      ],
+      "effective": [
+        "BuzzHeavier",
+        "FileDitch"
+      ]
+    },
+    {
+      "configured": [
+        "FileDitch",
+        "GoFile",
+        "MegaDb",
+        "BuzzHeavier"
+      ],
+      "effective": [
+        "FileDitch",
+        "GoFile",
+        "MegaDb",
+        "BuzzHeavier"
+      ]
+    }
+  ]
+}

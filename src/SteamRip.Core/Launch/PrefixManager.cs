@@ -230,11 +230,16 @@ public static class PrefixManager
     {
         if (!Directory.Exists(prefixDir))
             return null;
-        var stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-        var aside = prefixDir.TrimEnd(Path.DirectorySeparatorChar) + ".bak-" + stamp;
+        var aside = AsidePath(prefixDir, DateTime.UtcNow);
         MoveDirectory(prefixDir, aside);
         return aside;
     }
+
+    /// <summary>Where a reset prefix is moved to: sibling with a UTC stamp, so two resets never collide.</summary>
+    public static string AsidePath(string prefixDir, DateTime utcNow) =>
+        prefixDir.TrimEnd(Path.DirectorySeparatorChar)
+        + ".bak-"
+        + utcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
 
     /// <summary><c>Directory.Move</c>, with a copy fallback for a prefix root on another filesystem.</summary>
     public static void MoveDirectory(string from, string to)

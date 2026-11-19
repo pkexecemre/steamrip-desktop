@@ -35,11 +35,11 @@ public sealed class ResolverChain(
         download.FileName?.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase) == true
         || download.Url.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase);
 
-    private IReadOnlyList<Hoster> CurrentOrder()
-    {
-        var o = _order();
-        return o.Count > 0 ? o : DefaultOrder;
-    }
+    private IReadOnlyList<Hoster> CurrentOrder() => EffectiveOrder(_order());
+
+    /// <summary>The order a job walks: the configured list when it says something, else the default.</summary>
+    public static IReadOnlyList<Hoster> EffectiveOrder(IReadOnlyList<Hoster> configured) =>
+        configured.Count > 0 ? configured : DefaultOrder;
 
     public async Task<(ResolvedDownload? Result, IReadOnlyList<string> Errors)> ResolveAsync(
         IReadOnlyList<Mirror> mirrors,

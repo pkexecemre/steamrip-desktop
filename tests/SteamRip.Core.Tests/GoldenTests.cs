@@ -1540,4 +1540,67 @@ public class GoldenTests
 
         RecordOrCheck("timestamps.json", cases);
     }
+
+    [Fact]
+    public void Prefix_upgrade_recordings_match()
+    {
+        (string? Previous, string? Current)[] pairs =
+        [
+            (null, null),
+            (null, "/x/GE-Proton11-12"),
+            ("/x/GE-Proton11-12", null),
+            ("/x/GE-Proton11-12", "/x/GE-Proton11-12"),
+            ("/x/GE-Proton11-12/", "/x/GE-Proton11-12"),
+            ("/x/GE-Proton11-12", "/y/GE-Proton11-12"),
+            ("/x/GE-Proton11-12", "/x/ge-proton11-12"),
+            ("/x/GE-Proton11-12", "/x/GE-Proton11-13"),
+            ("", "/x/GE-Proton11-12"),
+        ];
+
+        var upgrades = pairs
+            .Select(p => new
+            {
+                previous = p.Previous,
+                current = p.Current,
+                needs_upgrade = PrefixManager.NeedsUpgrade(p.Previous, p.Current),
+            })
+            .ToList();
+
+        string[] dirs = ["/prefixes/game", "/prefixes/game/", "/prefixes/game.bak-20260101-000000"];
+
+        var aside = dirs.Select(dir => new
+            {
+                dir,
+                path = PrefixManager.AsidePath(
+                    dir,
+                    new DateTime(2026, 11, 19, 20, 30, 45, DateTimeKind.Utc)
+                ),
+            })
+            .ToList();
+
+        var payload = new[] { new { upgrades, aside } };
+        RecordOrCheck("prefix_upgrade.json", payload);
+    }
+
+    [Fact]
+    public void Hoster_order_recordings_match()
+    {
+        Hoster[][] configured =
+        [
+            [],
+            [Hoster.GoFile],
+            [Hoster.BuzzHeavier, Hoster.FileDitch],
+            [Hoster.FileDitch, Hoster.GoFile, Hoster.MegaDb, Hoster.BuzzHeavier],
+        ];
+
+        var cases = configured
+            .Select(order => new
+            {
+                configured = order.Select(h => h.ToString()).ToList(),
+                effective = ResolverChain.EffectiveOrder(order).Select(h => h.ToString()).ToList(),
+            })
+            .ToList();
+
+        RecordOrCheck("hoster_order.json", cases);
+    }
 }

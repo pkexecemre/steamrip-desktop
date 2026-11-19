@@ -127,6 +127,30 @@ pub fn resolve_build(
     file_exists(&probe).then_some(dir)
 }
 
+/// True when the prefix was built by a different Proton: the build directory name changed.
+pub fn needs_upgrade(previous_build: Option<&str>, current_build: Option<&str>) -> bool {
+    let (Some(previous), Some(current)) = (previous_build, current_build) else {
+        return false;
+    };
+    build_name(previous) != build_name(current)
+}
+
+fn build_name(build: &str) -> String {
+    build
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or_default()
+        .to_lowercase()
+}
+
+/// Where a reset prefix moves to: sibling with a UTC stamp, so two resets never collide.
+pub fn aside_path(prefix_dir: &str, utc: (i32, u32, u32, u32, u32, u32)) -> String {
+    let (year, month, day, hour, minute, second) = utc;
+    let stamp = format!("{year:04}{month:02}{day:02}-{hour:02}{minute:02}{second:02}");
+    format!("{}.bak-{stamp}", prefix_dir.trim_end_matches('/'))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

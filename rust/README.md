@@ -63,6 +63,9 @@ applied by hand because its CLI does not target .NET:
 | `downloader::is_torrent` | `Downloader.IsTorrent` | `fixtures/torrent_engine.json` |
 | `redist::select_installers` | `RedistInstaller.SelectVcInstallers` | `fixtures/redist_selection.json` |
 | `dates::parse_utc_text` | `CatalogParser.ParseUtcText` | `fixtures/timestamps.json` |
+| `prefix::needs_upgrade` | `PrefixManager.NeedsUpgrade` | `fixtures/prefix_upgrade.json` |
+| `prefix::aside_path` | `PrefixManager.AsidePath` | `fixtures/prefix_upgrade.json` |
+| `chain::effective_order` | `ResolverChain.EffectiveOrder` | `fixtures/hoster_order.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

@@ -1,0 +1,67 @@
+{
+  "cases": [
+    {
+      "upgrades": [
+        {
+          "previous": null,
+          "current": null,
+          "needs_upgrade": false
+        },
+        {
+          "previous": null,
+          "current": "/x/GE-Proton11-12",
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12",
+          "current": null,
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12",
+          "current": "/x/GE-Proton11-12",
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12/",
+          "current": "/x/GE-Proton11-12",
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12",
+          "current": "/y/GE-Proton11-12",
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12",
+          "current": "/x/ge-proton11-12",
+          "needs_upgrade": false
+        },
+        {
+          "previous": "/x/GE-Proton11-12",
+          "current": "/x/GE-Proton11-13",
+          "needs_upgrade": true
+        },
+        {
+          "previous": "",
+          "current": "/x/GE-Proton11-12",
+          "needs_upgrade": true
+        }
+      ],
+      "aside": [
+        {
+          "dir": "/prefixes/game",
+          "path": "/prefixes/game.bak-20261119-203045"
+        },
+        {
+          "dir": "/prefixes/game/",
+          "path": "/prefixes/game.bak-20261119-203045"
+        },
+        {
+          "dir": "/prefixes/game.bak-20260101-000000",
+          "path": "/prefixes/game.bak-20260101-000000.bak-20261119-203045"
+        }
+      ]
+    }
+  ]
+}
