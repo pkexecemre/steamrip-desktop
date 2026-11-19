@@ -30,7 +30,13 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
     /// <c>Foo.r05</c> → <c>Foo.rar</c>, <c>Foo.7z.004</c> → <c>Foo.7z.001</c>. Unrar and 7z both open a split set
     /// from its first volume, so nothing else in the pipeline has to know the archive was split.
     /// </summary>
-    public static string FirstPart(string archive)
+    public static string FirstPart(string archive) => FirstPart(archive, File.Exists);
+
+    /// <summary>
+    /// The same resolution with the existence check injected, so the split-volume rules can be
+    /// exercised (and ported) without creating files on disk.
+    /// </summary>
+    internal static string FirstPart(string archive, Func<string, bool> exists)
     {
         var dir = Path.GetDirectoryName(archive) ?? ".";
         var name = Path.GetFileName(archive);
@@ -48,19 +54,19 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
                     + "."
                     + multi.Groups["ext"].Value
             );
-            return File.Exists(first) ? first : archive;
+            return exists(first) ? first : archive;
         }
         var old = OldRarPart().Match(name);
         if (old.Success)
         {
             var rar = Path.Combine(dir, old.Groups["base"].Value + ".rar");
-            return File.Exists(rar) ? rar : archive;
+            return exists(rar) ? rar : archive;
         }
         var zip = ZipPart().Match(name);
         if (zip.Success)
         {
             var target = Path.Combine(dir, zip.Groups["base"].Value + ".zip");
-            return File.Exists(target) ? target : archive;
+            return exists(target) ? target : archive;
         }
         var numeric = NumericSplit().Match(name);
         if (
@@ -85,24 +91,39 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
             using var fs = File.OpenRead(path);
             var head = new byte[8];
             var read = fs.Read(head, 0, head.Length);
-            if (read < 2)
-                return null;
-            if (head[0] == 'R' && head[1] == 'a' && head[2] == 'r' && head[3] == '!')
-                return "rar";
-            if (read >= 6 && head[0] == 0x37 && head[1] == 0x7A && head[2] == 0xBC)
-                return "7z";
-            if (head[0] == 'P' && head[1] == 'K')
-                return "zip";
-            if (read >= 3 && head[0] == 'd' && head[1] == '8' && head[2] == ':')
-                return "torrent";
-            if (read >= 5 && (head[0] == (byte)'<' || (head[0] == 0xEF && head[1] == 0xBB)))
-                return "html";
-            return null;
+            return SniffKind(head.AsSpan(0, read));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// What the first bytes say a file is, without touching the disk: the rules are pure, so the
+    /// recorder and the Rust port can run the same cases.
+    /// </summary>
+    public static string? SniffKind(ReadOnlySpan<byte> head)
+    {
+        if (head.Length < 2)
+            return null;
+        if (
+            head.Length >= 4
+            && head[0] == 'R'
+            && head[1] == 'a'
+            && head[2] == 'r'
+            && head[3] == '!'
+        )
+            return "rar";
+        if (head.Length >= 6 && head[0] == 0x37 && head[1] == 0x7A && head[2] == 0xBC)
+            return "7z";
+        if (head[0] == 'P' && head[1] == 'K')
+            return "zip";
+        if (head.Length >= 3 && head[0] == 'd' && head[1] == '8' && head[2] == ':')
+            return "torrent";
+        if (head.Length >= 5 && (head[0] == (byte)'<' || (head[0] == 0xEF && head[1] == 0xBB)))
+            return "html";
+        return null;
     }
 
     /// <summary>A file an archive tool can actually open (RAR, 7z, ZIP and their split volumes).</summary>

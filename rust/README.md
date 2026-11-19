@@ -24,6 +24,8 @@ applied by hand because its CLI does not target .NET:
 | `catalog::title_parser::parse` | `Catalog/TitleParser.cs` | `fixtures/title_parser.json` |
 | `catalog::size::parse_size` | `CatalogParser.ParseSize` | `fixtures/size.json` |
 | `catalog::title_prefix::title_prefix` | `SteamAppIdResolver.TitlePrefix` | `fixtures/title_prefix.json` |
+| `archive::sniff` | `ArchiveTool.SniffKind(ReadOnlySpan<byte>)` | `fixtures/sniff.json` |
+| `archive::first_part` | `ArchiveTool.FirstPart(path, exists)` | `fixtures/first_part.json` |
 
 ## Adding a unit
 

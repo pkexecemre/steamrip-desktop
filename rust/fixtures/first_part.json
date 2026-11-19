@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "input": "Foo.part03.rar",
+      "existing": [
+        "Foo.part01.rar"
+      ],
+      "expected": "Foo.part01.rar"
+    },
+    {
+      "input": "Foo.part03.rar",
+      "existing": [],
+      "expected": "Foo.part03.rar"
+    },
+    {
+      "input": "Foo.part001.rar",
+      "existing": [
+        "Foo.part001.rar"
+      ],
+      "expected": "Foo.part001.rar"
+    },
+    {
+      "input": "Foo.part02.rar",
+      "existing": [
+        "Foo.part01.rar",
+        "Foo.part02.rar"
+      ],
+      "expected": "Foo.part01.rar"
+    },
+    {
+      "input": "Foo.r05",
+      "existing": [
+        "Foo.rar"
+      ],
+      "expected": "Foo.rar"
+    },
+    {
+      "input": "Foo.r05",
+      "existing": [],
+      "expected": "Foo.r05"
+    },
+    {
+      "input": "Foo.z02",
+      "existing": [
+        "Foo.zip"
+      ],
+      "expected": "Foo.zip"
+    },
+    {
+      "input": "Foo.7z.004",
+      "existing": [
+        "Foo.7z.001"
+      ],
+      "expected": "Foo.7z.001"
+    },
+    {
+      "input": "Foo.7z.001",
+      "existing": [
+        "Foo.7z.001"
+      ],
+      "expected": "Foo.7z.001"
+    },
+    {
+      "input": "Foo.zip",
+      "existing": [],
+      "expected": "Foo.zip"
+    },
+    {
+      "input": "Bar.PART02.RAR",
+      "existing": [
+        "Bar.part01.RAR"
+      ],
+      "expected": "Bar.part01.RAR"
+    },
+    {
+      "input": "plain.rar",
+      "existing": [],
+      "expected": "plain.rar"
+    }
+  ]
+}

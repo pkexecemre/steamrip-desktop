@@ -1,13 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SteamRip.Core.Catalog;
+using SteamRip.Core.Install;
 
 namespace SteamRip.Core.Tests;
 
 /// <summary>
 /// Writes the recordings the Rust port is checked against, and keeps them honest: the same
-/// file is read back and compared with what the C# implementation answers today, so a
-/// behaviour change here fails here first. Set <c>SR_GOLDEN_DIR</c> (<c>make golden</c>) to record.
+/// file is read back and compared byte for byte with what the C# implementation answers today,
+/// so a behaviour change here fails here first. Set <c>SR_GOLDEN_DIR</c> (<c>make golden</c>) to record.
 /// </summary>
 public class GoldenTests
 {
@@ -33,23 +34,21 @@ public class GoldenTests
         );
     }
 
-    private static void RecordOrCheck<T>(string file, IReadOnlyList<T> cases)
+    private static void RecordOrCheck(string file, object cases)
     {
         var dir = FixtureDirectory();
         var path = Path.Combine(dir, file);
-        var payload = JsonSerializer.Serialize(new Fixture<T> { Cases = cases }, Json);
+        var payload = JsonSerializer.Serialize(new { cases }, Json) + Environment.NewLine;
 
         if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SR_GOLDEN_DIR")))
         {
             Directory.CreateDirectory(dir);
-            File.WriteAllText(path, payload + Environment.NewLine);
+            File.WriteAllText(path, payload);
             return;
         }
 
         Assert.True(File.Exists(path), $"missing recording {path}: run make golden");
-        var recorded = JsonSerializer.Deserialize<Fixture<T>>(File.ReadAllText(path));
-        Assert.NotNull(recorded);
-        Assert.Equal(payload, JsonSerializer.Serialize(recorded, Json));
+        Assert.Equal(payload, File.ReadAllText(path));
     }
 
     [Fact]
@@ -133,9 +132,84 @@ public class GoldenTests
         RecordOrCheck("title_prefix.json", cases);
     }
 
-    private sealed class Fixture<T>
+    [Fact]
+    public void Sniff_recordings_match()
     {
-        [JsonPropertyName("cases")]
-        public required IReadOnlyList<T> Cases { get; init; }
+        string[] heads =
+        [
+            "52617221", // Rar!
+            "52617221" + "1A0700",
+            "377abcaf271c", // 7z signature
+            "377abc", // three bytes: not enough for the 7z rule
+            "504b0304", // PK.. zip
+            "504b", // PK only
+            "64383a", // d8:
+            "64383a616e6e6f756e6365", // d8:announce
+            "6462", // d8 without the colon
+            "3c68746d6c3e", // <html>
+            "3c", // one byte
+            "efbbbf", // utf-8 bom only
+            "00",
+            "",
+            "5261", // Ra
+            "526172", // Rar
+        ];
+
+        var cases = heads
+            .Select(hex =>
+            {
+                var bytes = Convert.FromHexString(hex);
+                return new { head_hex = hex, kind = ArchiveTool.SniffKind(bytes) };
+            })
+            .ToList();
+
+        RecordOrCheck("sniff.json", cases);
+    }
+
+    [Fact]
+    public void First_part_recordings_match()
+    {
+        (string Input, string[] Existing)[] cases =
+        [
+            ("Foo.part03.rar", ["Foo.part01.rar"]),
+            ("Foo.part03.rar", []),
+            ("Foo.part001.rar", ["Foo.part001.rar"]),
+            ("Foo.part02.rar", ["Foo.part01.rar", "Foo.part02.rar"]),
+            ("Foo.r05", ["Foo.rar"]),
+            ("Foo.r05", []),
+            ("Foo.z02", ["Foo.zip"]),
+            ("Foo.7z.004", ["Foo.7z.001"]),
+            ("Foo.7z.001", ["Foo.7z.001"]),
+            ("Foo.zip", []),
+            ("Bar.PART02.RAR", ["Bar.part01.RAR"]),
+            ("plain.rar", []),
+        ];
+
+        var recorded = new List<object>();
+        foreach (var (input, existing) in cases)
+        {
+            var dir = Directory.CreateTempSubdirectory("sr-firstpart-");
+            try
+            {
+                foreach (var name in existing)
+                    File.WriteAllBytes(Path.Combine(dir.FullName, name), []);
+
+                var got = ArchiveTool.FirstPart(Path.Combine(dir.FullName, input));
+                recorded.Add(
+                    new
+                    {
+                        input,
+                        existing,
+                        expected = Path.GetFileName(got),
+                    }
+                );
+            }
+            finally
+            {
+                dir.Delete(true);
+            }
+        }
+
+        RecordOrCheck("first_part.json", recorded);
     }
 }

@@ -77,3 +77,55 @@ fn title_prefix_matches_the_original() {
         assert_eq!(got, case.prefix, "prefix for {:?}", case.input);
     }
 }
+
+#[derive(Deserialize)]
+struct SniffCase {
+    head_hex: String,
+    kind: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct FirstPartCase {
+    input: String,
+    existing: Vec<String>,
+    expected: String,
+}
+
+fn hex_bytes(hex: &str) -> Vec<u8> {
+    (0..hex.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).expect("hex fixture"))
+        .collect()
+}
+
+#[test]
+fn sniff_matches_the_original() {
+    let cases: Vec<SniffCase> = load("sniff.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let head = hex_bytes(&case.head_hex);
+        let got = steamrip_core::archive::sniff(&head).map(|k| k.to_string());
+        assert_eq!(got, case.kind, "kind for {:?}", case.head_hex);
+    }
+}
+
+#[test]
+fn first_part_matches_the_original() {
+    let cases: Vec<FirstPartCase> = load("first_part.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let dir = std::path::Path::new("games");
+        let archive = dir.join(&case.input);
+        let existing = case.existing.clone();
+        let picked = steamrip_core::archive::first_part(&archive, |p| {
+            p.file_name()
+                .map(|n| existing.iter().any(|e| e == n.to_string_lossy().as_ref()))
+                .unwrap_or(false)
+        });
+        let name = picked
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        assert_eq!(name, case.expected, "first part for {:?}", case.input);
+    }
+}

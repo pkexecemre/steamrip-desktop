@@ -1,0 +1,68 @@
+{
+  "cases": [
+    {
+      "head_hex": "52617221",
+      "kind": "rar"
+    },
+    {
+      "head_hex": "526172211A0700",
+      "kind": "rar"
+    },
+    {
+      "head_hex": "377abcaf271c",
+      "kind": "7z"
+    },
+    {
+      "head_hex": "377abc",
+      "kind": null
+    },
+    {
+      "head_hex": "504b0304",
+      "kind": "zip"
+    },
+    {
+      "head_hex": "504b",
+      "kind": "zip"
+    },
+    {
+      "head_hex": "64383a",
+      "kind": "torrent"
+    },
+    {
+      "head_hex": "64383a616e6e6f756e6365",
+      "kind": "torrent"
+    },
+    {
+      "head_hex": "6462",
+      "kind": null
+    },
+    {
+      "head_hex": "3c68746d6c3e",
+      "kind": "html"
+    },
+    {
+      "head_hex": "3c",
+      "kind": null
+    },
+    {
+      "head_hex": "efbbbf",
+      "kind": null
+    },
+    {
+      "head_hex": "00",
+      "kind": null
+    },
+    {
+      "head_hex": "",
+      "kind": null
+    },
+    {
+      "head_hex": "5261",
+      "kind": null
+    },
+    {
+      "head_hex": "526172",
+      "kind": null
+    }
+  ]
+}
