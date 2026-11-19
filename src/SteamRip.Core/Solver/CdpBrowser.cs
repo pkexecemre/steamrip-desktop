@@ -146,22 +146,50 @@ public sealed partial class CdpBrowser : IAsyncDisposable
         process.BeginErrorReadLine();
         process.BeginOutputReadLine();
 
-        var wsUrl = await DevToolsUrlAsync(profile, TimeSpan.FromSeconds(20), ct);
-        if (wsUrl is null)
+        // Everything after Start belongs to this method until a browser is returned: a cancellation or a
+        // failed connect would otherwise leave a headless Chromium and its temp profile behind forever, and
+        // the hourly retry adds another one each time.
+        try
+        {
+            var wsUrl = await DevToolsUrlAsync(profile, TimeSpan.FromSeconds(20), ct);
+            if (wsUrl is null)
+            {
+                throw new SolverException(
+                    "the browser did not open a DevTools port ("
+                        + (
+                            stderr.Length > 400 ? stderr.ToString()[^400..] : stderr.ToString()
+                        ).Trim()
+                        + ")"
+                );
+            }
+            var socket = new ClientWebSocket();
+            await socket.ConnectAsync(new Uri(wsUrl), ct);
+            var browser = new CdpBrowser(process, socket, profile, log) { SessionId = "" };
+            await browser.AttachAsync(ct);
+            log.LogInformation(
+                "CDP: {Browser} ready at {Url}",
+                Path.GetFileName(executable),
+                wsUrl
+            );
+            return browser;
+        }
+        catch
         {
             TryKill(process);
-            throw new SolverException(
-                "the browser did not open a DevTools port ("
-                    + (stderr.Length > 400 ? stderr.ToString()[^400..] : stderr.ToString()).Trim()
-                    + ")"
-            );
+            try
+            {
+                Directory.Delete(profile, true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                log.LogDebug(
+                    "CDP: could not remove the temp profile {Profile}: {Error}",
+                    profile,
+                    e.Message
+                );
+            }
+            throw;
         }
-        var socket = new ClientWebSocket();
-        await socket.ConnectAsync(new Uri(wsUrl), ct);
-        var browser = new CdpBrowser(process, socket, profile, log) { SessionId = "" };
-        await browser.AttachAsync(ct);
-        log.LogInformation("CDP: {Browser} ready at {Url}", Path.GetFileName(executable), wsUrl);
-        return browser;
     }
 
     private static IEnumerable<string> Arguments(string profile, bool headless)

@@ -63,7 +63,16 @@ public sealed class CdpSolver(ILogger<CdpSolver>? logger = null, bool headless =
             var browser = await CdpBrowser.LaunchAsync(exe, headless, _log, ct);
             // A distro build can fail TLS/HTTP2 against a hoster while another Chromium build works; the probe
             // makes that a switch to the next browser instead of "the page could not load".
-            await browser.NavigateAsync("https://steamrip.com/", ct);
+            try
+            {
+                await browser.NavigateAsync("https://steamrip.com/", ct);
+            }
+            catch
+            {
+                // the probe failed or was cancelled: this browser is not usable, so stop it here
+                await browser.DisposeAsync();
+                throw;
+            }
             if (browser.LastNavigationError is null)
                 return new Session(browser, _log);
             _log.LogWarning(

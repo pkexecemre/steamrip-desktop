@@ -32,6 +32,7 @@ public sealed class UpdateService : IAsyncDisposable
     private readonly ConcurrentQueue<Job> _queue = new();
     private readonly ProtonDownloader? _protons;
     private readonly SemaphoreSlim _wake = new(0);
+    private readonly SemaphoreSlim _reschedule = new(0);
     private readonly CancellationTokenSource _cts = new();
     private readonly List<Job> _jobs = [];
 
@@ -335,6 +336,15 @@ public sealed class UpdateService : IAsyncDisposable
             CheckForUpdates();
             await RefreshPopularityAsync(ct);
             return count;
+        }
+        catch (OperationCanceledException e) when (!ct.IsCancellationRequested)
+        {
+            // HttpClient's own 60s timeout arrives as a TaskCanceledException; treating it as our own
+            // shutdown used to stop the scheduler for the rest of the process.
+            LastSyncStatus = "Sync failed: " + e.Message;
+            _db.LogEvent("sync-error", e.Message);
+            _log.LogError(e, "Catalog sync timed out");
+            return 0;
         }
         catch (OperationCanceledException)
         {
@@ -643,10 +653,42 @@ public sealed class UpdateService : IAsyncDisposable
                     continue;
                 Current = job;
                 JobsChanged?.Invoke();
-                await RunJobAsync(job);
-                Current = null;
-                JobsChanged?.Invoke();
+                // RunJobAsync already catches its own failures, but its handlers write to the database and
+                // the log: a throw from there would escape this loop, fault the worker task and leave every
+                // later job Queued forever with nothing in the UI to say why.
+                try
+                {
+                    await RunJobAsync(job);
+                }
+                catch (Exception e)
+                {
+                    _log.LogError(
+                        e,
+                        "=== Job crashed outside its own handlers: {Name}",
+                        job.Post.Name
+                    );
+                    job.Set(JobStage.Failed, e.Message, error: e.ToString());
+                }
+                finally
+                {
+                    Current = null;
+                    JobsChanged?.Invoke();
+                }
             }
+        }
+    }
+
+    /// <summary>Ends the scheduler's current wait so a changed check interval takes effect now.</summary>
+    public void NudgeScheduler()
+    {
+        while (_reschedule.Wait(0)) { }
+        try
+        {
+            _reschedule.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // shutting down
         }
     }
 
@@ -1166,6 +1208,12 @@ public sealed class UpdateService : IAsyncDisposable
             {
                 await SyncCatalogAsync(ct: _cts.Token);
             }
+            catch (OperationCanceledException) when (!_cts.IsCancellationRequested)
+            {
+                _log.LogError(
+                    "Scheduler tick was cancelled by a request timeout, not by shutdown; continuing"
+                );
+            }
             catch (OperationCanceledException)
             {
                 break;
@@ -1181,7 +1229,9 @@ public sealed class UpdateService : IAsyncDisposable
             );
             try
             {
-                await Task.Delay(
+                // A semaphore instead of Task.Delay: the settings page can end the wait when the interval
+                // changes, otherwise a user who lowers it to 10 min waits out the rest of the hour first.
+                await _reschedule.WaitAsync(
                     TimeSpan.FromMinutes(Math.Max(5, _settings.CheckIntervalMinutes)),
                     _cts.Token
                 );
