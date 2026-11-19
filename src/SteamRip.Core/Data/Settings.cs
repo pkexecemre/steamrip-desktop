@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SteamRip.Core.Catalog;
 
 namespace SteamRip.Core.Data;
 
@@ -66,16 +67,43 @@ public sealed class Settings
     ["FileDitch", "GoFile", "MegaDb", "BuzzHeavier"];
 
     public static string DefaultDir =>
+        DefaultDirFor(
+            OperatingSystem.IsWindows(),
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"),
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        );
+
+    /// <summary>Where the profile lives, with the environment passed in so the rule is testable.</summary>
+    public static string DefaultDirFor(
+        bool windows,
+        string appData,
+        string? xdgConfigHome,
+        string home
+    ) =>
         Path.Combine(
-            OperatingSystem.IsWindows()
-                    ? Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                : Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") is { Length: > 0 } x ? x
-                : Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                    ".config"
-                ),
+            windows ? appData
+                : !string.IsNullOrEmpty(xdgConfigHome) ? xdgConfigHome
+                : Path.Combine(home, ".config"),
             "steamrip-desktop"
         );
+
+    /// <summary>Hoster names from the settings file, in order; an unknown name becomes Unknown.</summary>
+    public static IReadOnlyList<Hoster> HostersFromNames(IEnumerable<string> names) =>
+        [
+            .. names.Select(name =>
+                Enum.TryParse<Hoster>(name, true, out var hoster) ? hoster : Hoster.Unknown
+            ),
+        ];
+
+    /// <summary>The comma-separated field the settings window edits, back to names.</summary>
+    public static IReadOnlyList<string> ParseHosterOrder(string text) =>
+        [
+            .. text.Split(
+                ",",
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+            ),
+        ];
 
     public static string DefaultPath => Path.Combine(DefaultDir, "settings.json");
     public static string DefaultDbPath => Path.Combine(DefaultDir, "steamrip.db");

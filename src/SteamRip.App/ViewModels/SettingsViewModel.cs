@@ -214,13 +214,7 @@ public partial class SettingsViewModel : ObservableObject
         c.StartHidden = StartHidden;
         c.DeleteArchiveAfterInstall = DeleteArchiveAfterInstall;
         c.KeepBackups = Math.Max(0, KeepBackups);
-        c.HosterOrder =
-        [
-            .. HosterOrder.Split(
-                ',',
-                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-            ),
-        ];
+        c.HosterOrder = [.. Core.Data.Settings.ParseHosterOrder(HosterOrder)];
         c.Autostart = Autostart;
         c.ShortcutMenu = ShortcutMenu;
         c.ShortcutDesktop = ShortcutDesktop;

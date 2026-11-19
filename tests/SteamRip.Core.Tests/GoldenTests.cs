@@ -1603,4 +1603,67 @@ public class GoldenTests
 
         RecordOrCheck("hoster_order.json", cases);
     }
+
+    [Fact]
+    public void Settings_recordings_match()
+    {
+        (bool Windows, string AppData, string? Xdg, string Home)[] dirs =
+        [
+            (false, "/appdata", null, "/home/emre"),
+            (false, "/appdata", "", "/home/emre"),
+            (false, "/appdata", "/xdg", "/home/emre"),
+            (true, "C:/Users/x/AppData/Roaming", "/xdg", "C:/Users/x"),
+            (true, "C:/Users/x/AppData/Roaming", null, "C:/Users/x"),
+        ];
+
+        var defaultDirs = dirs.Select(d => new
+            {
+                windows = d.Windows,
+                app_data = d.AppData,
+                xdg = d.Xdg,
+                home = d.Home,
+                dir = Settings.DefaultDirFor(d.Windows, d.AppData, d.Xdg, d.Home),
+            })
+            .ToList();
+
+        string[][] nameLists =
+        [
+            [],
+            ["FileDitch", "GoFile"],
+            ["fileditch", "BUZZHEAVIER"],
+            ["Nope", "MegaDb"],
+            ["Unknown"],
+        ];
+
+        var hosters = nameLists
+            .Select(names => new
+            {
+                names,
+                parsed = Settings.HostersFromNames(names).Select(h => h.ToString()).ToList(),
+            })
+            .ToList();
+
+        string[] orderTexts =
+        [
+            "",
+            "FileDitch, GoFile",
+            " FileDitch ,, GoFile , ",
+            "FileDitch,GoFile,MegaDb,BuzzHeavier",
+        ];
+
+        var orders = orderTexts
+            .Select(text => new { input = text, names = Settings.ParseHosterOrder(text) })
+            .ToList();
+
+        var payload = new[]
+        {
+            new
+            {
+                defaultDirs,
+                hosters,
+                orders,
+            },
+        };
+        RecordOrCheck("settings_rules.json", payload);
+    }
 }

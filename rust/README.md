@@ -66,6 +66,9 @@ applied by hand because its CLI does not target .NET:
 | `prefix::needs_upgrade` | `PrefixManager.NeedsUpgrade` | `fixtures/prefix_upgrade.json` |
 | `prefix::aside_path` | `PrefixManager.AsidePath` | `fixtures/prefix_upgrade.json` |
 | `chain::effective_order` | `ResolverChain.EffectiveOrder` | `fixtures/hoster_order.json` |
+| `settings::default_dir` | `Settings.DefaultDirFor` | `fixtures/settings_rules.json` |
+| `settings::hosters_from_names` | `Settings.HostersFromNames` | `fixtures/settings_rules.json` |
+| `settings::parse_hoster_order` | `Settings.ParseHosterOrder` | `fixtures/settings_rules.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

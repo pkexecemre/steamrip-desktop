@@ -1,0 +1,116 @@
+{
+  "cases": [
+    {
+      "defaultDirs": [
+        {
+          "windows": false,
+          "app_data": "/appdata",
+          "xdg": null,
+          "home": "/home/emre",
+          "dir": "/home/emre/.config/steamrip-desktop"
+        },
+        {
+          "windows": false,
+          "app_data": "/appdata",
+          "xdg": "",
+          "home": "/home/emre",
+          "dir": "/home/emre/.config/steamrip-desktop"
+        },
+        {
+          "windows": false,
+          "app_data": "/appdata",
+          "xdg": "/xdg",
+          "home": "/home/emre",
+          "dir": "/xdg/steamrip-desktop"
+        },
+        {
+          "windows": true,
+          "app_data": "C:/Users/x/AppData/Roaming",
+          "xdg": "/xdg",
+          "home": "C:/Users/x",
+          "dir": "C:/Users/x/AppData/Roaming/steamrip-desktop"
+        },
+        {
+          "windows": true,
+          "app_data": "C:/Users/x/AppData/Roaming",
+          "xdg": null,
+          "home": "C:/Users/x",
+          "dir": "C:/Users/x/AppData/Roaming/steamrip-desktop"
+        }
+      ],
+      "hosters": [
+        {
+          "names": [],
+          "parsed": []
+        },
+        {
+          "names": [
+            "FileDitch",
+            "GoFile"
+          ],
+          "parsed": [
+            "FileDitch",
+            "GoFile"
+          ]
+        },
+        {
+          "names": [
+            "fileditch",
+            "BUZZHEAVIER"
+          ],
+          "parsed": [
+            "FileDitch",
+            "BuzzHeavier"
+          ]
+        },
+        {
+          "names": [
+            "Nope",
+            "MegaDb"
+          ],
+          "parsed": [
+            "Unknown",
+            "MegaDb"
+          ]
+        },
+        {
+          "names": [
+            "Unknown"
+          ],
+          "parsed": [
+            "Unknown"
+          ]
+        }
+      ],
+      "orders": [
+        {
+          "input": "",
+          "names": []
+        },
+        {
+          "input": "FileDitch, GoFile",
+          "names": [
+            "FileDitch",
+            "GoFile"
+          ]
+        },
+        {
+          "input": " FileDitch ,, GoFile , ",
+          "names": [
+            "FileDitch",
+            "GoFile"
+          ]
+        },
+        {
+          "input": "FileDitch,GoFile,MegaDb,BuzzHeavier",
+          "names": [
+            "FileDitch",
+            "GoFile",
+            "MegaDb",
+            "BuzzHeavier"
+          ]
+        }
+      ]
+    }
+  ]
+}

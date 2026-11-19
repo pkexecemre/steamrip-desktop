@@ -1106,3 +1106,69 @@ fn hoster_order_matches_the_original() {
         assert_eq!(got, case.effective, "order for {:?}", case.configured);
     }
 }
+
+#[derive(Deserialize)]
+struct DirCase {
+    windows: bool,
+    app_data: String,
+    xdg: Option<String>,
+    home: String,
+    dir: String,
+}
+
+#[derive(Deserialize)]
+struct HostersCase {
+    names: Vec<String>,
+    parsed: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct OrderTextCase {
+    input: String,
+    names: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct SettingsCase {
+    #[serde(rename = "defaultDirs")]
+    default_dirs: Vec<DirCase>,
+    hosters: Vec<HostersCase>,
+    orders: Vec<OrderTextCase>,
+}
+
+#[test]
+fn settings_rules_match_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("settings_rules.json"))
+        .expect("settings_rules fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("json");
+    let case: SettingsCase =
+        serde_json::from_value(doc["cases"][0].clone()).expect("settings case");
+    for row in &case.default_dirs {
+        assert_eq!(
+            steamrip_core::settings::default_dir(
+                row.windows,
+                &row.app_data,
+                row.xdg.as_deref(),
+                &row.home
+            ),
+            row.dir,
+            "dir for {:?}",
+            row.xdg
+        );
+    }
+    for row in &case.hosters {
+        let parsed: Vec<String> = steamrip_core::settings::hosters_from_names(&row.names)
+            .into_iter()
+            .map(|h| format!("{h:?}"))
+            .collect();
+        assert_eq!(parsed, row.parsed, "hosters for {:?}", row.names);
+    }
+    for row in &case.orders {
+        assert_eq!(
+            steamrip_core::settings::parse_hoster_order(&row.input),
+            row.names,
+            "order for {:?}",
+            row.input
+        );
+    }
+}

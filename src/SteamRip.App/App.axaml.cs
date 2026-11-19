@@ -387,9 +387,7 @@ public sealed class AppServices : IAsyncDisposable
             () =>
                 [
                     .. settings
-                        .HosterOrder.Select(h =>
-                            Enum.TryParse<Hoster>(h, true, out var v) ? v : Hoster.Unknown
-                        )
+                        .HosterOrder.Select(h => Settings.HostersFromNames([h])[0])
                         .Where(h => h != Hoster.Unknown),
                 ],
             loggers.CreateLogger<ResolverChain>(),
