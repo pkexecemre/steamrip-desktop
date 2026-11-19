@@ -45,8 +45,16 @@ nfpm() {
 appimagetool() {
   if type -P appimagetool >/dev/null; then command appimagetool "$@"; return; fi
   fetch "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" "$tools/appimagetool"
+  # appimagetool 1.x no longer embeds the type-2 runtime: without --runtime-file it
+  # downloads it at build time, which can hang. Fetch it here (same release channel
+  # the tool would use) so packaging is offline and reproducible.
+  fetch "https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64" "$tools/runtime-x86_64"
   # --appimage-extract-and-run: works without FUSE (containers, CI runners)
-  "$tools/appimagetool" --appimage-extract-and-run "$@"
+  # Clear OWD/APPIMAGE/APPDIR: when this script itself runs inside an AppImage,
+  # the nested runtime would chdir to the inherited OWD and the relative
+  # AppDir/dist paths below would stop resolving.
+  env -u OWD -u APPIMAGE -u APPDIR \
+    "$tools/appimagetool" --appimage-extract-and-run --runtime-file "$tools/runtime-x86_64" "$@"
 }
 
 echo "== publish linux-x64 ($version)"
