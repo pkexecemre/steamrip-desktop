@@ -57,6 +57,7 @@ applied by hand because its CLI does not target .NET:
 | `autostart::desktop_entry` | `Autostart.DesktopEntry` | `fixtures/autostart_entry.json` |
 | `prefix::proton_label` | `PrefixManager.ProtonLabel(path, resolve)` | `fixtures/proton_label.json` |
 | `prefix::resolve_build` | `PrefixManager.ResolveBuild(path, resolve, exists)` | `fixtures/proton_label.json` |
+| `installer::collapse_target` | `Installer.CollapseTarget` | `fixtures/collapse.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

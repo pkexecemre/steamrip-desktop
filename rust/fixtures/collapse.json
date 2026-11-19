@@ -1,0 +1,89 @@
+{
+  "cases": [
+    {
+      "dirs": [],
+      "files": [],
+      "target": null
+    },
+    {
+      "dirs": [
+        "/s/Game"
+      ],
+      "files": [],
+      "target": "Game"
+    },
+    {
+      "dirs": [
+        "/s/Game/",
+        "_CommonRedist"
+      ],
+      "files": [],
+      "target": ""
+    },
+    {
+      "dirs": [
+        "Game",
+        "_CommonRedist",
+        "_Redist"
+      ],
+      "files": [
+        "readme.txt"
+      ],
+      "target": null
+    },
+    {
+      "dirs": [],
+      "files": [
+        "file.bin"
+      ],
+      "target": null
+    },
+    {
+      "dirs": [
+        "A",
+        "B"
+      ],
+      "files": [],
+      "target": null
+    },
+    {
+      "dirs": [
+        "_CommonRedist"
+      ],
+      "files": [],
+      "target": null
+    },
+    {
+      "dirs": [
+        "__MACOSX"
+      ],
+      "files": [],
+      "target": null
+    },
+    {
+      "dirs": [
+        "Game"
+      ],
+      "files": [],
+      "target": "Game"
+    },
+    {
+      "dirs": [
+        "game"
+      ],
+      "files": [
+        "setup.exe"
+      ],
+      "target": null
+    },
+    {
+      "dirs": [
+        "/s/A",
+        "/s/B",
+        "/s/_Setup"
+      ],
+      "files": [],
+      "target": null
+    }
+  ]
+}

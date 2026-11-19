@@ -199,18 +199,32 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
         var entries = Directory.GetFileSystemEntries(staging);
         var dirs = entries.Where(Directory.Exists).ToList();
         var files = entries.Where(File.Exists).ToList();
-        var realDirs = dirs.Where(d => !NoiseDirs.Contains(Path.GetFileName(d).ToLowerInvariant()))
-            .ToList();
-        if (files.Count != 0 || realDirs.Count != 1)
+        var target = CollapseTarget(dirs, files);
+        if (target is null)
             return staging;
         // Move noise dirs (redist) into the real dir so nothing is lost, then collapse.
-        foreach (var noise in dirs.Except(realDirs))
+        foreach (var noise in dirs.Where(d => Path.GetFileName(d) != target))
         {
-            var dest = Path.Combine(realDirs[0], Path.GetFileName(noise));
+            var dest = Path.Combine(staging, target, Path.GetFileName(noise));
             if (!Directory.Exists(dest))
                 Directory.Move(noise, dest);
         }
-        return realDirs[0];
+        return Path.Combine(staging, target);
+    }
+
+    /// <summary>
+    /// The folder the staging directory should collapse into, or null to keep it as it is: exactly one
+    /// real folder and no loose files. Redist noise folders do not count.
+    /// </summary>
+    public static string? CollapseTarget(
+        IReadOnlyList<string> directories,
+        IReadOnlyList<string> files
+    )
+    {
+        var realDirs = directories
+            .Where(d => !NoiseDirs.Contains(Path.GetFileName(d).ToLowerInvariant()))
+            .ToList();
+        return files.Count == 0 && realDirs.Count == 1 ? Path.GetFileName(realDirs[0]) : null;
     }
 
     public static void PruneBackups(string backupsRoot, int keep, ILogger? log = null)

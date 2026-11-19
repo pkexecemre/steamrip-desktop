@@ -1355,4 +1355,34 @@ public class GoldenTests
 
         RecordOrCheck("proton_label.json", recorded);
     }
+
+    [Fact]
+    public void Collapse_recordings_match()
+    {
+        (string[] Dirs, string[] Files)[] cases =
+        [
+            ([], []),
+            (["/s/Game"], []),
+            (["/s/Game/", "_CommonRedist"], []),
+            (["Game", "_CommonRedist", "_Redist"], ["readme.txt"]),
+            ([], ["file.bin"]),
+            (["A", "B"], []),
+            (["_CommonRedist"], []),
+            (["__MACOSX"], []),
+            (["Game"], []),
+            (["game"], ["setup.exe"]),
+            (["/s/A", "/s/B", "/s/_Setup"], []),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                dirs = c.Dirs,
+                files = c.Files,
+                target = Installer.CollapseTarget(c.Dirs, c.Files),
+            })
+            .ToList();
+
+        RecordOrCheck("collapse.json", recorded);
+    }
 }

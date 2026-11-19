@@ -888,3 +888,25 @@ fn proton_label_matches_the_original() {
         assert_eq!(build, case.build, "build for {:?}", case.stored);
     }
 }
+
+#[derive(Deserialize)]
+struct CollapseCase {
+    dirs: Vec<String>,
+    files: Vec<String>,
+    target: Option<String>,
+}
+
+#[test]
+fn collapse_matches_the_original() {
+    let cases: Vec<CollapseCase> = load("collapse.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::installer::collapse_target(&case.dirs, &case.files),
+            case.target,
+            "collapse for {:?} / {:?}",
+            case.dirs,
+            case.files
+        );
+    }
+}
