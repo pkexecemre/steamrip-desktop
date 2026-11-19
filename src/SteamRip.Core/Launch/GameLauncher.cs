@@ -390,7 +390,9 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
                     inst.Args,
                     // A redistributable that never exits must not hold the first Play hostage: cap it, log it,
                     // mark the prefix done and let the game start. Winetricks can finish the job later.
-                    timeout: TimeSpan.FromMinutes(4),
+                    // 90s, not 4 min: a real run of a silent AIO that hangs under Wine burned the whole 4
+                    // minutes before the game could start, and most games run without the redist anyway.
+                    timeout: TimeSpan.FromSeconds(90),
                     prefixDir: prefix,
                     ct: ct
                 );
@@ -791,7 +793,18 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
     {
         if (!_running.TryGetValue(postId, out var r))
             return;
-        _log.LogInformation("Stopping {Name} (pid {Pid})", r.Spec.Name, r.Process.Id);
+        // A game that died on its own has already had its Process disposed by the Exited handler, and
+        // reading Id from a disposed Process throws; the kill below is a no-op in that case anyway.
+        string pid;
+        try
+        {
+            pid = r.Process.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch (InvalidOperationException)
+        {
+            pid = "gone";
+        }
+        _log.LogInformation("Stopping {Name} (pid {Pid})", r.Spec.Name, pid);
         _stopped[postId] = 0;
         try
         {

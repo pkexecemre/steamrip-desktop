@@ -45,7 +45,7 @@ public class RedistInstallerTests : IDisposable
         var found = RedistInstaller.FindVcInstallers(_root);
         Assert.Single(found);
         Assert.EndsWith("VisualCppRedist_AIO_x86_x64.exe", found[0].FilePath);
-        Assert.Equal(["/yAI"], found[0].Args);
+        Assert.Equal(["/ai", "/gm2"], found[0].Args);
     }
 
     [Fact]

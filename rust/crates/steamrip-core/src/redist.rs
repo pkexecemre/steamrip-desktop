@@ -2,7 +2,7 @@
 //! to run, and in what order.
 
 pub const MARKER_NAME: &str = ".steamrip-vc-redist";
-const AIO_ARGS: [&str; 1] = ["/yAI"];
+const AIO_ARGS: [&str; 2] = ["/ai", "/gm2"];
 const MS_ARGS: [&str; 3] = ["/install", "/quiet", "/norestart"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -93,7 +93,7 @@ mod tests {
         let picked = select_installers(&files);
         assert_eq!(picked.len(), 1);
         assert!(picked[0].file.contains("VisualCppRedist_AIO"));
-        assert_eq!(picked[0].args, vec!["/yAI".to_string()]);
+        assert_eq!(picked[0].args, vec!["/ai".to_string(), "/gm2".to_string()]);
     }
 
     #[test]

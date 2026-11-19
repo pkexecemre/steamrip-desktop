@@ -64,7 +64,9 @@ public static class RedistInstaller
         ];
     }
 
-    private static readonly string[] AioArgs = ["/yAI"];
+    // Abbodi1406's VisualCppRedist AIO documents /ai (automatic) + /gm2 (silent, no progress bar);
+    // the previous /yAI switch is not one of them, which is why the installer sat there until the timeout.
+    private static readonly string[] AioArgs = ["/ai", "/gm2"];
     private static readonly string[] MsArgs = ["/install", "/quiet", "/norestart"];
 
     private static bool IsVcRedistName(string path)
