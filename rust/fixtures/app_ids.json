@@ -1,0 +1,231 @@
+{
+  "cases": [
+    {
+      "kind": "tokens",
+      "input": "The Last of Us Part II",
+      "tokens": [
+        "last",
+        "part"
+      ]
+    },
+    {
+      "kind": "tokens",
+      "input": "Cyberpunk 2077: Phantom Liberty",
+      "tokens": [
+        "2077",
+        "cyberpunk",
+        "liberty",
+        "phantom"
+      ]
+    },
+    {
+      "kind": "tokens",
+      "input": "Lara\u2019s Quest",
+      "tokens": [
+        "lara",
+        "quest"
+      ]
+    },
+    {
+      "kind": "tokens",
+      "input": "Lara\u0027s Quest",
+      "tokens": [
+        "lara",
+        "quest"
+      ]
+    },
+    {
+      "kind": "tokens",
+      "input": "Tom \u0026 Jerry",
+      "tokens": [
+        "jerry",
+        "tom"
+      ]
+    },
+    {
+      "kind": "tokens",
+      "input": "T\u00FCrk\u00E7e Oyun Ad\u0131",
+      "tokens": [
+        "oyun"
+      ]
+    },
+    {
+      "kind": "names_match",
+      "game": "The Last of Us Part II",
+      "steam": "The Last of Us Part II Remastered",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "The Witcher 3: Wild Hunt",
+      "steam": "The Witcher 3: Wild Hunt - Complete Edition",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "Cyberpunk 2077",
+      "steam": "Cyberpunk 2077: Phantom Liberty",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "Cyberpunk 2077",
+      "steam": "The Witcher 3: Wild Hunt",
+      "match": false
+    },
+    {
+      "kind": "names_match",
+      "game": "Fallout 4 GOTY",
+      "steam": "Fallout 4",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "Hades",
+      "steam": "Hades Deluxe Edition",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "Alpha Beta Gamma",
+      "steam": "Alpha Beta Delta",
+      "match": true
+    },
+    {
+      "kind": "names_match",
+      "game": "Alpha Beta Gamma",
+      "steam": "Alpha Delta Epsilon",
+      "match": false
+    },
+    {
+      "kind": "names_match",
+      "game": "Alpha Beta Gamma Delta",
+      "steam": "Alpha Beta Zeta Epsilon",
+      "match": false
+    },
+    {
+      "kind": "names_match",
+      "game": "The Game",
+      "steam": "Prey",
+      "match": false
+    },
+    {
+      "kind": "names_match",
+      "game": "",
+      "steam": "Prey",
+      "match": false
+    },
+    {
+      "kind": "pick",
+      "game": "Elden Ring",
+      "hits": [
+        {
+          "id": 101,
+          "name": "Elden Ring: Shadow of the Erdtree"
+        },
+        {
+          "id": 102,
+          "name": "Elden Ring"
+        },
+        {
+          "id": 103,
+          "name": "Elden Ring Nightreign"
+        }
+      ],
+      "picked": 102
+    },
+    {
+      "kind": "pick",
+      "game": "Doom",
+      "hits": [
+        {
+          "id": 201,
+          "name": "Doom 2"
+        },
+        {
+          "id": 202,
+          "name": "Doom"
+        }
+      ],
+      "picked": 201
+    },
+    {
+      "kind": "pick",
+      "game": "Doom",
+      "hits": [
+        {
+          "id": 202,
+          "name": "Doom"
+        },
+        {
+          "id": 201,
+          "name": "Doom 2"
+        }
+      ],
+      "picked": 202
+    },
+    {
+      "kind": "pick",
+      "game": "Control",
+      "hits": [
+        {
+          "id": 301,
+          "name": "Control Deluxe Edition"
+        }
+      ],
+      "picked": 301
+    },
+    {
+      "kind": "pick",
+      "game": "Hollow Knight",
+      "hits": [
+        {
+          "id": 401,
+          "name": "Hollow Knight: Silksong"
+        }
+      ],
+      "picked": 401
+    },
+    {
+      "kind": "pick",
+      "game": "Alpha Beta Gamma Delta",
+      "hits": [
+        {
+          "id": 501,
+          "name": "Alpha Beta"
+        }
+      ],
+      "picked": null
+    },
+    {
+      "kind": "pick",
+      "game": "The GOTY Edition",
+      "hits": [
+        {
+          "id": 601,
+          "name": "Prey"
+        }
+      ],
+      "picked": null
+    },
+    {
+      "kind": "pick",
+      "game": "Alpha Beta Gamma",
+      "hits": [
+        {
+          "id": 701,
+          "name": "Alpha Beta Gamma Delta"
+        },
+        {
+          "id": 702,
+          "name": "Alpha Beta Gamma"
+        },
+        {
+          "id": 703,
+          "name": "Alpha Beta Gamma Epsilon Zeta"
+        }
+      ],
+      "picked": 702
+    }
+  ]
+}
