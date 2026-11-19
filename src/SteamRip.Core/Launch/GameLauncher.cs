@@ -240,18 +240,30 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
             await UpgradePrefixAsync(prefix, spec.ProtonPath, spec.Name);
         }
         var gameId = PrefixManager.GameId(spec.SteamAppId, spec.Slug);
-        PrefixManager.Write(
-            prefix,
-            record with
-            {
-                CreatedUtc = record.CreatedUtc == default ? DateTime.UtcNow : record.CreatedUtc,
-                LastUsedUtc = DateTime.UtcNow,
-                Launches = record.Launches + 1,
-                ProtonPath = spec.ProtonPath,
-                ProtonBuild = build ?? previous,
-                GameId = gameId,
-            }
-        );
+        try
+        {
+            PrefixManager.Write(
+                prefix,
+                record with
+                {
+                    CreatedUtc = record.CreatedUtc == default ? DateTime.UtcNow : record.CreatedUtc,
+                    LastUsedUtc = DateTime.UtcNow,
+                    Launches = record.Launches + 1,
+                    ProtonPath = spec.ProtonPath,
+                    ProtonBuild = build ?? previous,
+                    GameId = gameId,
+                }
+            );
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Diagnostics only: a read-only prefix root must not stop the game from starting.
+            _log.LogWarning(
+                "{Name}: could not record the prefix state ({Error}); the launch continues",
+                spec.Name,
+                e.Message
+            );
+        }
         if (PrefixManager.Check(prefix, record) is PrefixHealth.Damaged)
             _log.LogWarning(
                 "{Name}: the prefix lost its registry (system.reg); Wine rebuilds it during this launch — saves inside it cannot be recovered",

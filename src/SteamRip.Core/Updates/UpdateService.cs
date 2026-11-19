@@ -650,7 +650,8 @@ public sealed class UpdateService : IAsyncDisposable
                 _settings.LibraryRoot,
                 _settings.KeepBackups,
                 custom,
-                PrefixManager.Dir(PrefixRoot, post.Slug)
+                PrefixManager.Dir(PrefixRoot, post.Slug),
+                post.VersionKey
             );
             var archivePath = await DownloadWithRetryAsync(job, post, ct);
             InstallResult result;
@@ -783,7 +784,7 @@ public sealed class UpdateService : IAsyncDisposable
             // reusing it is how a job ends up failing on the same bytes on every retry.
             var verified = Directory
                 .EnumerateFiles(slugDir, "*", SearchOption.AllDirectories)
-                .FirstOrDefault(ArchiveMarker.IsVerified);
+                .FirstOrDefault(file => ArchiveMarker.IsVerified(file, post.VersionKey));
             if (verified is not null)
             {
                 _log.LogInformation("Reusing verified archive {Dest}", verified);

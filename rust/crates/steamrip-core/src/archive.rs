@@ -135,12 +135,33 @@ pub fn is_torrent(head: &[u8], path: &str) -> bool {
 /// True when the archive was marked and still has the size it was marked at.
 /// A missing marker is never verified; the marker's first line carries the size.
 pub fn is_verified(archive_length: i64, marker_text: Option<&str>) -> bool {
-    match marker_text {
-        Some(text) => {
-            text.split('\n').next().unwrap_or_default().trim() == archive_length.to_string()
-        }
-        None => false,
-    }
+    is_verified_for(archive_length, marker_text, None)
+}
+
+/// The size line and the version line, both checked against what the caller expects. A None
+/// version accepts any marker, which is how markers written by an older release stay usable.
+pub fn is_verified_for(
+    archive_length: i64,
+    marker_text: Option<&str>,
+    version_key: Option<&str>,
+) -> bool {
+    let Some(text) = marker_text else {
+        return false;
+    };
+    let size_ok = text.split('\n').next().unwrap_or_default().trim() == archive_length.to_string();
+    size_ok && version_matches(marker_text, version_key)
+}
+
+/// True when the marker's third line is the release being installed; None accepts any marker.
+pub fn version_matches(marker_text: Option<&str>, version_key: Option<&str>) -> bool {
+    let Some(version) = version_key else {
+        return true;
+    };
+    let recorded = marker_text
+        .and_then(|text| text.split('\n').nth(2))
+        .unwrap_or_default()
+        .trim();
+    !recorded.is_empty() && recorded.eq_ignore_ascii_case(version)
 }
 
 fn percent_regex() -> &'static Regex {

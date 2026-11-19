@@ -1,0 +1,52 @@
+{
+  "cases": [
+    {
+      "marker": "100\nstamp\nv1.0\n",
+      "version": "v1.0",
+      "keeps_size": true,
+      "wrong_size": false
+    },
+    {
+      "marker": "100\nstamp\nv1.0\n",
+      "version": "V1.0",
+      "keeps_size": true,
+      "wrong_size": false
+    },
+    {
+      "marker": "100\nstamp\nv1.0\n",
+      "version": "v2.0",
+      "keeps_size": false,
+      "wrong_size": false
+    },
+    {
+      "marker": "100\nstamp\nv1.0\n",
+      "version": null,
+      "keeps_size": true,
+      "wrong_size": false
+    },
+    {
+      "marker": "100\nstamp",
+      "version": "v1.0",
+      "keeps_size": false,
+      "wrong_size": false
+    },
+    {
+      "marker": "100",
+      "version": "v1.0",
+      "keeps_size": false,
+      "wrong_size": false
+    },
+    {
+      "marker": null,
+      "version": "v1.0",
+      "keeps_size": false,
+      "wrong_size": false
+    },
+    {
+      "marker": "99\nstamp\nv1.0\n",
+      "version": "v1.0",
+      "keeps_size": false,
+      "wrong_size": false
+    }
+  ]
+}

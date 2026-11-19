@@ -1279,3 +1279,39 @@ fn emulator_and_gofile_match_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct MarkerVersionCase {
+    marker: Option<String>,
+    version: Option<String>,
+    keeps_size: bool,
+    wrong_size: bool,
+}
+
+#[test]
+fn archive_marker_version_matches_the_original() {
+    let cases: Vec<MarkerVersionCase> = load("archive_marker_version.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::archive::is_verified_for(
+                100,
+                case.marker.as_deref(),
+                case.version.as_deref()
+            ),
+            case.keeps_size,
+            "size 100 for {:?}",
+            case.version
+        );
+        assert_eq!(
+            steamrip_core::archive::is_verified_for(
+                101,
+                case.marker.as_deref(),
+                case.version.as_deref()
+            ),
+            case.wrong_size,
+            "size 101 for {:?}",
+            case.version
+        );
+    }
+}

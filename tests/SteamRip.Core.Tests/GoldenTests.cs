@@ -1757,4 +1757,33 @@ public class GoldenTests
         var payload = new[] { new { paths, gofile } };
         RecordOrCheck("emulator_gofile.json", payload);
     }
+
+    [Fact]
+    public void Archive_marker_version_recordings_match()
+    {
+        (string? Marker, string? Version)[] cases =
+        [
+            ("100" + (char)10 + "stamp" + (char)10 + "v1.0" + (char)10, "v1.0"),
+            ("100" + (char)10 + "stamp" + (char)10 + "v1.0" + (char)10, "V1.0"),
+            ("100" + (char)10 + "stamp" + (char)10 + "v1.0" + (char)10, "v2.0"),
+            ("100" + (char)10 + "stamp" + (char)10 + "v1.0" + (char)10, null),
+            ("100" + (char)10 + "stamp", "v1.0"),
+            ("100", "v1.0"),
+            (null, "v1.0"),
+            ("99" + (char)10 + "stamp" + (char)10 + "v1.0" + (char)10, "v1.0"),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                marker = c.Marker,
+                version = c.Version,
+                keeps_size = c.Marker is not null
+                    && ArchiveMarker.IsVerified(100, c.Marker, c.Version),
+                wrong_size = ArchiveMarker.IsVerified(101, c.Marker, c.Version),
+            })
+            .ToList();
+
+        RecordOrCheck("archive_marker_version.json", recorded);
+    }
 }

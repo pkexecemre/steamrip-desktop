@@ -15,14 +15,14 @@ public static class ArchiveMarker
     public static string PathFor(string archive) => archive + Suffix;
 
     /// <summary>True when the archive is there, was marked, and still has the size it was marked at.</summary>
-    public static bool IsVerified(string archive)
+    public static bool IsVerified(string archive, string? versionKey = null)
     {
         try
         {
             var marker = PathFor(archive);
             if (!File.Exists(archive) || !File.Exists(marker))
                 return false;
-            return IsVerified(new FileInfo(archive).Length, File.ReadAllText(marker));
+            return IsVerified(new FileInfo(archive).Length, File.ReadAllText(marker), versionKey);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
@@ -35,10 +35,30 @@ public static class ArchiveMarker
     /// A null marker text means there is no marker, which is never verified.
     /// </summary>
     public static bool IsVerified(long archiveLength, string? markerText) =>
-        markerText is not null
-        && markerText.Split('\n')[0].Trim() == archiveLength.ToString(CultureInfo.InvariantCulture);
+        IsVerified(archiveLength, markerText, null);
 
-    public static void Mark(string archive)
+    /// <summary>The size line and the version line, both checked against what the caller expects.</summary>
+    public static bool IsVerified(long archiveLength, string? markerText, string? versionKey) =>
+        markerText is not null
+        && markerText.Split('\n')[0].Trim() == archiveLength.ToString(CultureInfo.InvariantCulture)
+        && VersionMatches(markerText, versionKey);
+
+    /// <summary>True when the marker lines up with the release being installed; null accepts any (older markers).</summary>
+    public static bool VersionMatches(string? markerText, string? versionKey)
+    {
+        if (versionKey is null)
+            return true;
+        var lines = (markerText ?? "").Split('\n');
+        var recorded = lines.Length >= 3 ? lines[2].Trim() : "";
+        return recorded.Length > 0
+            && string.Equals(recorded, versionKey, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Records that this archive arrived and was opened. The version key ties the marker to the release it
+    /// was downloaded for, so an archive left over from an older version is never reused as a newer one.
+    /// </summary>
+    public static void Mark(string archive, string? versionKey = null)
     {
         var info = new FileInfo(archive);
         File.WriteAllText(
@@ -46,6 +66,8 @@ public static class ArchiveMarker
             info.Length.ToString(CultureInfo.InvariantCulture)
                 + "\n"
                 + DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture)
+                + "\n"
+                + (versionKey ?? "")
                 + "\n"
         );
     }

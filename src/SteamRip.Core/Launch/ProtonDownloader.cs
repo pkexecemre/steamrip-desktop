@@ -92,7 +92,35 @@ public sealed class ProtonDownloader(
                 installed is null ? "none installed" : "have " + Path.GetFileName(installed),
                 latest.ArchiveUrl
             );
-            await InstallAsync(latest, target, ct);
+            try
+            {
+                await InstallAsync(latest, target, ct);
+            }
+            catch (Exception e)
+                when (e
+                        is HttpRequestException
+                            or IOException
+                            or TaskCanceledException
+                            or LaunchException
+                )
+            {
+                if (installed is not null)
+                {
+                    _log.LogWarning(
+                        "DW-Proton {Tag} could not be installed ({Error}); starting with the installed build {Have}",
+                        latest.Tag,
+                        e.Message,
+                        Path.GetFileName(installed)
+                    );
+                    target = installed;
+                }
+                else
+                {
+                    throw new LaunchException(
+                        $"DW-Proton {latest.Tag} could not be downloaded ({e.Message}). Pick another Proton or try again online."
+                    );
+                }
+            }
         }
         _lastCheckUtc = DateTime.UtcNow;
         _lastResolved = target;

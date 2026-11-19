@@ -1,5 +1,7 @@
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using SteamRip.Core.Launch;
 
 namespace SteamRip.Core.Install;
 
@@ -8,7 +10,8 @@ public sealed record InstallOptions(
     string LibraryRoot,
     int KeepBackups = 2,
     string? CustomInstallPath = null,
-    string? PrefixDir = null
+    string? PrefixDir = null,
+    string? VersionKey = null
 );
 
 public sealed record InstallResult(
@@ -75,7 +78,7 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
                     : $"Archive failed integrity test (looks like {kind} — corrupt or truncated download)"
             );
         }
-        ArchiveMarker.Mark(archivePath);
+        ArchiveMarker.Mark(archivePath, opt.VersionKey);
 
         progress?.Report(("Extracting", 0));
         if (Directory.Exists(staging))
@@ -102,6 +105,7 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
         string? backupPath = null;
         var backedUp = new List<string>();
         var preserved = new List<string>();
+        var swapped = false;
         if (Directory.Exists(target))
         {
             progress?.Report(("Backing up saves", 0));
@@ -152,6 +156,7 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
                 );
             }
 
+            swapped = true;
             progress?.Report(("Replacing old install", 0));
             // Wine prefixes created by Heroic/Lutris inside the game folder hold the real saves; carry them over to the new tree.
             foreach (var prefix in SaveLocator.FindWinePrefixes(target))
@@ -175,17 +180,66 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
                 Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
                 Directory.Move(src, dest);
             }
-            Directory.Delete(target, true);
+            // Swap on the target volume: rename the old tree aside, move the new one in with a copy
+            // fallback (a rename cannot cross filesystems, and a custom install folder often lives on
+            // another disk), and only delete the old tree once the new one is in place. A failure puts
+            // the old install back instead of leaving the user with nothing.
+            var aside =
+                target.TrimEnd(Path.DirectorySeparatorChar)
+                + ".old-"
+                + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
+            PrefixManager.MoveDirectory(target, aside);
+            try
+            {
+                PrefixManager.MoveDirectory(extractedRoot, target);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                try
+                {
+                    if (!Directory.Exists(target))
+                        PrefixManager.MoveDirectory(aside, target);
+                }
+                catch (Exception restore)
+                    when (restore is IOException or UnauthorizedAccessException)
+                {
+                    _log.LogError(
+                        "Install {Slug}: could not restore the old install from {Aside}: {Error}",
+                        slug,
+                        aside,
+                        restore.Message
+                    );
+                }
+                throw new InstallException(
+                    $"Could not move the new install into {target}: {e.Message}"
+                );
+            }
+            try
+            {
+                Directory.Delete(aside, true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                _log.LogWarning(
+                    "Install {Slug}: old install left at {Aside} ({Error})",
+                    slug,
+                    aside,
+                    e.Message
+                );
+            }
             _log.LogInformation(
-                "Install {Slug}: old install removed; backup at {Backup}",
+                "Install {Slug}: old install replaced; backup at {Backup}",
                 slug,
                 backupPath
             );
             PruneBackups(backupsRoot, opt.KeepBackups, _log);
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-        Directory.Move(extractedRoot, target);
+        if (!swapped)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            PrefixManager.MoveDirectory(extractedRoot, target);
+        }
         if (Directory.Exists(staging))
             Directory.Delete(staging, true);
         progress?.Report(("Done", 100));
