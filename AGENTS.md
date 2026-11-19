@@ -115,7 +115,7 @@ A change to a resolver is not done until it has resolved and downloaded at least
 
 ## Machine facts (dev box, Nov 2026)
 
-CachyOS, KDE on Wayland, .NET 10.0.114, `unrar`, `7z`, `secret-tool`, `gdbus`, `umu-run` 1.4.3, `wine`. Proton builds at `/usr/share/steam/compatibilitytools.d/proton-cachyos-{slr,native}`, `~/.steam/root/compatibilitytools.d/Proton-CachyOS Latest`, `~/.local/share/Steam/steamapps/common/Proton - Experimental`. FlareSolverr (smeinecke fork, Chrome 154) at `http://192.168.2.251:8191`. Only Firefox is installed; the browser fallback probes PATH and Playwright's leftover cache for a Chromium-family browser and stops with "install chromium" when it finds none.
+openSUSE Tumbleweed, KDE on Wayland, .NET 10.0.114, `unrar`, `7z`, `secret-tool`, `gdbus`, `umu-run` 1.4.3, `wine`. Proton builds at `/usr/share/steam/compatibilitytools.d/proton-cachyos-{slr,native}`, `~/.steam/root/compatibilitytools.d/Proton-CachyOS Latest`, `~/.local/share/Steam/steamapps/common/Proton - Experimental`. FlareSolverr was at `http://192.168.2.251:8191`; as of Nov 2026 that box does not answer and nothing runs on `localhost:8191`, so gates resolve through the CDP fallback against the installed `/usr/bin/chromium` (measured end to end on a real post). The fallback probes PATH and Playwright's leftover cache for a Chromium-family browser and stops with "install chromium" when it finds none.
 
 ## Releases and packaging
 

@@ -46,15 +46,17 @@ public sealed class FileDitchResolver(
             );
 
         _log.LogInformation("FileDitch: page is gate-only; clicking its download control");
+        // 90s, not 45: a gate served through the CDP fallback has been measured taking 39s to load
+        // the page before the click even starts, and a timeout here costs the whole resolution.
         // The link appears either as an href the gate sets, or as the request the page fires at the file itself.
         var fromLink = live.WaitForArchiveLinkAsync(
-            TimeSpan.FromSeconds(45),
+            TimeSpan.FromSeconds(90),
             pageUrl: page.FinalUrl,
             ct: ct
         );
         var fromRequest = live.WaitForRequestAsync(
             u => InteractivePage.IsDownloadLink(u, page.FinalUrl),
-            TimeSpan.FromSeconds(45),
+            TimeSpan.FromSeconds(90),
             ct
         );
         await Task.WhenAny(fromLink, fromRequest);
