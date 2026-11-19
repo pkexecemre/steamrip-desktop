@@ -41,6 +41,10 @@ applied by hand because its CLI does not target .NET:
 | `updates::is_update` | `UpdateDetector.IsUpdate` | `fixtures/is_update.json` |
 | `proton::is_keyword/effective` | `ProtonLocator.IsKeyword/Effective` | `fixtures/proton_selection.json` |
 | `archive::is_verified` | `ArchiveMarker.IsVerified(length, text)` | `fixtures/archive_marker.json` |
+| `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
+| `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
+| `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |
+| `host_caps::proton_env_vars` | `HostCapabilities.ProtonEnvVars` | `fixtures/host_capabilities.json` |
 | `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
 
 ## Adding a unit

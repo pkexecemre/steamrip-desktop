@@ -1,0 +1,167 @@
+{
+  "cases": [
+    {
+      "kind": "edid",
+      "input": "00ffffffffffff0010ac12a2534c58300c210104b55022783b3da0b5483eb7250d5054a54b00714f8180a9c0d1c00101010101010101e77c70a0d0a0295030203a0020513100001a000000ff00464358353253330a2020202020000000fc004157333432334457460a202020000000fd0c30a51e1e66010a20202020202002fa02033af14c3f2221201f131210040302012309070783010000e305c301e6060501674f02721a0000030330a5008467024f03a500000000e200ea6fc200a0a0a055503020350020513100001a09ec00a0a0a067503020350020513100001a4dd2707ed0a046500e203a0020513100001a0000000000000000000000000000005e701279030003013cd58300047f079f002f801f0037042f0002000400555e0004ff099f002f801f009f05280002000400278e01046f0d9f002f801f009f05140102000900000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e90",
+      "has_hdr": true,
+      "vendors": null,
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "edid",
+      "input": "00ffffffffffff0035492300010101010016010380502d780a0dc9a05747982712484c20000001010101010101010101010101010101011d8018711c1620582c2500c48e2100009e011d80d0721c1620102c2580c48e2100009e000000fc006d6172616e747a2d4156520a20000000fd00313d0f440f000a20202020202001f702033c71588514041302031112101f2006071516010e230f241d251e26320f7f073d1ec01507505f7e01570600677e00835f000067030c004000b82d011d007251d01e206e285500c48e2100001e011d00bc52d01e20b8285540c48e2100001e8c0ad08a20e02d10103e9600c48e21000018000000000000000000000000007a",
+      "has_hdr": false,
+      "vendors": null,
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": "0x1002",
+      "has_hdr": null,
+      "vendors": "AMD",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": "0x10DE",
+      "has_hdr": null,
+      "vendors": "NVIDIA",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": "0x8086",
+      "has_hdr": null,
+      "vendors": "Intel",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": "0x9999",
+      "has_hdr": null,
+      "vendors": "0x9999",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": " 0x1002 ",
+      "has_hdr": null,
+      "vendors": "AMD",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "vendor",
+      "input": "amd",
+      "has_hdr": null,
+      "vendors": "amd",
+      "env_vars": null,
+      "displays": null
+    },
+    {
+      "kind": "env",
+      "input": "",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": [],
+      "displays": null
+    },
+    {
+      "kind": "env",
+      "input": "PROTON_ENABLE_HDR=1 DXVK_HDR=1 WINE_FULLSCREEN_FSR=1",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": [
+        "DXVK_HDR",
+        "PROTON_ENABLE_HDR",
+        "WINE_FULLSCREEN_FSR"
+      ],
+      "displays": null
+    },
+    {
+      "kind": "env",
+      "input": "export PROTON_LOG=1\n# not a var: PROTON\nOTHER=1 PROTON_LOG=2",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": [
+        "PROTON_LOG"
+      ],
+      "displays": null
+    },
+    {
+      "kind": "env",
+      "input": "PROTON_NO_ESYNC WINE_FULLSCREEN_FSR_2 PROTON_A_B_C",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": [
+        "PROTON_A_B_C",
+        "PROTON_NO_ESYNC"
+      ],
+      "displays": null
+    },
+    {
+      "kind": "kscreen",
+      "input": "Output: 1 HDMI-A-2 3cb7bd2e-48da-4bcc-990a-5b85480df067\n\tenabled\n\tconnected\n\tpriority 3\n\tHDMI\n\treplication source:0\n\tModes:  1:1920x1080@60.00*!  2:1920x1080@59.94  3:1920x1080@50.00  4:1920x1080@24.00  5:1920x1080@23.98  6:2880x576@50.00  7:2880x576@50.00  8:2880x480@60.00  9:2880x480@60.00  10:2880x480@59.94  11:2880x480@59.94  12:1280x720@60.00  13:1280x720@60.00  14:1280x720@59.94  15:1280x720@50.00  16:1280x720@50.00  17:1440x576@50.00  18:1440x576@50.00  19:1440x480@60.00  20:1440x480@60.00  21:1440x480@59.94  22:1440x480@59.94  23:720x576@50.00  24:720x576@50.00  25:720x480@60.00  26:720x480@60.00  27:720x480@59.94  28:720x480@59.94  29:720x480@59.94  30:640x480@60.00  31:640x480@59.94  32:640x480@59.94 \n\tCustom modes: None\n\tGeometry: 5360,1440 1920x1080\n\tScale: 1\n\tRotation: 1\n\tOverscan: 0\n\tVrr: incapable\n\tRgbRange: Automatic\n\tHDR: incapable\n\tWide Color Gamut: incapable\n\tICC profile: none\n\tColor profile source: sRGB\n\tColor power preference: prefer efficiency and performance\n\tBrightness control: supported, set to 100% and dimming to 100%\n\tColor resolution: automatic (10), range: [8; 16] bits per color\n\tAllow EDR: unsupported\n\tSharpness control: unsupported\n\tAutomatic brightness: unsupported\n\tAuto Rotate Policy: incapable\n\tAdaptive backlight modulation: unsupported\nOutput: 2 DP-2 8d3ff711-a04f-4c14-b56f-5deecca95c69\n\tenabled\n\tconnected\n\tpriority 2\n\tDisplayPort\n\treplication source:0\n\tModes:  33:1920x1080@60.00!  34:1920x1080@144.00*  35:1920x1080@120.00  36:1920x1080@119.88  37:1920x1080@120.00  38:1920x1080@100.00  39:1920x1080@60.00  40:1920x1080@59.94  41:1920x1080@50.00  42:1280x1024@75.03  43:1280x1024@60.02  44:1280x720@60.00  45:1280x720@59.94  46:1280x720@50.00  47:1024x768@119.93  48:1024x768@99.99  49:1024x768@75.03  50:1024x768@70.07  51:1024x768@60.00  52:832x624@74.55  53:800x600@119.93  54:800x600@99.86  55:800x600@75.00  56:800x600@72.19  57:800x600@60.32  58:800x600@56.25  59:720x576@50.00  60:720x576@50.00  61:720x480@60.00  62:720x480@60.00  63:720x480@59.94  64:720x480@59.94  65:640x480@119.80  66:640x480@99.82  67:640x480@75.00  68:640x480@72.81  69:640x480@66.67  70:640x480@60.00  71:640x480@59.94  72:640x480@59.94 \n\tCustom modes: None\n\tGeometry: 3440,360 1920x1080\n\tScale: 1\n\tRotation: 1\n\tOverscan: 0\n\tVrr: Automatic\n\tRgbRange: Automatic\n\tHDR: enabled\n\t\tSDR brightness: 500 nits\n\t\tSDR gamut wideness: 0%\n\t\tPeak brightness: 418 nits, overridden with: 750 nits\n\t\tMax average brightness: 418 nits\n\t\tMin brightness: 0 nits\n\t\tHDR color profile source: EDID\n\t\tHDR ICC profile: none\n\tWide Color Gamut: enabled\n\tICC profile: none\n\tColor profile source: sRGB\n\tColor power preference: prefer accuracy\n\tBrightness control: supported, set to 100% and dimming to 100%\n\tDDC/CI: allowed\n\tColor resolution: automatic (16), range: [8; 16] bits per color\n\tAllow EDR: unsupported\n\tSharpness control: unsupported\n\tAutomatic brightness: unsupported\n\tAuto Rotate Policy: incapable\n\tAdaptive backlight modulation: unsupported\nOutput: 3 DP-1 d6df7a84-0df9-49f2-bbf6-df961f01fe2d\n\tenabled\n\tconnected\n\tpriority 1\n\tDisplayPort\n\treplication source:0\n\tModes:  73:3440x1440@59.97!  74:3440x1440@164.90*  75:3440x1440@99.98  76:2560x1440@143.97  77:2560x1440@120.00  78:2560x1440@59.95  79:1920x1080@143.85  80:1920x1080@120.00  81:1920x1080@119.88  82:1920x1080@60.00  83:1920x1080@60.00  84:1920x1080@59.94  85:1920x1080@50.00  86:1920x1080@30.00  87:1920x1080@29.97  88:1920x1080@25.00  89:1920x1080@24.00  90:1920x1080@23.98  91:1600x900@60.00  92:1280x1024@75.03  93:1280x1024@60.02  94:1152x864@75.00  95:1280x720@60.00  96:1280x720@59.94  97:1280x720@50.00  98:1024x768@75.03  99:1024x768@60.00  100:800x600@75.00  101:800x600@60.32  102:720x576@50.00  103:720x480@60.00  104:720x480@60.00  105:720x480@59.94  106:720x480@59.94  107:640x480@75.00  108:640x480@60.00  109:640x480@59.94  110:640x480@59.94 \n\tCustom modes: None\n\tGeometry: 0,0 3440x1440\n\tScale: 1\n\tRotation: 1\n\tOverscan: 0\n\tVrr: Automatic\n\tRgbRange: Automatic\n\tHDR: enabled\n\t\tSDR brightness: 300 nits\n\t\tSDR gamut wideness: 0%\n\t\tPeak brightness: 465 nits\n\t\tMax average brightness: 277 nits\n\t\tMin brightness: 0.0003 nits\n\t\tHDR color profile source: EDID\n\t\tHDR ICC profile: none\n\tWide Color Gamut: enabled\n\tICC profile: none\n\tColor profile source: EDID\n\tColor power preference: prefer accuracy\n\tBrightness control: supported, set to 100% and dimming to 100%\n\tDDC/CI: allowed\n\tColor resolution: automatic (16), range: [8; 16] bits per color\n\tAllow EDR: unsupported\n\tSharpness control: unsupported\n\tAutomatic brightness: unsupported\n\tAuto Rotate Policy: incapable\n\tAdaptive backlight modulation: unsupported\n",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": null,
+      "displays": [
+        {
+          "name": "HDMI-A-2",
+          "hdr": "incapable",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        },
+        {
+          "name": "DP-2",
+          "hdr": "enabled",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 500,
+          "peak_nits": 750
+        },
+        {
+          "name": "DP-1",
+          "hdr": "enabled",
+          "width": 3440,
+          "height": 1440,
+          "sdr_nits": 300,
+          "peak_nits": 465
+        }
+      ]
+    },
+    {
+      "kind": "kscreen",
+      "input": "Output: 1 HDMI-A-2\nHDR: incapable\nGeometry: 1920,1080 0 0",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": null,
+      "displays": [
+        {
+          "name": "HDMI-A-2",
+          "hdr": "incapable",
+          "width": 0,
+          "height": 0,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        }
+      ]
+    },
+    {
+      "kind": "kscreen",
+      "input": "",
+      "has_hdr": null,
+      "vendors": null,
+      "env_vars": null,
+      "displays": []
+    }
+  ]
+}

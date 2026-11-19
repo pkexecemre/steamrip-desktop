@@ -882,4 +882,103 @@ public class GoldenTests
 
         RecordOrCheck("archive_marker.json", recorded);
     }
+
+    [Fact]
+    public void Host_capabilities_recordings_match()
+    {
+        var cases = new List<object>();
+
+        foreach (var file in new[] { "edid_hdr.bin", "edid_nohdr.bin" })
+        {
+            var bytes = File.ReadAllBytes(Fixture.Path(file));
+            cases.Add(
+                new
+                {
+                    kind = "edid",
+                    input = Convert.ToHexString(bytes).ToLowerInvariant(),
+                    has_hdr = HostCapabilities.EdidHasHdr(bytes),
+                    vendors = (object?)null,
+                    env_vars = (object?)null,
+                    displays = (object?)null,
+                }
+            );
+        }
+
+        string[] vendors = ["0x1002", "0x10DE", "0x8086", "0x9999", " 0x1002 ", "amd"];
+        foreach (var vendor in vendors)
+        {
+            cases.Add(
+                new
+                {
+                    kind = "vendor",
+                    input = vendor,
+                    has_hdr = (bool?)null,
+                    vendors = (object?)HostCapabilities.VendorName(vendor),
+                    env_vars = (object?)null,
+                    displays = (object?)null,
+                }
+            );
+        }
+
+        string[] scripts =
+        [
+            "",
+            "PROTON_ENABLE_HDR=1 DXVK_HDR=1 WINE_FULLSCREEN_FSR=1",
+            "export PROTON_LOG=1\n# not a var: PROTON\nOTHER=1 PROTON_LOG=2",
+            "PROTON_NO_ESYNC WINE_FULLSCREEN_FSR_2 PROTON_A_B_C",
+        ];
+        foreach (var script in scripts)
+        {
+            cases.Add(
+                new
+                {
+                    kind = "env",
+                    input = script,
+                    has_hdr = (bool?)null,
+                    vendors = (object?)null,
+                    env_vars = (object?)
+                        HostCapabilities
+                            .ProtonEnvVars(script)
+                            .OrderBy(v => v, StringComparer.Ordinal)
+                            .ToList(),
+                    displays = (object?)null,
+                }
+            );
+        }
+
+        var kscreenTexts = new[]
+        {
+            Fixture.Read("kscreen_outputs.txt"),
+            "Output: 1 HDMI-A-2\nHDR: incapable\nGeometry: 1920,1080 0 0",
+            "",
+        };
+        foreach (var text in kscreenTexts)
+        {
+            cases.Add(
+                new
+                {
+                    kind = "kscreen",
+                    input = text,
+                    has_hdr = (bool?)null,
+                    vendors = (object?)null,
+                    env_vars = (object?)null,
+                    displays = (object?)
+                        HostCapabilities
+                            .ParseKScreen(text)
+                            .Select(d => new
+                            {
+                                name = d.Name,
+                                hdr = d.Hdr.ToString().ToLowerInvariant(),
+                                width = d.Width,
+                                height = d.Height,
+                                sdr_nits = d.SdrNits,
+                                peak_nits = d.PeakNits,
+                            })
+                            .ToList(),
+                }
+            );
+        }
+
+        RecordOrCheck("host_capabilities.json", cases);
+    }
 }

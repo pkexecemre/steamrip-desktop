@@ -496,3 +496,54 @@ fn archive_marker_matches_the_original() {
         assert_eq!(got, case.verified, "verified for {:?}", case.marker);
     }
 }
+
+#[test]
+fn host_capabilities_match_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("host_capabilities.json"))
+        .expect("host_capabilities fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("valid json");
+    let cases = doc["cases"].as_array().expect("cases");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let kind = case["kind"].as_str().expect("kind");
+        match kind {
+            "edid" => {
+                let bytes = hex_bytes(case["input"].as_str().expect("hex input"));
+                let got = steamrip_core::host_caps::edid_has_hdr(&bytes);
+                assert_eq!(Some(got), case["has_hdr"].as_bool(), "edid");
+            }
+            "vendor" => {
+                let input = case["input"].as_str().expect("vendor input");
+                let got = steamrip_core::host_caps::vendor_name(input);
+                assert_eq!(
+                    Some(got),
+                    case["vendors"].as_str().map(str::to_string),
+                    "vendor"
+                );
+            }
+            "env" => {
+                let input = case["input"].as_str().unwrap_or_default();
+                let got: Vec<String> = steamrip_core::host_caps::proton_env_vars(input)
+                    .into_iter()
+                    .collect();
+                let expected: Vec<String> = case["env_vars"]
+                    .as_array()
+                    .map(|a| {
+                        a.iter()
+                            .map(|v| v.as_str().unwrap_or_default().to_string())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                assert_eq!(got, expected, "env vars for {input:?}");
+            }
+            "kscreen" => {
+                let input = case["input"].as_str().unwrap_or_default();
+                let got = steamrip_core::host_caps::parse_kscreen(input);
+                let expected: Vec<steamrip_core::host_caps::DisplayInfo> =
+                    serde_json::from_value(case["displays"].clone()).expect("displays");
+                assert_eq!(got, expected, "kscreen for {input:?}");
+            }
+            other => panic!("unknown kind {other}"),
+        }
+    }
+}
