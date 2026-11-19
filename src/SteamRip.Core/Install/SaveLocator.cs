@@ -34,17 +34,68 @@ public static class SaveLocator
     ];
     private static readonly string[] SkipBelowRoot = ["Data", "data", "Resources", "Plugins"];
 
+    /// <summary>One entry of a game-folder snapshot: path relative to the root, and what it is.</summary>
+    public readonly record struct TreeEntry(string RelativePath, bool IsDirectory, bool IsSymlink);
+
     /// <summary>Save-like dirs inside <paramref name="gameRoot"/> (relative paths). Shallow walk (depth ≤ 4), skipping Wine prefixes and bulky engine dirs.</summary>
     public static IReadOnlyList<string> FindInGameFolder(string gameRoot, int maxDepth = 4)
     {
-        var results = new List<string>();
         if (!Directory.Exists(gameRoot))
-            return results;
-        Walk(new DirectoryInfo(gameRoot), 0);
+            return [];
+        return SelectInGameFolder(Snapshot(gameRoot, maxDepth), maxDepth);
+    }
+
+    /// <summary>
+    /// The walk's decision over a snapshot of the tree, in the order the directories are listed.
+    /// Save-named directories are selected before the depth cutoff, so a save folder on the cap still counts.
+    /// </summary>
+    public static IReadOnlyList<string> SelectInGameFolder(
+        IReadOnlyList<TreeEntry> entries,
+        int maxDepth = 4
+    )
+    {
+        var results = new List<string>();
+        Walk("", 0);
         return results;
 
-        void Walk(DirectoryInfo dir, int depth)
+        void Walk(string parent, int depth)
         {
+            foreach (var child in Children(entries, parent))
+            {
+                if (!child.IsDirectory || child.IsSymlink)
+                    continue;
+                var name = LeafName(child.RelativePath);
+                if (IsSaveDirName(name))
+                {
+                    results.Add(child.RelativePath);
+                    continue;
+                }
+                if (depth + 1 >= maxDepth)
+                    continue;
+                if (IsSkippedDir(name, depth))
+                    continue;
+                if (IsWinePrefixIn(entries, child.RelativePath))
+                    continue;
+                Walk(child.RelativePath, depth + 1);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Bounded snapshot of the directories under <paramref name="gameRoot"/>, plus the system.reg files
+    /// the Wine-prefix check needs. It stops at <paramref name="maxDepth"/> without applying the walk's
+    /// pruning, so the snapshot stays depth-bounded even inside a prefix.
+    /// </summary>
+    private static List<TreeEntry> Snapshot(string gameRoot, int maxDepth)
+    {
+        var entries = new List<TreeEntry>();
+        Walk(new DirectoryInfo(gameRoot), "", 0);
+        return entries;
+
+        void Walk(DirectoryInfo dir, string relative, int depth)
+        {
+            if (depth >= Math.Max(maxDepth, 1))
+                return;
             // Enumerate eagerly: the enumeration itself is what throws for an unreadable directory, and a
             // lazy EnumerateDirectories() would move that failure into the loop below, where nothing catches
             // it and the whole update dies on one bad folder.
@@ -62,22 +113,13 @@ public static class SaveLocator
             {
                 return;
             }
+            if (File.Exists(Path.Combine(dir.FullName, "system.reg")))
+                entries.Add(new TreeEntry(Path.Combine(relative, "system.reg"), false, false));
             foreach (var child in children)
             {
-                if (child.LinkTarget is not null)
-                    continue;
-                if (IsSaveDirName(child.Name))
-                {
-                    results.Add(Path.GetRelativePath(gameRoot, child.FullName));
-                    continue;
-                }
-                if (depth + 1 >= maxDepth)
-                    continue;
-                if (IsSkippedDir(child.Name, depth))
-                    continue;
-                if (IsWinePrefix(child.FullName))
-                    continue;
-                Walk(child, depth + 1);
+                var childRelative = Path.Combine(relative, child.Name);
+                entries.Add(new TreeEntry(childRelative, true, child.LinkTarget is not null));
+                Walk(child, childRelative, depth + 1);
             }
         }
     }
@@ -97,6 +139,34 @@ public static class SaveLocator
     public static bool IsWinePrefix(string dir) =>
         Directory.Exists(Path.Combine(dir, "drive_c"))
         || File.Exists(Path.Combine(dir, "system.reg"));
+
+    private static readonly char[] PathSeparators = ['/', '\\'];
+
+    /// <summary>Entries directly inside <paramref name="parent"/>, in snapshot order.</summary>
+    private static IEnumerable<TreeEntry> Children(
+        IReadOnlyList<TreeEntry> entries,
+        string parent
+    ) => entries.Where(entry => ParentPath(entry.RelativePath) == parent);
+
+    private static string LeafName(string path)
+    {
+        var index = path.LastIndexOfAny(PathSeparators);
+        return index < 0 ? path : path[(index + 1)..];
+    }
+
+    private static string ParentPath(string path)
+    {
+        var index = path.LastIndexOfAny(PathSeparators);
+        return index < 0 ? "" : path[..index];
+    }
+
+    /// <summary>The snapshot's answer to <see cref="IsWinePrefix"/>: drive_c as a directory or system.reg as a file.</summary>
+    private static bool IsWinePrefixIn(IReadOnlyList<TreeEntry> entries, string dir) =>
+        Children(entries, dir)
+            .Any(entry =>
+                (entry.IsDirectory && LeafName(entry.RelativePath) == "drive_c")
+                || (!entry.IsDirectory && LeafName(entry.RelativePath) == "system.reg")
+            );
 
     /// <summary>Directories inside <paramref name="gameRoot"/> that are Wine prefixes. These must survive a reinstall.</summary>
     public static IReadOnlyList<string> FindWinePrefixes(string gameRoot)

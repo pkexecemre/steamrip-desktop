@@ -1,0 +1,723 @@
+{
+  "cases": [
+    {
+      "name": "a save folder on the depth cap is still selected",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "a",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/d",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/d/Profiles",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "a/b/c/Saves"
+      ]
+    },
+    {
+      "name": "max depth zero selects the root\u0027s own saves and stops",
+      "max_depth": 0,
+      "entries": [
+        {
+          "path": "Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saves/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "deep",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "deep/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "Saves"
+      ]
+    },
+    {
+      "name": "max depth one behaves like max depth zero",
+      "max_depth": 1,
+      "entries": [
+        {
+          "path": "Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saves/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "deep",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "deep/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "Saves"
+      ]
+    },
+    {
+      "name": "max depth four reaches the cap but not past it",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "a",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/d",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/b/c/d/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "a/b/c/Profiles"
+      ]
+    },
+    {
+      "name": "a wine prefix is not descended into",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "prefix",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "prefix/drive_c",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "prefix/drive_c/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "prefix/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "other",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "other/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "other/Saves"
+      ]
+    },
+    {
+      "name": "system.reg also marks a wine prefix",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "gog",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "gog/system.reg",
+          "directory": false,
+          "link": false
+        },
+        {
+          "path": "gog/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "plain",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "plain/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "plain/Saves"
+      ]
+    },
+    {
+      "name": "a file named drive_c is not a prefix",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "tools",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "tools/drive_c",
+          "directory": false,
+          "link": false
+        },
+        {
+          "path": "tools/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "tools/Saves"
+      ]
+    },
+    {
+      "name": "a directory named system.reg is not a prefix",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "tools2",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "tools2/system.reg",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "tools2/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "tools2/Saves"
+      ]
+    },
+    {
+      "name": "symlinked directories are skipped",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "Saves",
+          "directory": true,
+          "link": true
+        },
+        {
+          "path": "Saves/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "linked",
+          "directory": true,
+          "link": true
+        },
+        {
+          "path": "linked/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "real",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "real/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "real/Saves"
+      ]
+    },
+    {
+      "name": "data, resources and plugins are walked at the root",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "Data",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Data/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "data",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "data/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Resources",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Resources/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Plugins",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Plugins/SaveData",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "Data/Saves",
+        "data/Saves",
+        "Resources/Profiles",
+        "Plugins/SaveData"
+      ]
+    },
+    {
+      "name": "data, resources and plugins are skipped below the root",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "game",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Data",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Data/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/data",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/data/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Resources",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Resources/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Plugins",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "game/Plugins/SaveData",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": []
+    },
+    {
+      "name": "redist and engine dirs are skipped at any depth",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "_CommonRedist",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "_CommonRedist/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "_Redist",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "_Redist/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "redist",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "redist/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Engine",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Engine/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Content",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Content/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Binaries",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Binaries/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Shaders",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Shaders/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Win64",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Win64/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Win32",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Win32/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "x",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "x/Engine",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "x/Engine/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "keep",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "keep/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "keep/Saves"
+      ]
+    },
+    {
+      "name": "save-like names are selected, look-alikes are not",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "Save",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "SAVES",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "SaveGames",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "MySave",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "savepoint",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saves_old",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "SavesDir",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saver",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saved",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Profile",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Profiles2",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "UserData",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Statistics",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "Save",
+        "SAVES",
+        "SaveGames",
+        "savepoint",
+        "Saves_old",
+        "SavesDir",
+        "Saver",
+        "Saved",
+        "Profiles",
+        "UserData"
+      ]
+    },
+    {
+      "name": "a selected save dir is not descended into",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saves/Profiles",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "Saves/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "other",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "other/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "Saves",
+        "other/Saves"
+      ]
+    },
+    {
+      "name": "no save dirs returns nothing",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "bin",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "bin/game.bin",
+          "directory": false,
+          "link": false
+        },
+        {
+          "path": "bin/x",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": []
+    },
+    {
+      "name": "prefix detection happens below the root",
+      "max_depth": 4,
+      "entries": [
+        {
+          "path": "a",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/prefix",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/prefix/drive_c",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/prefix/drive_c/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/prefix/Saves",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/ok",
+          "directory": true,
+          "link": false
+        },
+        {
+          "path": "a/ok/Saves",
+          "directory": true,
+          "link": false
+        }
+      ],
+      "found": [
+        "a/ok/Saves"
+      ]
+    },
+    {
+      "name": "empty snapshot returns nothing",
+      "max_depth": 4,
+      "entries": [],
+      "found": []
+    }
+  ]
+}
