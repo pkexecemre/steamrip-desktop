@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "input": "Mortal Shell II Free Download (v98314\u002B1943)",
+      "name": "Mortal Shell II",
+      "version": "v98314\u002B1943"
+    },
+    {
+      "input": "Hull Rupture Free Download",
+      "name": "Hull Rupture",
+      "version": null
+    },
+    {
+      "input": "Victoria 3 Free Download (v1.15.0)",
+      "name": "Victoria 3",
+      "version": "v1.15.0"
+    },
+    {
+      "input": "Some Game Free Download (v1.2 \u002B ALL DLCs)",
+      "name": "Some Game",
+      "version": "v1.2 \u002B ALL DLCs"
+    },
+    {
+      "input": "R\u0026#8217;s Quest Free Download (v2)",
+      "name": "R\u2019s Quest",
+      "version": "v2"
+    },
+    {
+      "input": "Dual Pack [v1.0 \u0026 v1.1]",
+      "name": "Dual Pack [v1.0 \u0026 v1.1]",
+      "version": null
+    },
+    {
+      "input": "  Spaced Out Free Download ( v9 )  ",
+      "name": "Spaced Out",
+      "version": "v9"
+    },
+    {
+      "input": "Tom \u0026amp; Jerry Free Download",
+      "name": "Tom \u0026 Jerry",
+      "version": null
+    },
+    {
+      "input": "No Version Download Free Download",
+      "name": "No Version Download",
+      "version": null
+    },
+    {
+      "input": "T\u00FCrk\u00E7e Oyun Ad\u0131 Free Download (v3.1 \u002B DLC)",
+      "name": "T\u00FCrk\u00E7e Oyun Ad\u0131",
+      "version": "v3.1 \u002B DLC"
+    },
+    {
+      "input": "Game Free Download (nested (parens))",
+      "name": "Game Free Download (nested (parens))",
+      "version": null
+    },
+    {
+      "input": "",
+      "name": "",
+      "version": null
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "cases": [
+    {
+      "input": "12.3 GB",
+      "bytes": 12300000000
+    },
+    {
+      "input": "750 MB",
+      "bytes": 750000000
+    },
+    {
+      "input": "1,5 TB",
+      "bytes": 1500000000000
+    },
+    {
+      "input": "900 KB",
+      "bytes": 900000
+    },
+    {
+      "input": "0.5 KB",
+      "bytes": 500
+    },
+    {
+      "input": "2048 GB",
+      "bytes": 2048000000000
+    },
+    {
+      "input": "  7 GB  ",
+      "bytes": 7000000000
+    },
+    {
+      "input": "12.34 GB",
+      "bytes": 12340000000
+    },
+    {
+      "input": "unknown",
+      "bytes": null
+    },
+    {
+      "input": "12 GB extra",
+      "bytes": null
+    },
+    {
+      "input": null,
+      "bytes": null
+    }
+  ]
+}

@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 # release packaging (scripts/package.sh)
 out/
 dist/
+
+# Rust port build output
+rust/target/

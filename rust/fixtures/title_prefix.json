@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "input": "LEGO Batman: Legacy of the Dark Knight",
+      "prefix": "LEGO Batman"
+    },
+    {
+      "input": "Cool Game - Ultimate Edition",
+      "prefix": "Cool Game"
+    },
+    {
+      "input": "NoSubtitle",
+      "prefix": null
+    },
+    {
+      "input": "Ab: cd",
+      "prefix": null
+    },
+    {
+      "input": "Series: The Third One - Deluxe",
+      "prefix": "Series"
+    },
+    {
+      "input": "  Padded: Name  ",
+      "prefix": "Padded"
+    },
+    {
+      "input": "T\u00FCrk\u00E7e: Oyun",
+      "prefix": "T\u00FCrk\u00E7e"
+    }
+  ]
+}
