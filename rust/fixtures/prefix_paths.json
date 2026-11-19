@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "library": "/games/SteamRIP",
+      "configured": null,
+      "root": "/games/SteamRIP/.prefixes",
+      "dir": "/games/SteamRIP/.prefixes/Some-Game"
+    },
+    {
+      "library": "/games/SteamRIP",
+      "configured": "",
+      "root": "/games/SteamRIP/.prefixes",
+      "dir": "/games/SteamRIP/.prefixes/Some-Game"
+    },
+    {
+      "library": "/games/SteamRIP",
+      "configured": "   ",
+      "root": "/games/SteamRIP/.prefixes",
+      "dir": "/games/SteamRIP/.prefixes/Some-Game"
+    },
+    {
+      "library": "/games/SteamRIP",
+      "configured": "/mnt/prefixes",
+      "root": "/mnt/prefixes",
+      "dir": "/mnt/prefixes/Some-Game"
+    },
+    {
+      "library": "/games/SteamRIP",
+      "configured": "  /mnt/prefixes  ",
+      "root": "/mnt/prefixes",
+      "dir": "/mnt/prefixes/Some-Game"
+    }
+  ]
+}

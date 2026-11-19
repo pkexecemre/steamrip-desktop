@@ -26,6 +26,12 @@ applied by hand because its CLI does not target .NET:
 | `catalog::title_prefix::title_prefix` | `SteamAppIdResolver.TitlePrefix` | `fixtures/title_prefix.json` |
 | `archive::sniff` | `ArchiveTool.SniffKind(ReadOnlySpan<byte>)` | `fixtures/sniff.json` |
 | `archive::first_part` | `ArchiveTool.FirstPart(path, exists)` | `fixtures/first_part.json` |
+| `prefix::safe_name` | `PrefixManager.SafeName` | `fixtures/safe_name.json` |
+| `prefix::game_id` | `PrefixManager.GameId` | `fixtures/game_id.json` |
+| `prefix::format_size` | `PrefixManager.FormatSize` | `fixtures/format_size.json` |
+| `prefix::root/dir` | `PrefixManager.Root/Dir` | `fixtures/prefix_paths.json` |
+| `launch_options::merge_over` | `LaunchOptions.MergeOver` | `fixtures/merge.json` |
+| `launch_options::parse_environment` | `LaunchOptions.ParseEnvironment` | `fixtures/environment.json` |
 
 ## Adding a unit
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using SteamRip.Core.Catalog;
 using SteamRip.Core.Install;
+using SteamRip.Core.Launch;
 
 namespace SteamRip.Core.Tests;
 
@@ -212,4 +213,185 @@ public class GoldenTests
 
         RecordOrCheck("first_part.json", recorded);
     }
+
+    [Fact]
+    public void Safe_name_recordings_match()
+    {
+        string[] slugs =
+        [
+            "Foo/Bar",
+            "  Foo  ",
+            "ÄÖÜ ç",
+            "",
+            "...",
+            "---",
+            "a.b",
+            "Game: Deluxe",
+            "Über/Game",
+            "Already_Ok-1.2",
+            "Çok  Özel / Oyun",
+        ];
+
+        var cases = slugs
+            .Select(slug => new { input = slug, safe = PrefixManager.SafeName(slug) })
+            .ToList();
+
+        RecordOrCheck("safe_name.json", cases);
+    }
+
+    [Fact]
+    public void Game_id_recordings_match()
+    {
+        (long? AppId, string? Slug)[] cases =
+        [
+            (2483190, "forza-horizon-6"),
+            (null, "My Game!"),
+            (null, null),
+            (null, ""),
+            (null, "   "),
+            (100, null),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                appid = c.AppId,
+                slug = c.Slug,
+                id = PrefixManager.GameId(c.AppId, c.Slug),
+            })
+            .ToList();
+
+        RecordOrCheck("game_id.json", recorded);
+    }
+
+    [Fact]
+    public void Format_size_recordings_match()
+    {
+        long[] sizes =
+        [
+            0,
+            999,
+            1023,
+            1024,
+            1536,
+            1024 * 1024,
+            1024 * 1024 + 512 * 1024,
+            5 * 1024 * 1024,
+            1024L * 1024 * 1024,
+            (long)(1.25 * 1024 * 1024 * 1024),
+            (long)(2.5 * 1024 * 1024),
+            1536L * 1024 * 1024,
+        ];
+
+        var cases = sizes
+            .Select(bytes => new { bytes, text = PrefixManager.FormatSize(bytes) })
+            .ToList();
+
+        RecordOrCheck("format_size.json", cases);
+    }
+
+    [Fact]
+    public void Prefix_path_recordings_match()
+    {
+        (string Library, string? Configured)[] cases =
+        [
+            ("/games/SteamRIP", null),
+            ("/games/SteamRIP", ""),
+            ("/games/SteamRIP", "   "),
+            ("/games/SteamRIP", "/mnt/prefixes"),
+            ("/games/SteamRIP", "  /mnt/prefixes  "),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                library = c.Library,
+                configured = c.Configured,
+                root = PrefixManager.Root(c.Library, c.Configured),
+                dir = PrefixManager.Dir(PrefixManager.Root(c.Library, c.Configured), "Some Game"),
+            })
+            .ToList();
+
+        RecordOrCheck("prefix_paths.json", recorded);
+    }
+
+    [Fact]
+    public void Environment_recordings_match()
+    {
+        string?[] texts =
+        [
+            null,
+            "",
+            "A=1\nB=2",
+            "export A=1\n# comment\nexport B = two words ",
+            "A=1\r\nB=2",
+            "bad key=1\nOK=2",
+            "=empty\nQUOTED=\"say hi\"",
+            "NOEQUALS\nX=  1  ",
+            "E=\"\"",
+        ];
+
+        var recorded = texts
+            .Select(text => new
+            {
+                input = text,
+                entries = LaunchOptions
+                    .ParseEnvironment(text)
+                    .Select(kv => new[] { kv.Key, kv.Value })
+                    .ToList(),
+            })
+            .ToList();
+
+        RecordOrCheck("environment.json", recorded);
+    }
+
+    [Fact]
+    public void Merge_recordings_match()
+    {
+        (LaunchOptions Mine, LaunchOptions Defaults)[] cases =
+        [
+            (new LaunchOptions(), LaunchOptions.AppDefaults),
+            (new LaunchOptions(MangoHud: true), LaunchOptions.AppDefaults),
+            (new LaunchOptions(GameMode: false), LaunchOptions.AppDefaults),
+            (new LaunchOptions(GameMode: null, MangoHudConfig: "  "), LaunchOptions.AppDefaults),
+            (
+                new LaunchOptions(
+                    Gamescope: true,
+                    GamescopeArgs: "-W 2560 -H 1440",
+                    Environment: "A=1",
+                    Wrapper: "mangohud"
+                ),
+                new LaunchOptions(GameMode: false, GamescopeArgs: "-f")
+            ),
+        ];
+
+        var recorded = cases
+            .Select(c => new
+            {
+                mine = Snapshot(c.Mine),
+                defaults = Snapshot(c.Defaults),
+                merged = Snapshot(c.Mine.MergeOver(c.Defaults)),
+            })
+            .ToList();
+
+        RecordOrCheck("merge.json", recorded);
+    }
+
+    private static object Snapshot(LaunchOptions o) =>
+        new
+        {
+            o.MangoHud,
+            o.MangoHudConfig,
+            o.GameMode,
+            o.Gamescope,
+            o.GamescopeArgs,
+            o.Hdr,
+            o.Wayland,
+            o.Fsr,
+            o.Fsync,
+            o.ProtonLog,
+            o.DllOverrides,
+            o.Environment,
+            o.Wrapper,
+        };
 }

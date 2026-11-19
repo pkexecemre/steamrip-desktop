@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "appid": 2483190,
+      "slug": "forza-horizon-6",
+      "id": "umu-2483190"
+    },
+    {
+      "appid": null,
+      "slug": "My Game!",
+      "id": "umu-steamrip-my-game"
+    },
+    {
+      "appid": null,
+      "slug": null,
+      "id": "umu-default"
+    },
+    {
+      "appid": null,
+      "slug": "",
+      "id": "umu-default"
+    },
+    {
+      "appid": null,
+      "slug": "   ",
+      "id": "umu-default"
+    },
+    {
+      "appid": 100,
+      "slug": null,
+      "id": "umu-100"
+    }
+  ]
+}

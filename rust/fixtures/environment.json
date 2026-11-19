@@ -1,0 +1,87 @@
+{
+  "cases": [
+    {
+      "input": null,
+      "entries": []
+    },
+    {
+      "input": "",
+      "entries": []
+    },
+    {
+      "input": "A=1\nB=2",
+      "entries": [
+        [
+          "A",
+          "1"
+        ],
+        [
+          "B",
+          "2"
+        ]
+      ]
+    },
+    {
+      "input": "export A=1\n# comment\nexport B = two words ",
+      "entries": [
+        [
+          "A",
+          "1"
+        ],
+        [
+          "B",
+          "two words"
+        ]
+      ]
+    },
+    {
+      "input": "A=1\r\nB=2",
+      "entries": [
+        [
+          "A",
+          "1"
+        ],
+        [
+          "B",
+          "2"
+        ]
+      ]
+    },
+    {
+      "input": "bad key=1\nOK=2",
+      "entries": [
+        [
+          "OK",
+          "2"
+        ]
+      ]
+    },
+    {
+      "input": "=empty\nQUOTED=\u0022say hi\u0022",
+      "entries": [
+        [
+          "QUOTED",
+          "say hi"
+        ]
+      ]
+    },
+    {
+      "input": "NOEQUALS\nX=  1  ",
+      "entries": [
+        [
+          "X",
+          "1"
+        ]
+      ]
+    },
+    {
+      "input": "E=\u0022\u0022",
+      "entries": [
+        [
+          "E",
+          ""
+        ]
+      ]
+    }
+  ]
+}

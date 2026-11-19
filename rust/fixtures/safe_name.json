@@ -1,0 +1,48 @@
+{
+  "cases": [
+    {
+      "input": "Foo/Bar",
+      "safe": "Foo-Bar"
+    },
+    {
+      "input": "  Foo  ",
+      "safe": "Foo"
+    },
+    {
+      "input": "\u00C4\u00D6\u00DC \u00E7",
+      "safe": "\u00C4\u00D6\u00DC-\u00E7"
+    },
+    {
+      "input": "",
+      "safe": "game"
+    },
+    {
+      "input": "...",
+      "safe": "game"
+    },
+    {
+      "input": "---",
+      "safe": "game"
+    },
+    {
+      "input": "a.b",
+      "safe": "a.b"
+    },
+    {
+      "input": "Game: Deluxe",
+      "safe": "Game--Deluxe"
+    },
+    {
+      "input": "\u00DCber/Game",
+      "safe": "\u00DCber-Game"
+    },
+    {
+      "input": "Already_Ok-1.2",
+      "safe": "Already_Ok-1.2"
+    },
+    {
+      "input": "\u00C7ok  \u00D6zel / Oyun",
+      "safe": "\u00C7ok--\u00D6zel---Oyun"
+    }
+  ]
+}
