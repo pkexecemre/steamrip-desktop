@@ -157,3 +157,34 @@ Two things learned while making the hosters work:
 With that, both gates resolve without FlareSolverr: FileDitch sets its link on the main button when the gate's script runs, and BuzzHeavier's `hx-redirect` is read from the browser's network layer (the page's own JS cannot see it). Verified against live mirrors: HTTP 206, `application/vnd.rar`, real bytes.
 
 Rejected: keeping Playwright and shipping the driver (size, and it is only a wrapper around what the system browser already is); a BitTorrent-style client for the browser part; requiring the user to run FlareSolverr (it stays supported when present, as a preference).
+
+## D20 — The core is being ported to Rust, unit by unit, against recordings (Nov 19 2026)
+
+Owner: "the base code is already shit, fix it a lot and do this on the code:
+https://github.com/erkamyaman/rust-anything".
+
+The C# app works (107 tests, ReSharper clean) but the owner wants it in Rust. rust-anything's
+method is the only defensible way to do that without guessing at parity: record what the
+original answers, port, replay every case, and only then move on. Its CLI does not support
+.NET, so the loop is applied by hand.
+
+Choice:
+- A sibling Cargo workspace under `rust/` (never referenced by the app yet). `crates/steamrip-core`
+  mirrors `src/SteamRip.Core` one pure unit at a time.
+- `tests/SteamRip.Core.Tests/GoldenTests.cs` is the recorder *and* the guard: with
+  `SR_GOLDEN_DIR` set (`make golden`) it writes `rust/fixtures/*.json`; without it, it reads
+  those files back and asserts today's C# behaviour still matches. Drift on either side fails.
+- `crates/steamrip-core/tests/parity.rs` replays every recorded case. Anything that is not
+  byte-identical is a bug in the port.
+- First slice: `TitleParser.Parse`, `CatalogParser.ParseSize`, `SteamAppIdResolver.TitlePrefix`.
+  `Math.Round`'s banker's rounding is reproduced with `round_ties_even`, because a size line is
+  the kind of thing that ships wrong by one byte and never gets noticed.
+
+Locks in: the C# app remains the source of truth until the port answers for itself; a unit is
+"ported" only with a recording behind it; nothing in `rust/` may be referenced by the app
+during this phase, so a half-finished port can never break a release.
+
+Rejected: a big-bang Rust rewrite (no way to prove behaviour stayed the same, and the launch,
+hoster and installer paths have too many learned edge cases); running rust-anything's CLI
+against C# (unsupported, and its wrappers assume a dynamic language surface).
+
