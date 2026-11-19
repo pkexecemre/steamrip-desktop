@@ -80,6 +80,53 @@ fn round_one_decimal(value: f64) -> f64 {
     (value * 10.0).round() / 10.0
 }
 
+/// A short name for a Proton setting: the build directory, or a plain label for a keyword that
+/// is not on disk.
+pub fn proton_label(
+    proton_path: Option<&str>,
+    resolve_keyword: impl Fn(&str) -> Option<String>,
+) -> String {
+    let Some(stored) = proton_path else {
+        return "umu default".to_string();
+    };
+    if stored.trim().is_empty() {
+        return "umu default".to_string();
+    }
+    let resolved = if crate::proton::is_keyword(Some(stored)) {
+        resolve_keyword(stored)
+    } else {
+        Some(stored.to_string())
+    };
+    match resolved {
+        None => stored.to_string(),
+        Some(dir) => dir
+            .trim_end_matches('/')
+            .rsplit('/')
+            .next()
+            .unwrap_or_default()
+            .to_string(),
+    }
+}
+
+/// The resolved build directory for a Proton setting, when the build is on disk.
+pub fn resolve_build(
+    proton_path: Option<&str>,
+    resolve_keyword: impl Fn(&str) -> Option<String>,
+    file_exists: impl Fn(&str) -> bool,
+) -> Option<String> {
+    let stored = proton_path?;
+    if stored.trim().is_empty() {
+        return None;
+    }
+    let dir = if crate::proton::is_keyword(Some(stored)) {
+        resolve_keyword(stored)
+    } else {
+        Some(stored.to_string())
+    }?;
+    let probe = format!("{}/proton", dir.trim_end_matches('/'));
+    file_exists(&probe).then_some(dir)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

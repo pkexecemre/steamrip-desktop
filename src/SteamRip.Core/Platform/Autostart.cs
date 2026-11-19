@@ -32,27 +32,28 @@ public static class Autostart
                 return;
             }
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            File.WriteAllText(
-                path,
-                $"""
-                [Desktop Entry]
-                Type=Application
-                Name=SteamRIP Desktop
-                Comment=Keeps your SteamRIP library up to date
-                Exec="{ExecutablePath}" --hidden
-                Icon={AppId}
-                Terminal=false
-                X-GNOME-Autostart-enabled=true
-                X-KDE-autostart-after=panel
-
-                """
-            );
+            File.WriteAllText(path, DesktopEntry(ExecutablePath));
         }
         else if (OperatingSystem.IsWindows())
         {
             WriteRunValue(enabled ? $"\"{ExecutablePath}\" --hidden" : null);
         }
     }
+
+    /// <summary>The XDG autostart entry for one executable path, exactly as it is written.</summary>
+    public static string DesktopEntry(string executablePath) =>
+        $"""
+            [Desktop Entry]
+            Type=Application
+            Name=SteamRIP Desktop
+            Comment=Keeps your SteamRIP library up to date
+            Exec="{executablePath}" --hidden
+            Icon={AppId}
+            Terminal=false
+            X-GNOME-Autostart-enabled=true
+            X-KDE-autostart-after=panel
+
+            """;
 
     private static string DesktopFilePath()
     {

@@ -3,6 +3,7 @@
 //! implementation answers for the recorded cases; new units follow the same shape.
 
 pub mod archive;
+pub mod autostart;
 pub mod catalog;
 pub mod host_caps;
 pub mod hoster;

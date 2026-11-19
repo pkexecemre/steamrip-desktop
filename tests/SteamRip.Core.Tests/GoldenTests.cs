@@ -5,6 +5,7 @@ using SteamRip.Core.Data;
 using SteamRip.Core.Hosters;
 using SteamRip.Core.Install;
 using SteamRip.Core.Launch;
+using SteamRip.Core.Platform;
 using SteamRip.Core.Updates;
 
 namespace SteamRip.Core.Tests;
@@ -1299,5 +1300,59 @@ public class GoldenTests
             .ToList();
 
         RecordOrCheck("installer_safe_name.json", cases);
+    }
+
+    [Fact]
+    public void Autostart_entry_recordings_match()
+    {
+        string[] paths =
+        [
+            "/usr/bin/steamrip-desktop",
+            "/home/emre/Apps/SteamRIP Desktop.appimage",
+            "",
+        ];
+
+        var cases = paths
+            .Select(path => new { path, entry = Autostart.DesktopEntry(path) })
+            .ToList();
+
+        RecordOrCheck("autostart_entry.json", cases);
+    }
+
+    [Fact]
+    public void Proton_label_recordings_match()
+    {
+        (string? Stored, string? Resolved)[] cases =
+        [
+            (null, null),
+            ("", null),
+            ("GE-Proton", "/x/GE-Proton11-12"),
+            ("DW-Proton", null),
+            ("/opt/my-proton/", null),
+            ("/opt/my-proton", null),
+        ];
+
+        var recorded = cases
+            .Select(c =>
+            {
+                var stored = c.Stored;
+                var resolved = c.Resolved;
+                return new
+                {
+                    stored,
+                    resolved,
+                    label = PrefixManager.ProtonLabel(stored, _ => resolved),
+                    build = PrefixManager.ResolveBuild(
+                        stored,
+                        _ => resolved,
+                        path =>
+                            resolved is not null
+                            && path.StartsWith(resolved, StringComparison.Ordinal)
+                    ),
+                };
+            })
+            .ToList();
+
+        RecordOrCheck("proton_label.json", recorded);
     }
 }

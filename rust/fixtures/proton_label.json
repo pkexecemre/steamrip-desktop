@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "stored": null,
+      "resolved": null,
+      "label": "umu default",
+      "build": null
+    },
+    {
+      "stored": "",
+      "resolved": null,
+      "label": "umu default",
+      "build": null
+    },
+    {
+      "stored": "GE-Proton",
+      "resolved": "/x/GE-Proton11-12",
+      "label": "GE-Proton11-12",
+      "build": "/x/GE-Proton11-12"
+    },
+    {
+      "stored": "DW-Proton",
+      "resolved": null,
+      "label": "DW-Proton",
+      "build": null
+    },
+    {
+      "stored": "/opt/my-proton/",
+      "resolved": null,
+      "label": "my-proton",
+      "build": null
+    },
+    {
+      "stored": "/opt/my-proton",
+      "resolved": null,
+      "label": "my-proton",
+      "build": null
+    }
+  ]
+}

@@ -334,12 +334,16 @@ public static class PrefixManager
         };
 
     /// <summary>A short name for a Proton setting, for logs and the UI: the build directory, or the keyword.</summary>
-    public static string ProtonLabel(string? protonPath)
+    public static string ProtonLabel(string? protonPath) =>
+        ProtonLabel(protonPath, keyword => ProtonLocator.ResolveInstalled(keyword));
+
+    /// <summary>Same, with keyword resolution injected so the naming rule can be tested without a build on disk.</summary>
+    public static string ProtonLabel(string? protonPath, Func<string, string?> resolveKeyword)
     {
         if (string.IsNullOrWhiteSpace(protonPath))
             return "umu default";
         var resolved = ProtonLocator.IsKeyword(protonPath)
-            ? ProtonLocator.ResolveInstalled(protonPath)
+            ? resolveKeyword(protonPath)
             : protonPath;
         return resolved is null
             ? protonPath
@@ -359,14 +363,20 @@ public static class PrefixManager
     /// Resolved build directory for a Proton setting (keywords resolve to the newest installed build), or null when
     /// it is not on disk yet. Used to notice that a prefix was created with a different Proton.
     /// </summary>
-    public static string? ResolveBuild(string? protonPath)
+    public static string? ResolveBuild(string? protonPath) =>
+        ResolveBuild(protonPath, keyword => ProtonLocator.ResolveInstalled(keyword), File.Exists);
+
+    /// <summary>Same, with resolution and the proton-file check injected.</summary>
+    public static string? ResolveBuild(
+        string? protonPath,
+        Func<string, string?> resolveKeyword,
+        Func<string, bool> fileExists
+    )
     {
         if (string.IsNullOrWhiteSpace(protonPath))
             return null;
-        var dir = ProtonLocator.IsKeyword(protonPath)
-            ? ProtonLocator.ResolveInstalled(protonPath)
-            : protonPath;
-        return dir is not null && File.Exists(Path.Combine(dir, "proton")) ? dir : null;
+        var dir = ProtonLocator.IsKeyword(protonPath) ? resolveKeyword(protonPath) : protonPath;
+        return dir is not null && fileExists(Path.Combine(dir, "proton")) ? dir : null;
     }
 }
 

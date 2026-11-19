@@ -836,3 +836,55 @@ fn installer_safe_name_matches_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct AutostartCase {
+    path: String,
+    entry: String,
+}
+
+#[test]
+fn autostart_entry_matches_the_original() {
+    let cases: Vec<AutostartCase> = load("autostart_entry.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::autostart::desktop_entry(&case.path),
+            case.entry,
+            "desktop entry for {:?}",
+            case.path
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct ProtonLabelCase {
+    stored: Option<String>,
+    resolved: Option<String>,
+    label: String,
+    build: Option<String>,
+}
+
+#[test]
+fn proton_label_matches_the_original() {
+    let cases: Vec<ProtonLabelCase> = load("proton_label.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let resolved = case.resolved.clone();
+        let label =
+            steamrip_core::prefix::proton_label(case.stored.as_deref(), |_| resolved.clone());
+        assert_eq!(label, case.label, "label for {:?}", case.stored);
+
+        let resolved = case.resolved.clone();
+        let probe = resolved.clone();
+        let build = steamrip_core::prefix::resolve_build(
+            case.stored.as_deref(),
+            |_| resolved.clone(),
+            |path| match &probe {
+                Some(starts) => path.starts_with(starts.as_str()),
+                None => false,
+            },
+        );
+        assert_eq!(build, case.build, "build for {:?}", case.stored);
+    }
+}

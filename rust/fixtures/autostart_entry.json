@@ -1,0 +1,16 @@
+{
+  "cases": [
+    {
+      "path": "/usr/bin/steamrip-desktop",
+      "entry": "[Desktop Entry]\nType=Application\nName=SteamRIP Desktop\nComment=Keeps your SteamRIP library up to date\nExec=\u0022/usr/bin/steamrip-desktop\u0022 --hidden\nIcon=steamrip-desktop\nTerminal=false\nX-GNOME-Autostart-enabled=true\nX-KDE-autostart-after=panel\n"
+    },
+    {
+      "path": "/home/emre/Apps/SteamRIP Desktop.appimage",
+      "entry": "[Desktop Entry]\nType=Application\nName=SteamRIP Desktop\nComment=Keeps your SteamRIP library up to date\nExec=\u0022/home/emre/Apps/SteamRIP Desktop.appimage\u0022 --hidden\nIcon=steamrip-desktop\nTerminal=false\nX-GNOME-Autostart-enabled=true\nX-KDE-autostart-after=panel\n"
+    },
+    {
+      "path": "",
+      "entry": "[Desktop Entry]\nType=Application\nName=SteamRIP Desktop\nComment=Keeps your SteamRIP library up to date\nExec=\u0022\u0022 --hidden\nIcon=steamrip-desktop\nTerminal=false\nX-GNOME-Autostart-enabled=true\nX-KDE-autostart-after=panel\n"
+    }
+  ]
+}
