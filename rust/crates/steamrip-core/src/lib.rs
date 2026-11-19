@@ -21,3 +21,4 @@ pub mod redist;
 pub mod save_locator;
 pub mod settings;
 pub mod updates;
+pub mod url_rules;

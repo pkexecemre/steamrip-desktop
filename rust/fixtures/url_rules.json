@@ -1,0 +1,100 @@
+{
+  "cases": [
+    {
+      "href": "https://x/game.rar",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "https://x/game.rar?token=abc",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "https://x/game.RAR",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "https://x/game.rar/",
+      "page": null,
+      "looks_like_archive": false,
+      "is_download": false
+    },
+    {
+      "href": "https://x/game.r00",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "https://x/game.7z.001",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "https://x/game.zip.001",
+      "page": null,
+      "looks_like_archive": false,
+      "is_download": false
+    },
+    {
+      "href": "https://x/signed/MTc5NDAz",
+      "page": null,
+      "looks_like_archive": false,
+      "is_download": false
+    },
+    {
+      "href": "https://abuse.foo/game.rar",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": false
+    },
+    {
+      "href": "https://x/abuse/1.rar",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": false
+    },
+    {
+      "href": "https://x/ABUSE/1.rar",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": false
+    },
+    {
+      "href": "https://x/game.rar",
+      "page": "https://x/game.rar",
+      "looks_like_archive": true,
+      "is_download": false
+    },
+    {
+      "href": "https://x/other.rar",
+      "page": "https://x/game.rar",
+      "looks_like_archive": true,
+      "is_download": true
+    },
+    {
+      "href": "files/x.zip",
+      "page": null,
+      "looks_like_archive": true,
+      "is_download": false
+    },
+    {
+      "href": "not a url",
+      "page": null,
+      "looks_like_archive": false,
+      "is_download": false
+    },
+    {
+      "href": "",
+      "page": null,
+      "looks_like_archive": false,
+      "is_download": false
+    }
+  ]
+}
