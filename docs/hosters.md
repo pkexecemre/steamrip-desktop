@@ -8,7 +8,7 @@ Common downloader behaviour: user agent is a Chrome/154 Linux string (`Downloade
 
 ## FileDitch (`*.fileditchfiles.st`, `*.fileditchfiles.me`)
 
-Share of posts: ~71 %. Needs FlareSolverr.
+Share of posts: ~71 %. Needs a browser session (FlareSolverr, else the headless CDP browser).
 
 1. `FlareSolverrClient.GetAsync(shareUrl, disableMedia: true)` — FileDitch runs its own WASM browser check ("Verifying your browser…"); FlareSolverr passes it in ~5–8 s and returns the real landing page.
 2. `HostPages.ParseFileDitch(html)`:
@@ -45,7 +45,7 @@ Gotchas: **the SHA-256 on the page does not match the file** (observed `9ee9…`
 
 ## BuzzHeavier (`bzzhr.to/<id>`, also `buzzheavier.com`)
 
-Share of posts: ~81 %. Cloudflare managed challenge **plus** a referer rule: loading the share link directly (even through FlareSolverr `request.get`) bounces the browser back to steamrip.com with no cookies. Needs a FlareSolverr **session** with the fork's `actions` support.
+Share of posts: ~81 %. Cloudflare managed challenge **plus** a referer rule: loading the share link directly (even through FlareSolverr `request.get`) bounces the browser back to steamrip.com with no cookies. Needs a browser session (`IBrowserSolver`): FlareSolverr with the fork's `actions`, or the CDP browser, which reads the `hx-redirect` header from the browser's network layer.
 
 1. `FlareSolverrClient.CreateSessionAsync()`; `GetAsync("https://steamrip.com/", session)` so the browser has a genuine origin.
 2. `Session.ActionAsync([...])`:
@@ -55,6 +55,8 @@ Share of posts: ~81 %. Cloudflare managed challenge **plus** a referer rule: loa
 3. `HostPages.ParseBzzhr(html)` → the `hx-get` path on the download button, MD5, SHA-256, file name.
 4. `eval` in-page: `fetch(hxPath, {headers: {'HX-Request': 'true', 'HX-Current-URL': location.href}, redirect: 'manual'})` and stash `response.headers.get('hx-redirect')` on `window.__sr`; a second `eval` reads it back. That header is the direct file URL.
 5. Download the URL with plain `HttpClient` (no cookies needed in testing). MD5 and SHA-256 both verified and both matched.
+
+The steps above are the FlareSolverr path. The CDP browser skips the in-page fetch (step 4): it clicks the button and takes `hx-redirect` from the request the page made, which DevTools sees and the page's own JS cannot (`BuzzHeavierResolver.cs`).
 
 Gotchas: slowest resolver (session + two page loads, ~15–25 s), so it is last in the default order even though it is the most common mirror. Session is disposed after each resolve. If the fork is replaced by upstream FlareSolverr without `actions`, this resolver stops working.
 
@@ -66,7 +68,7 @@ Gotchas: slowest resolver (session + two page loads, ~15–25 s), so it is last 
 
 ## Manual fallback
 
-`ManualSolve.ViaBrowserAsync(post)` opens Playwright's headed Chromium on the FileDitch mirror, waits until the title is no longer a challenge, and feeds the HTML to `HostPages.ParseFileDitch`. It exists for the day the FlareSolverr box is down or Cloudflare escalates to an interactive CAPTCHA. It only runs when the user clicks "Solve in browser" on a queue item in the "needs you" state.
+`ManualSolve.ViaBrowserAsync(post)` opens a visible Chromium over DevTools (`CdpSolver` with `headless: false`), and says "install chromium" when no Chromium-family browser exists. When the post has a BuzzHeavier mirror it loads that page, clicks the download control and takes the `hx-redirect` the request answers with (3 min). Otherwise it uses the FileDitch mirror: it waits for the archive link the gate sets (2 min) and parses the HTML with `HostPages.ParseFileDitch` only as a fallback. It exists for the day the FlareSolverr box is down or Cloudflare escalates to an interactive CAPTCHA. It only runs when the user clicks "Solve in browser" on a queue item in the "needs you" state.
 
 ## Adding or fixing a hoster
 

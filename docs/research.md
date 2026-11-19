@@ -50,7 +50,7 @@ The site publishes no hashes. Archives are `.rar` (RAR5, sometimes multi-volume)
 - FlareSolverr cannot set a `Referer` on `request.get`; hosters that need one (MegaDB) are plain `HttpClient`; BuzzHeavier gets a genuine referer by hopping via `location.href` inside the solver browser.
 - It is a landing-page solver only. Bodies come back as JSON; it never streams a file. Every byte of a game goes through `HttpClient` with `Range`.
 - Reliability notes gathered: Turnstile loops, 60 s timeouts, dependence on egress IP reputation, need for WebGL fingerprinting. Treat it as an accelerator: health-check (`GET /`) before use, time out at ~90 s, fall through to the next mirror or to the manual browser.
-- Manual fallback: headed Chromium via Playwright (Playwright's managed download; only Firefox is on the dev box and Turnstile dislikes patched Firefox). It polls the title for "Just a moment"/"Attention Required"/"Verifying" and hands the page back. Opens only on user click.
+- Manual fallback: headed Chromium over DevTools (`ManualSolve` runs `CdpSolver` with `headless: false`; it probes the installed Chromium-family browsers and says so when there is none). It polls the title for "Just a moment"/"Attention Required"/"Verifying" and hands the page back. Opens only on user click.
 
 ## 3. Hoster findings (details in `hosters.md`)
 

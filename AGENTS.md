@@ -11,8 +11,8 @@ The owner wants **zero manual work** in the happy path. Any change that adds a p
 ## Layout
 
 ```
-SteamRip.sln
-Directory.Build.props              # net10.0, nullable, implicit usings, warnings as errors off
+SteamRip.slnx
+Directory.Build.props              # net10.0, nullable, implicit usings, warnings as errors
 src/SteamRip.Core/                 # everything testable; no Avalonia reference
   Catalog/      REST client, post/title parsing, hoster detection
   Solver/       FlareSolverrClient (optional, sessions/actions), CdpBrowser/CdpSolver (system Chromium over DevTools), FallbackSolver
@@ -27,6 +27,7 @@ src/SteamRip.Core/                 # everything testable; no Avalonia reference
 src/SteamRip.App/                  # Avalonia: App.axaml(.cs) with TrayIcon + AppServices, ViewModels/, Views/
 tests/SteamRip.Core.Tests/         # xunit; Fixtures/ holds saved HTML/JSON from real hosters
 docs/                              # research, hosters, architecture, decisions
+rust/                              # port of Core to Rust (crates/steamrip-core), checked against recordings in rust/fixtures; the app never references it (D20)
 packaging/                         # nfpm.yaml (deb/rpm/arch), linux/*.desktop, aur/PKGBUILD template, windows/setup.iss
 scripts/                           # inspect.sh (ReSharper), package.sh (Linux packages), package-windows.ps1 (installer)
 .github/                           # workflows/ci.yml, workflows/release.yml, actions/setup, dependabot.yml
@@ -39,14 +40,19 @@ Keep this shape. Do not add a project per hoster, a plugin system, DI container,
 ```sh
 make setup        # once per clone: dotnet tools (CSharpier, ReSharper CLI), git hooks, restore
 make build        # whole solution; analyzers on, warnings are errors
-make test         # 96 tests, ~1 s, no network
+make test         # unit tests, ~1 s, no network
 make run-dev      # app against the throwaway profile (/tmp/sr-cfg), --show --verbose
-make check        # all gates: format-check, clean build, tests, ReSharper at WARNING+
+make check        # the C# gates: format-check, clean build, tests, ReSharper at WARNING+
 make inspect-all  # ReSharper at the highest level (every hint/suggestion); a report, never fails
+make golden       # re-record rust/fixtures from the C# behaviour the port is checked against
+make rust-test    # replay those recordings against the Rust port
+make rust-check   # Rust gates: fmt, clippy -D warnings, parity
 make help         # everything else: publish, watch, logs, log-tail, db, dev-reset
 ```
 
-The Makefile is a thin wrapper; the underlying commands are `dotnet tool restore`, `git config core.hooksPath .githooks`, `dotnet build`, `dotnet test`, `dotnet run --project src/SteamRip.App -- --show --verbose`, `dotnet csharpier format .`, `scripts/inspect.sh`.
+The Makefile is a thin wrapper; the underlying commands are `dotnet tool restore`, `git config core.hooksPath .githooks`, `dotnet build`, `dotnet test`, `dotnet run --project src/SteamRip.App -- --show --verbose`, `dotnet csharpier format .`, `scripts/inspect.sh`, `cargo test/fmt/clippy --manifest-path rust/Cargo.toml`.
+
+`make check` covers C# only. The Rust port has its own `make rust-check`; neither the git hooks nor `.github/workflows/ci.yml` run it (`make golden` is a recorder, not a gate).
 
 ## Code quality gates
 
@@ -109,7 +115,7 @@ A change to a resolver is not done until it has resolved and downloaded at least
 
 ## Machine facts (dev box, Nov 2026)
 
-CachyOS, KDE on Wayland, .NET 10.0.114, `unrar`, `7z`, `secret-tool`, `gdbus`, `umu-run` 1.4.3, `wine`. Proton builds at `/usr/share/steam/compatibilitytools.d/proton-cachyos-{slr,native}`, `~/.steam/root/compatibilitytools.d/Proton-CachyOS Latest`, `~/.local/share/Steam/steamapps/common/Proton - Experimental`. FlareSolverr (smeinecke fork, Chrome 154) at `http://192.168.2.251:8191`. Only Firefox is installed; Playwright downloads its own Chromium on first manual solve.
+CachyOS, KDE on Wayland, .NET 10.0.114, `unrar`, `7z`, `secret-tool`, `gdbus`, `umu-run` 1.4.3, `wine`. Proton builds at `/usr/share/steam/compatibilitytools.d/proton-cachyos-{slr,native}`, `~/.steam/root/compatibilitytools.d/Proton-CachyOS Latest`, `~/.local/share/Steam/steamapps/common/Proton - Experimental`. FlareSolverr (smeinecke fork, Chrome 154) at `http://192.168.2.251:8191`. Only Firefox is installed; the browser fallback probes PATH and Playwright's leftover cache for a Chromium-family browser and stops with "install chromium" when it finds none.
 
 ## Releases and packaging
 

@@ -22,6 +22,8 @@ Coverage from the 100-post sample made FileDitch+GoFile+MegaDB sufficient; BuzzH
 
 The owner already runs FlareSolverr (smeinecke fork) on the LAN, so it is a sunk dependency and solved FileDitch in ~7 s. It clears landing pages only; all bytes go through `HttpClient` with `Range`. If it is unreachable or fails, the queue item waits in "needs you" with one notification; the Playwright headed browser opens only when the user clicks. The app never pops a browser unprompted. `cf_clearance` is not persisted; re-solving is cheaper than managing IP/UA-bound cookies.
 
+Superseded in part by D19 (Nov 18 2026): when FlareSolverr is absent or fails, `FallbackSolver` uses the headless CDP browser first; the user-triggered fallback is `CdpSolver` with `headless: false`, driving an installed Chromium over DevTools, not Playwright. The click-only rule stands.
+
 ## D6 — Integrity: archive CRC test is the truth
 
 The site publishes no hashes. BuzzHeavier's page hashes match; MegaDB's displayed SHA-256 did **not** match a valid file. So resolvers pass hashes only when known-good, and `Installer` always runs `unrar t`/`7z t` before touching the old install.
@@ -128,7 +130,7 @@ What the log showed for Red Dead Redemption 2: the only workable mirror was a **
 
 Choice:
 - `Aria2Client` runs aria2c as a child process with JSON-RPC on loopback and drives it: `addUri`/`addTorrent`, `tellStatus` for progress/speed/failure, `forceShutdown` on cancel. No progress-line scraping, no shell quoting, and a stall (3 min HTTP / 10 min torrent with zero speed) is an explicit failure instead of a hung job.
-- Settings → Downloads picks the engine (auto / aria2c / built-in); aria2 is skipped when it is not installed, and the built-in ranged loop remains for that case.
+- Settings → Downloads picks the engine (`auto` / `aria2` / `internal`); aria2 is skipped when it is not installed, and the built-in ranged loop remains for that case.
 - A resolved `.torrent` is a mirror type, not an archive: fetch the metadata, pull the payload with aria2 (web seeds and DHT included), then take the archive the torrent produced (split volumes resolve to their first part).
 - `ArchiveMarker` (`.ok` sidecar storing the size) is the only proof that a downloaded file may be reused, so a download the archive tool rejects is discarded and fetched once more instead of being retried unchanged.
 - `ArchiveTool` sniffs magic bytes, so a mislabelled torrent or HTML error page is reported as what it is; split volumes (`.part03.rar`, `.r05`, `.7z.004`) resolve to the volume unrar/7z need.
@@ -163,7 +165,7 @@ Rejected: keeping Playwright and shipping the driver (size, and it is only a wra
 Owner: "the base code is already shit, fix it a lot and do this on the code:
 https://github.com/erkamyaman/rust-anything".
 
-The C# app works (107 tests, ReSharper clean) but the owner wants it in Rust. rust-anything's
+The C# app works (unit tests, ReSharper clean) but the owner wants it in Rust. rust-anything's
 method is the only defensible way to do that without guessing at parity: record what the
 original answers, port, replay every case, and only then move on. Its CLI does not support
 .NET, so the loop is applied by hand.

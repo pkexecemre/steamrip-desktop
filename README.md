@@ -7,7 +7,7 @@ Personal-use project. The code is what one person needs to run a game library ha
 ## What it does
 
 - **Catalog**: syncs the site through the WordPress REST API (no HTML scraping of the site itself), detects updated posts by `modified` + build/version change.
-- **Download**: resolves a post's mirrors (FileDitch, GoFile, MegaDB, BuzzHeavier) to a direct URL, clears Cloudflare via a [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) instance, then downloads through **aria2** when it is installed — 16-way splits, resume, retries and the hoster's own checksum. Without aria2 it falls back to its own ranged HTTP loop. A `.torrent` some hosters publish instead of the file is only used when `TorrentMirrors` is enabled (off by default).
+- **Download**: resolves a post's mirrors (FileDitch, GoFile, MegaDB, BuzzHeavier) to a direct URL, clears Cloudflare through a browser ([FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) when one answers, else the headless Chromium over DevTools), then downloads through **aria2** when it is installed — 16-way splits, resume, retries and the hoster's own checksum. Without aria2 it falls back to its own ranged HTTP loop. A `.torrent` some hosters publish instead of the file is only used when `TorrentMirrors` is enabled (off by default).
 - **Install**: `unrar t`/`7z t` integrity check → extract to staging → back up saves → swap into `<library>/<slug>/` → prune old backups. The old install is untouched until the new one is verified.
 - **Play**: `umu-run` + Proton with the prefix at `<library>/.prefixes/<slug>` — outside the game folder, recorded (which Proton built it, when, how many launches), locked while it runs, and one click away from a reset that moves it aside instead of deleting it. Exe auto-detected, per-game Proton/exe/argument overrides, playtime tracking.
 - **Update**: periodic check; auto-downloads and reinstalls library games; waits for a running game to exit first; prefix and saves survive the swap.
@@ -39,9 +39,10 @@ Unsigned binaries: Windows SmartScreen will warn on first run ("More info → Ru
 | `umu-run` (umu-launcher) and/or `wine`; a Proton build (Steam, Proton-GE, Proton-CachyOS) | — |
 | `secret-tool` (optional, keychain) | — |
 | `notify-send` or `gdbus` (notifications) | — |
-| A reachable FlareSolverr (`http://host:8191`) for FileDitch and BuzzHeavier mirrors | same |
+| FlareSolverr (`http://host:8191`) for FileDitch and BuzzHeavier (optional) | same |
+| A Chromium-family browser (`chromium`, Google Chrome, Brave, Edge, Vivaldi): the fallback solver when FlareSolverr is not reachable | same |
 
-GoFile and MegaDB mirrors work without FlareSolverr. If no solver is reachable, the queue item waits in "needs you" and offers a one-click "Solve in browser" (headed Chromium through Playwright).
+GoFile and MegaDB mirrors work without FlareSolverr. If neither FlareSolverr nor a Chromium-family browser can pass a gate, the queue item waits in "needs you" and offers a one-click "Solve in browser" (a headed Chromium over DevTools, no Playwright).
 
 ## Build and run
 
@@ -49,7 +50,7 @@ GoFile and MegaDB mirrors work without FlareSolverr. If no solver is reachable, 
 make setup                                # once: dotnet tools, git hooks, restore
 make build test                           # analyzers on, warnings are errors
 make run-dev                              # app against a throwaway profile in /tmp/sr-cfg, verbose log
-make check                                # every gate: format, analyzers, tests, ReSharper
+make check                                # every C# gate: format, analyzers, tests, ReSharper
 make help                                 # the full list (publish, inspect-all, logs, db, …)
 ```
 
@@ -89,6 +90,7 @@ Override the config directory with `XDG_CONFIG_HOME` (handy for a throwaway test
 - [`docs/hosters.md`](docs/hosters.md) — the exact resolution protocol per hoster, verified end to end, with the gotchas.
 - [`docs/architecture.md`](docs/architecture.md) — pipeline, components, DB schema, settings, install/update/launch flows, logging, secrets.
 - [`docs/decisions.md`](docs/decisions.md) — decision log, including the two course corrections (logging over screenshots; the app launches games itself).
+- [`rust/README.md`](rust/README.md) — the Rust port of the core: what is ported and the recording/parity loop.
 - [`AGENTS.md`](AGENTS.md) — working agreements for contributors and AI agents: layout, conventions, how to verify, what not to do.
 
 ## Status

@@ -24,7 +24,7 @@ flowchart LR
 | Area | Types | Responsibility |
 | --- | --- | --- |
 | `Catalog` | `CatalogClient`, `CatalogParser`, `TitleParser`, `HosterDetector`, `CatalogPost`, `Mirror`, `Hoster` | Page through the REST API (100/page, 1.5 s between pages, 429/502/503 back-off ≤6 attempts honouring `Retry-After`), parse title version, `acf.tagmetafield` build, `steam_app_id`, Game Size, `shortc-button` mirrors. `GetModifiedSinceAsync(since)` for incremental checks. |
-| `Solver` | `FlareSolverrClient`, `Session`, `BrowserSolver` | `request.get`, `sessions.create/destroy`, fork `actions` (`eval`, `wait_for`); health check `GET /`; Playwright headed Chromium fallback with challenge-title polling. |
+| `Solver` | `FlareSolverrClient`, `CdpBrowser`, `CdpSolver`, `FallbackSolver`, `IBrowserSolver`, `InteractivePage` | `request.get`, `sessions.create/destroy`, fork `actions` (`eval`, `wait_for`, `wait`); health check `GET /`; `FallbackSolver` uses the headless system Chromium over DevTools (`CdpBrowser`/`CdpSolver`, challenge-title polling) when FlareSolverr is absent or fails; `InteractivePage` holds the click/wait helpers both paths share. |
 | `Hosters` | `IHostResolver`, `FileDitchResolver`, `GoFileResolver`, `MegaDbResolver`, `BuzzHeavierResolver`, `ResolverChain`, `HostPages`, `ResolvedDownload` | Share URL → direct URL + headers + optional hashes/expiry. See `hosters.md`. |
 | `Downloads` | `Downloader`, `Aria2Client`, `TorrentDownload`, `DownloadProgress`, `DownloadException` | Front door picks the engine: `Aria2Client` (aria2c over JSON-RPC: 16-way splits, resume, retries, checksum, BitTorrent) when installed, else the built-in ranged loop (`.part`, 416 = complete, 302/401/403/HTML → `retryResolve`). |
 | `Install` | `ArchiveTool`, `SaveLocator`, `Installer`, `InstallOptions`, `InstallResult` | See "Install flow". |
@@ -36,7 +36,7 @@ flowchart LR
 
 ## App (`src/SteamRip.App`)
 
-- `Program.cs` — single-instance mutex `Global\steamrip-desktop-single-instance` (the `Global\` prefix makes it per user instead of per Unix session; desktop launches via systemd --user each get their own session); a second launch writes `<config>/.show` (or `<config>/.play` holding a post id when started with `--play <id>`), which the running instance watches and reacts to by showing the window.
+- `Program.cs` — single-instance mutex `Global\steamrip-desktop-<first 12 hex chars of SHA1(config dir)>` (the `Global\` prefix makes it per user instead of per Unix session; desktop launches via systemd --user each get their own session; the hash lets a dev profile run next to the real app); a second launch writes `<config>/.show` (or `<config>/.play` holding a post id when started with `--play <id>`), which the running instance watches and reacts to by showing the window.
 - `App.axaml(.cs)` — palette resources, `TrayIcon` + `NativeMenu` (Open library / Check for updates now / Pause auto-updates / Quit), `ShutdownMode.OnExplicitShutdown`, hide-on-close (but not on OS/application shutdown), SIGTERM/SIGINT/SIGHUP → quit so session logout is not blocked, `--hidden`/`--show`, crash logging hooks. `AppServices.Build(args)` constructs the whole object graph by hand (no DI container) and logs tool discovery (unrar/7z/umu/wine/Proton builds) at startup.
 - `Services/CoverCache.cs` — covers prefer SteamGridDB **600×900** grids (`Authorization: Bearer` key in the secret store as `steamgriddb-api-key`, Settings password field), then Steam CDN `library_600x900.jpg` only (no wide heroes — they look blurry on 140 px cards). Fetched on first read of an item's `Cover` property, 4 downloads in flight, disk `<config>/covers/<appid>.jpg`. Before fetch, `SteamAppIdResolver` validates/corrects the site's ACF `steam_app_id` (positive hits under `<config>/steam-apps/`; misses are process-lifetime only). Shortcut icons: SteamGridDB square icons under `<config>/icons/<appid>.*`, else the cover jpg (`Shortcuts.GameIcon`). Play uses the same resolved id for `GAMEID=umu-<id>`. Clear `covers/` (and optionally `icons/`) after changing the SGDB key so cards re-fetch. Posts without a usable Steam app id show the name's initial.
 - ViewModels (CommunityToolkit.Mvvm): `MainViewModel` (nav, sync line, solver health every 30 s, counts, 15 s poll while games run), `LibraryViewModel`/`LibraryItem` (Play/Stop, Update, Forget/Delete; "Launch options" raises `OptionsRequested`, which `MainViewModel.Editing` shows in a side sheet over the window with exe/Proton/args/tweaks), `BrowseViewModel` (search box, sort dropdown `SortOption`, genre dropdown from `Db.GetCategories()` refreshed after each sync), `QueueViewModel` (cancel, solve in browser), `ActivityViewModel` (events + live log tail), `SettingsViewModel` (incl. launch defaults and the capability check), `LaunchOptionsEditor` (one `LaunchOptions` form used twice: in Settings it edits the defaults; on a game it shows the effective values, labels say the inherited default, and a toggle is only stored when it differs from that default so the game keeps following Settings otherwise; raises `Changed` after every edit).
@@ -50,9 +50,13 @@ flowchart LR
 | --- | --- | --- |
 | `LibraryRoot` | `~/Games/SteamRIP` | Games live in `<LibraryRoot>/<slug>/` |
 | `DownloadsRoot` | `~/Games/SteamRIP/.downloads` | Archives, `<slug>/<file>.rar(.part)`; independent of `LibraryRoot` |
+| `DownloadEngine` | `auto` | `auto` (aria2 when installed), `aria2`, or `internal` (the built-in ranged loop) (D18) |
+| `TorrentMirrors` | `false` | Use a hoster's `.torrent` when no direct mirror resolves (D18) |
+| `PrefixRoot` | `""` | Wine prefixes live in `<PrefixRoot>/<slug>`; empty means `<LibraryRoot>/.prefixes` (D17) |
+| `DeletePrefixOnUninstall` | `false` | "Delete files" on uninstall removes the prefix too (saves included) |
 | `DefaultProtonPath` | `GE-Proton` | A Proton directory, or a keyword: `GE-Proton` (umu's `PROTONPATH=GE-Proton`, downloaded and updated by umu) or `DW-Proton` (downloaded and updated by `ProtonDownloader`). `""` is read as `GE-Proton`. umu's own default (UMU-Proton, a Proton 10 build) is never used |
 | `DefaultLaunch` | `LaunchOptions.AppDefaults` (gamemode on, fsync on, gamescope args `-f`, rest off) | Nested `LaunchOptions` object; the one deliberate exception to "flat settings" because the same record is stored per game |
-| `FlareSolverrUrl` | `http://localhost:8191` | Health-checked; unreachable → GoFile/MegaDB still work |
+| `FlareSolverrUrl` | `http://localhost:8191` | Health-checked; unreachable → `FallbackSolver` uses the headless Chromium (GoFile/MegaDB need no solver at all) |
 | `CheckIntervalMinutes` | `60` | Incremental catalog check cadence |
 | `AutoUpdatesPaused` | `false` | Tray toggle |
 | `NotifyNewGames` | `false` | "New game posted" notifications (noisy) |
@@ -161,7 +165,7 @@ Wine's Wayland driver treats an output as HDR only when the compositor's maximum
 
 ## Testing
 
-`tests/SteamRip.Core.Tests` (xunit, 96 tests, no network): catalog/title parsing against `Fixtures/posts_page1.json`; `HostPages` against saved FileDitch (solved + interstitial), BuzzHeavier and MegaDB HTML; `Downloader` against an in-process `HttpListener` that serves ranges and injected failures; `Installer`/`SaveLocator` against temp directory trees (collapse, backups, prefix preservation, prune); `FileLoggerProvider`; `ExeFinder` and `ProtonLocator`. Live hoster and site behaviour is exercised through throwaway harnesses under `/tmp`, never in the suite.
+`tests/SteamRip.Core.Tests` (xunit, no network): catalog/title parsing against `Fixtures/posts_page1.json`; `HostPages` against saved FileDitch (solved + interstitial), BuzzHeavier and MegaDB HTML; `Downloader` against an in-process `HttpListener` that serves ranges and injected failures; `Installer`/`SaveLocator` against temp directory trees (collapse, backups, prefix preservation, prune); `FileLoggerProvider`; `ExeFinder` and `ProtonLocator`. Live hoster and site behaviour is exercised through throwaway harnesses under `/tmp`, never in the suite.
 
 ## Publishing
 
