@@ -36,7 +36,9 @@ public partial class BrowseViewModel : ObservableObject
     public ObservableCollection<Category> Genres { get; } = [];
 
     [ObservableProperty]
-    public partial Category Genre { get; set; }
+    // Nullable on purpose: the ComboBox writes null back while Genres is being refilled, and treating
+    // that as "all genres" is what keeps the page alive instead of throwing on the next refresh.
+    public partial Category? Genre { get; set; }
 
     private static readonly Category AllGenres = new(0, "All genres", 0);
     private const int Limit = 150;
@@ -59,7 +61,7 @@ public partial class BrowseViewModel : ObservableObject
             Refresh();
     }
 
-    partial void OnGenreChanged(Category value)
+    partial void OnGenreChanged(Category? value)
     {
         if (_ready)
             Refresh();
@@ -68,7 +70,7 @@ public partial class BrowseViewModel : ObservableObject
     /// <summary>Re-reads the category list after a sync; keeps the current choice when it still exists.</summary>
     public void RefreshGenres()
     {
-        var current = Genre.Id;
+        var current = Genre?.Id ?? 0;
         var fresh = _s.Db.GetCategories().Where(c => c.Name != "Uncategorized").ToList();
         if (
             Genres.Count == fresh.Count + 1
@@ -84,7 +86,9 @@ public partial class BrowseViewModel : ObservableObject
 
     public void Refresh()
     {
-        var posts = _s.Db.SearchPosts(Query, Sort.Sort, Genre.Id == 0 ? null : Genre.Id, Limit);
+        // Genre can be nulled by the ComboBox while Genres is being refilled; treating that as "all"
+        // keeps the page usable instead of throwing out of every later refresh.
+        var posts = _s.Db.SearchPosts(Query, Sort.Sort, Genre?.Id is > 0 ? Genre.Id : null, Limit);
         var installed = _s.Db.GetInstalls().ToDictionary(g => g.PostId);
         Items.Clear();
         foreach (var p in posts)
@@ -98,10 +102,11 @@ public partial class BrowseViewModel : ObservableObject
                 )
             );
         var total = _s.Db.PostCount();
-        var filtered = !string.IsNullOrWhiteSpace(Query) || Genre.Id != 0;
+        var genreId = Genre?.Id ?? 0;
+        var filtered = !string.IsNullOrWhiteSpace(Query) || genreId != 0;
         var genreNote =
             Genres.Count == 1 && _s.Updates.Syncing ? " · genres appear when this sync finishes"
-            : Genre.Id != 0 && !_s.Db.HasPostCategories()
+            : genreId != 0 && !_s.Db.HasPostCategories()
                 ? " · genres are being filled in by the running sync"
             : Sort.Sort == PostSort.Popular && _s.Db.RankedPostCount() == 0
                 ? " · popularity arrives with the next sync"

@@ -205,8 +205,12 @@ public partial class SettingsViewModel : ObservableObject
     private void Save()
     {
         var c = _s.Settings;
-        c.LibraryRoot = LibraryRoot.Trim();
-        c.DownloadsRoot = DownloadsRoot.Trim();
+        // An empty field would send every install to the process working directory; keep the previous root
+        // when the box is blank (the 700ms debounce fires mid-edit).
+        var library = LibraryRoot.Trim();
+        var downloads = DownloadsRoot.Trim();
+        c.LibraryRoot = library.Length > 0 ? library : c.LibraryRoot;
+        c.DownloadsRoot = downloads.Length > 0 ? downloads : c.DownloadsRoot;
         c.PrefixRoot = PrefixRoot.Trim();
         c.DeletePrefixOnUninstall = DeletePrefixOnUninstall;
         c.DownloadEngine = DownloadEngine?.Value ?? "auto";

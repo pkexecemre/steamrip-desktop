@@ -310,10 +310,20 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
             .GetDirectories()
             .OrderByDescending(d => d.LastWriteTimeUtc)
             .ToList();
-        foreach (var old in dirs.Skip(Math.Max(keep, 0)))
+        // The newest one is the backup this run just made: it is the safety net for the swap and the path
+        // the job reports, so it survives even when KeepBackups is 0. A prune is never worth failing an
+        // install that already happened, and a file held open by the game used to do exactly that.
+        foreach (var old in dirs.Skip(Math.Max(keep, 1)))
         {
-            log?.LogInformation("Pruning old save backup {Dir}", old.FullName);
-            old.Delete(true);
+            try
+            {
+                log?.LogInformation("Pruning old save backup {Dir}", old.FullName);
+                old.Delete(true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                log?.LogWarning("Could not prune {Dir}: {Error}", old.FullName, e.Message);
+            }
         }
     }
 

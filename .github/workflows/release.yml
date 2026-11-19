@@ -74,6 +74,11 @@ jobs:
       - name: Release notes header
         run: |
           v="${GITHUB_REF_NAME#v}"
+          # The names come from dist/, not from a template: a pre-release version becomes 2026.11.6~rc1 in the
+          # package name, so a composed command would point at a file that does not exist.
+          deb=$(basename "$(ls dist/*.deb | head -1)")
+          rpm=$(basename "$(ls dist/*.rpm | head -1)")
+          appimage=$(basename "$(ls dist/*.AppImage | head -1)")
           {
             echo "Self-contained builds; nothing else to install. Settings, library and database are kept across upgrades."
             echo
@@ -81,9 +86,9 @@ jobs:
             echo "|---|---|---|"
             echo "| Windows 10/11 x64 | \`steamrip-desktop-$v-setup.exe\` | run it (per-user, no admin) |"
             echo "| Arch / CachyOS / Manjaro | AUR \`steamrip-desktop-bin\` | \`paru -S steamrip-desktop-bin\`, or \`sudo pacman -U\` the \`.pkg.tar.zst\` |"
-            echo "| Debian / Ubuntu / Mint | \`.deb\` | \`sudo apt install ./steamrip-desktop_${v}-1_amd64.deb\` |"
-            echo "| Fedora / openSUSE | \`.rpm\` | \`sudo dnf install ./steamrip-desktop-$v-1.x86_64.rpm\` |"
-            echo "| Any Linux | \`.AppImage\` | \`chmod +x\`, run |"
+            echo "| Debian / Ubuntu / Mint | \`$deb\` | \`sudo apt install ./$deb\` |"
+            echo "| Fedora / openSUSE | \`$rpm\` | \`sudo dnf install ./$rpm\` |"
+            echo "| Any Linux | \`$appimage\` | \`chmod +x\`, run |"
             echo
             echo "On Linux the app shells out to \`unrar\`/\`7z\`, \`umu-run\` (or \`wine\`) and \`secret-tool\`; the packages list them as dependencies or recommendations. A FlareSolverr instance is configured in Settings. Checksums in \`SHA256SUMS.txt\`."
             echo

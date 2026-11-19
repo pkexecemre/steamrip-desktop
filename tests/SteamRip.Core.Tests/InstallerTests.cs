@@ -295,4 +295,22 @@ public class InstallerTests : IDisposable
             root.Delete(true);
         }
     }
+
+    [Fact]
+    public void PruneBackups_keeps_the_backup_it_just_made_even_at_zero()
+    {
+        var root = Path.Combine(_root, ".backups", "cool-game");
+        Directory.CreateDirectory(root);
+        var older = Directory.CreateDirectory(Path.Combine(root, "v1"));
+        var newer = Directory.CreateDirectory(Path.Combine(root, "v2"));
+        Directory.SetLastWriteTimeUtc(older.FullName, DateTime.UtcNow.AddHours(-2));
+        Directory.SetLastWriteTimeUtc(newer.FullName, DateTime.UtcNow);
+
+        // KeepBackups = 0 means "do not keep old ones", not "delete the safety net for the swap you just did",
+        // because the install reports that path.
+        Installer.PruneBackups(root, 0);
+
+        Assert.False(Directory.Exists(older.FullName));
+        Assert.True(Directory.Exists(newer.FullName));
+    }
 }

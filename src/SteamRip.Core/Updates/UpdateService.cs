@@ -541,6 +541,9 @@ public sealed class UpdateService : IAsyncDisposable
                 try
                 {
                     Directory.Delete(prefix, true);
+                    // Reset leaves .bak-* siblings next to the prefix; nothing else ever deletes them, so an
+                    // uninstall that removes the prefix must take them too.
+                    PrefixManager.PruneAside(prefix, 0);
                 }
                 catch (Exception e) when (e is IOException or UnauthorizedAccessException)
                 {
