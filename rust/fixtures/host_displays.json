@@ -1,0 +1,99 @@
+{
+  "cases": [
+    {
+      "kind": "mutter",
+      "html_file": "mutter_current_state.txt",
+      "html": null,
+      "displays": [
+        {
+          "name": "DP-1",
+          "hdr": "enabled",
+          "width": 3440,
+          "height": 1440,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        },
+        {
+          "name": "HDMI-2",
+          "hdr": "incapable",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        },
+        {
+          "name": "DP-2",
+          "hdr": "disabled",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        }
+      ]
+    },
+    {
+      "kind": "mutter",
+      "html_file": null,
+      "html": "",
+      "displays": []
+    },
+    {
+      "kind": "wlr",
+      "html_file": "sway_outputs.json",
+      "html": null,
+      "displays": [
+        {
+          "name": "DP-1",
+          "hdr": "enabled",
+          "width": 3440,
+          "height": 1440,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        },
+        {
+          "name": "HDMI-A-2",
+          "hdr": "disabled",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        }
+      ]
+    },
+    {
+      "kind": "wlr",
+      "html_file": "hyprctl_monitors.json",
+      "html": null,
+      "displays": [
+        {
+          "name": "DP-1",
+          "hdr": "unknown",
+          "width": 3440,
+          "height": 1440,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        },
+        {
+          "name": "HDMI-A-2",
+          "hdr": "unknown",
+          "width": 1920,
+          "height": 1080,
+          "sdr_nits": 0,
+          "peak_nits": 0
+        }
+      ]
+    },
+    {
+      "kind": "wlr",
+      "html_file": null,
+      "html": "",
+      "displays": []
+    },
+    {
+      "kind": "wlr",
+      "html_file": null,
+      "html": "{\u0022a\u0022:1}",
+      "displays": []
+    }
+  ]
+}

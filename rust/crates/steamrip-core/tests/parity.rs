@@ -547,3 +547,33 @@ fn host_capabilities_match_the_original() {
         }
     }
 }
+
+#[test]
+fn host_displays_match_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("host_displays.json"))
+        .expect("host_displays fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("valid json");
+    let cases = doc["cases"].as_array().expect("cases");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let kind = case["kind"].as_str().expect("kind");
+        let input = match case["html_file"].as_str() {
+            Some(file) => {
+                let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../../tests/SteamRip.Core.Tests/Fixtures")
+                    .join(file);
+                std::fs::read_to_string(&path)
+                    .unwrap_or_else(|e| panic!("fixture {}: {e}", path.display()))
+            }
+            None => case["html"].as_str().unwrap_or_default().to_string(),
+        };
+        let got = match kind {
+            "mutter" => steamrip_core::host_caps::parse_mutter(&input),
+            "wlr" => steamrip_core::host_caps::parse_wlr_outputs(&input),
+            other => panic!("unknown kind {other}"),
+        };
+        let expected: Vec<steamrip_core::host_caps::DisplayInfo> =
+            serde_json::from_value(case["displays"].clone()).expect("displays");
+        assert_eq!(got, expected, "{kind} for {input:.40?}");
+    }
+}

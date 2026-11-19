@@ -981,4 +981,47 @@ public class GoldenTests
 
         RecordOrCheck("host_capabilities.json", cases);
     }
+
+    [Fact]
+    public void Host_displays_recordings_match()
+    {
+        var cases = new List<object>();
+
+        void Display(string kind, string? file, string? text)
+        {
+            var input = text ?? Fixture.Read(file!);
+            var displays =
+                kind == "mutter"
+                    ? HostCapabilities.ParseMutter(input)
+                    : HostCapabilities.ParseWlrOutputs(input);
+            cases.Add(
+                new
+                {
+                    kind,
+                    html_file = file,
+                    html = text,
+                    displays = displays
+                        .Select(d => new
+                        {
+                            name = d.Name,
+                            hdr = d.Hdr.ToString().ToLowerInvariant(),
+                            width = d.Width,
+                            height = d.Height,
+                            sdr_nits = d.SdrNits,
+                            peak_nits = d.PeakNits,
+                        })
+                        .ToList(),
+                }
+            );
+        }
+
+        Display("mutter", "mutter_current_state.txt", null);
+        Display("mutter", null, "");
+        Display("wlr", "sway_outputs.json", null);
+        Display("wlr", "hyprctl_monitors.json", null);
+        Display("wlr", null, "");
+        Display("wlr", null, "{\"a\":1}");
+
+        RecordOrCheck("host_displays.json", cases);
+    }
 }

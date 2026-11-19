@@ -163,6 +163,124 @@ pub fn proton_env_vars(script: &str) -> BTreeSet<String> {
         .collect()
 }
 
+fn mutter_monitor() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"\(\('([^']+)', '[^']*', '[^']*', '[^']*'\)")
+}
+
+fn mutter_supported() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"'supported-color-modes':\s*<\[([^\]]*)\]>")
+}
+
+fn mutter_color_mode() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"'color-mode':\s*<uint32 (\d+)>")
+}
+
+fn mutter_current_mode() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(
+        &RE,
+        r"\('[^']*',\s*(\d+),\s*(\d+),\s*[\d.]+,\s*[\d.]+,\s*\[[^\]]*\],\s*\{[^}]*'is-current':\s*<true>",
+    )
+}
+
+/// GNOME/mutter: the GVariant text gdbus prints for DisplayConfig.GetCurrentState.
+pub fn parse_mutter(text: &str) -> Vec<DisplayInfo> {
+    let heads: Vec<(usize, String)> = mutter_monitor()
+        .captures_iter(text)
+        .filter_map(|c| Some((c.get(0)?.start(), c[1].to_string())))
+        .collect();
+    let mut list = Vec::new();
+    for (i, (start, name)) in heads.iter().enumerate() {
+        let end = heads.get(i + 1).map(|(s, _)| *s).unwrap_or(text.len());
+        let seg = &text[*start..end];
+        let supported = mutter_supported().captures(seg);
+        let mode = mutter_color_mode().captures(seg);
+        let hdr = match &supported {
+            None => HdrState::Unknown,
+            Some(sup) => {
+                let hdr_listed = sup[1]
+                    .split(',')
+                    .map(|v| v.replace("uint32", "").trim().to_string())
+                    .any(|v| v == "1");
+                if !hdr_listed {
+                    HdrState::Incapable
+                } else {
+                    match &mode {
+                        Some(m) if &m[1] == "1" => HdrState::Enabled,
+                        Some(_) => HdrState::Disabled,
+                        None => HdrState::Capable,
+                    }
+                }
+            }
+        };
+        let (width, height) = match mutter_current_mode().captures(seg) {
+            Some(m) => (
+                m[1].parse::<i32>().unwrap_or(0),
+                m[2].parse::<i32>().unwrap_or(0),
+            ),
+            None => (0, 0),
+        };
+        list.push(DisplayInfo {
+            name: name.clone(),
+            hdr,
+            width,
+            height,
+            sdr_nits: 0,
+            peak_nits: 0,
+        });
+    }
+    list
+}
+
+/// Hyprland `hyprctl monitors -j` and sway `swaymsg -t get_outputs`.
+pub fn parse_wlr_outputs(json: &str) -> Vec<DisplayInfo> {
+    if json.trim().is_empty() {
+        return Vec::new();
+    }
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(json) else {
+        return Vec::new();
+    };
+    let Some(outputs) = value.as_array() else {
+        return Vec::new();
+    };
+    outputs
+        .iter()
+        .filter_map(|o| {
+            let name = o.get("name")?.as_str()?.to_string();
+            let hdr = match o.get("hdr") {
+                Some(serde_json::Value::Bool(true)) => HdrState::Enabled,
+                Some(serde_json::Value::Bool(false)) => HdrState::Disabled,
+                _ => HdrState::Unknown,
+            };
+            let dimension = |value: &serde_json::Value, key: &str| {
+                value
+                    .get(key)
+                    .and_then(|v| v.as_i64())
+                    .map(|v| v as i32)
+                    .unwrap_or(0)
+            };
+            let (width, height) = if o.get("width").map(|v| v.is_number()).unwrap_or(false) {
+                (dimension(o, "width"), dimension(o, "height"))
+            } else if let Some(mode) = o.get("current_mode") {
+                (dimension(mode, "width"), dimension(mode, "height"))
+            } else {
+                (0, 0)
+            };
+            Some(DisplayInfo {
+                name,
+                hdr,
+                width,
+                height,
+                sdr_nits: 0,
+                peak_nits: 0,
+            })
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

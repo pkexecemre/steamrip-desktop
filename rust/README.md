@@ -45,6 +45,8 @@ applied by hand because its CLI does not target .NET:
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |
 | `host_caps::proton_env_vars` | `HostCapabilities.ProtonEnvVars` | `fixtures/host_capabilities.json` |
+| `host_caps::parse_mutter` | `HostCapabilities.ParseMutter` | `fixtures/host_displays.json` |
+| `host_caps::parse_wlr_outputs` | `HostCapabilities.ParseWlrOutputs` | `fixtures/host_displays.json` |
 | `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
 
 ## Adding a unit
