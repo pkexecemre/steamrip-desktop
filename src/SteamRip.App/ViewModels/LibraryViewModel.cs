@@ -464,10 +464,32 @@ public sealed partial class LibraryItem : ObservableObject
 
     private void RefreshExes()
     {
+        // Called from Refresh() on the dispatcher right after every install/update. Walking a AAA game
+        // folder (depth 4, tens of thousands of entries) there froze the window exactly when the card should
+        // have turned into "Installed", so the walk runs off the UI thread and the list lands back on it.
+        var root = ResolvedPath;
+        var name = Game.Name;
+        var current = Game.ExeRelative;
+        _ = Task.Run(() => ExeFinder.Candidates(root, name).Select(c => c.RelativePath).ToList())
+            .ContinueWith(
+                task =>
+                {
+                    if (task.IsFaulted)
+                        return;
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        ApplyExes(task.Result, current)
+                    );
+                },
+                TaskScheduler.Default
+            );
+    }
+
+    private void ApplyExes(IReadOnlyList<string> found, string? current)
+    {
         Exes.Clear();
-        foreach (var c in ExeFinder.Candidates(ResolvedPath, Game.Name))
-            Exes.Add(c.RelativePath);
-        if (Game.ExeRelative is { } cur && !Exes.Contains(cur))
+        foreach (var relative in found)
+            Exes.Add(relative);
+        if (current is { } cur && !Exes.Contains(cur))
             Exes.Insert(0, cur);
         _selectedExe = Game.ExeRelative;
         _selectedProton =
