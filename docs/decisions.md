@@ -190,3 +190,55 @@ Rejected: a big-bang Rust rewrite (no way to prove behaviour stayed the same, an
 hoster and installer paths have too many learned edge cases); running rust-anything's CLI
 against C# (unsupported, and its wrappers assume a dynamic language surface).
 
+## D21 — A launch that dies during startup says why, on the card and in the log (Nov 19 2026)
+
+Owner: "make that case work, or at least diagnosable." The case: a real STEAMRIP post (Castle Crashers,
+app id 204360) installs, starts under umu-run + GE-Proton, runs in a healthy prefix, and exits 66
+without ever showing the game window.
+
+What a measured run showed (throwaway profile `XDG_CONFIG_HOME=/tmp/sr-drm-cfg`, library
+`/tmp/sr-drm-lib`, umu-launcher 1.4.4, GE-Proton11-12):
+
+- The release ships the crack next to the exe: `OnlineFix.dll/.ini/.url`, `StubDRM32.dll`, and
+  `steam_api.dll` (the proxy) beside `steam_api.of` (the Valve DLL it forwards to);
+  `OnlineFix.ini` says `RealAppId=204360`, `FakeAppId=480`.
+- The process does create a window, and it belongs to the game: a modal "Initialization error 1"
+  dialog. Nothing else ever appears. Dismissing it exits 66; leaving it up hangs forever (killed at
+  180 s). "Exits 66 after 23 s" and "still running" are the same failure, with the dialog clicked or not.
+- The game prints nothing of its own: the captured output is Proton, gamemode and MangoHud chatter.
+- The Steam environment is already right. umu-launcher derives `SteamAppId`/`SteamGameId` from
+  `GAMEID` (`if match(r"^umu-[\d\w]+$", UMU_ID): STEAM_COMPAT_APP_ID = …`, then
+  `env["SteamAppId"] = env["STEAM_COMPAT_APP_ID"]`), and the app already sets
+  `GAMEID=umu-<post.SteamAppId>` (`PrefixManager.GameId`). ProtonFixes logs
+  "Non-steam game UNKNOWN (umu-204360)", which proves the id reaches Proton.
+- Writing `steam_appid.txt` (204360) next to the exe changes nothing: same dialog, same exit.
+- Steam was running on this desktop, with a signed-in account, for every run. The crack still failed,
+  so "Steam is not running" is not the whole story.
+- The one mechanism left would be Proton's steamclient bridge to the desktop client, which needs
+  `STEAM_COMPAT_CLIENT_INSTALL_PATH`. umu blanks that key (`set_env` fills a whitelist, then
+  `for key, val in env.items(): os.environ[key] = val`), so a umu-run launch cannot expose the
+  desktop Steam client to the game at all. Launching the game from Steam as a non-Steam shortcut
+  (Proton under Steam) is the only route that could, and it is a hypothesis: it needs a Steam restart,
+  and a non-Steam shortcut does not make the app id owned.
+
+Choice: make the failure legible instead of adding an unproven switch.
+- `LaunchHints` (pure, unit-tested): a nonzero exit inside 90 s is a startup failure. It reads the
+  runner output (Wine's `import_dll Library X.dll … not found`), the Steam-layer files the release
+  ships (crack versus plain Steamworks) and the presence of `_CommonRedist`, and produces one card
+  line plus one log paragraph naming the likely cause and what to do about it.
+- `GameLauncher` computes it in the exit handler (two directory listings, no walk), logs it at Warning
+  next to the existing output tail, and keeps it per game until that game is launched again
+  (`HintFor`).
+- `LibraryItem.StatusLine` shows the card line where "Last played …" would be, so a game that died on
+  startup explains itself on the card while the 15 s running poll is still ticking.
+
+Rejected: setting `SteamAppId`/`SteamGameId` ourselves (umu already derives them from `GAMEID`, and
+that is where they come from); writing `steam_appid.txt` into the game folder (measured: no effect);
+auto-registering a Steam non-Steam shortcut (unproven, needs a Steam restart, and it cannot grant the
+app id); diagnosing every nonzero exit (a game that ran 30 minutes and crashed is a crash in play, not
+a bad launch).
+
+Locks in: the 90 s threshold is `LaunchHints.FastFailure` (the measured failures were 7–111 s plus an
+indefinite dialog); the hint names causes but never claims a window was never created, because Core
+cannot see windows; `HintFor` is in-memory and cleared by the next launch, so the log remains the
+long-term record.
