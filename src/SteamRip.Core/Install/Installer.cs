@@ -84,12 +84,33 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
         if (Directory.Exists(staging))
             Directory.Delete(staging, true);
         Directory.CreateDirectory(staging);
-        await archive.ExtractAsync(
-            archivePath,
-            staging,
-            new Progress<int>(p => progress?.Report(("Extracting", p))),
-            ct
-        );
+        try
+        {
+            await archive.ExtractAsync(
+                archivePath,
+                staging,
+                new Progress<int>(p => progress?.Report(("Extracting", p))),
+                ct
+            );
+        }
+        catch
+        {
+            // A failed extraction leaves a partial tree (possibly tens of gigabytes) in the library's
+            // staging folder; nothing refers to it yet, so drop it before rethrowing.
+            try
+            {
+                Directory.Delete(staging, true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                _log.LogWarning(
+                    "Install {Slug}: could not clean staging after a failed extraction: {Error}",
+                    slug,
+                    e.Message
+                );
+            }
+            throw;
+        }
         var extractedRoot = CollapseSingleDir(staging);
         _log.LogInformation(
             "Install {Slug}: extracted to {Staging}; root {Root}; top-level [{Entries}]",

@@ -195,6 +195,14 @@ public class InstallerTests : IDisposable
             .OrderBy(x => x)
             .ToList();
         Assert.Equal(["v2", "v3"], backups);
+
+        // The swap renames the old tree aside before moving the new one in; anything matching .old-* left
+        // behind would be a multi-gigabyte orphan.
+        var aside = Directory
+            .GetDirectories(lib, "cool-game.old-*")
+            .Select(Path.GetFileName)
+            .ToList();
+        Assert.Empty(aside);
     }
 
     [SkippableFact]
@@ -229,6 +237,9 @@ public class InstallerTests : IDisposable
             "exe v1",
             await File.ReadAllTextAsync(Path.Combine(lib, "cool-game", "game.exe"))
         );
+        // The archive failed the test before extraction, so nothing was staged; the library must not keep
+        // a half-built tree for a job that will be retried or abandoned.
+        Assert.False(Directory.Exists(Path.Combine(lib, ".staging", "cool-game")));
     }
 
     [Fact]
