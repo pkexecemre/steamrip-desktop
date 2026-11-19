@@ -260,7 +260,9 @@ public sealed class UpdateService : IAsyncDisposable
 
     /// <summary>
     /// Which rows the hourly check may queue by itself. NeedsAttention means a person has to act (no working mirror,
-    /// a torrent-only post with torrents off); re-queueing it every hour just repeats the failure and the notification.
+    /// a torrent-only post with torrents off); Failed means the last attempt failed for a reason that may not go away
+    /// (a permanently broken mirror, an unwritable folder). Re-queueing either every hour just repeats a multi-gigabyte
+    /// download and the notification, so both wait for the Retry button instead.
     /// </summary>
     public static bool AutoQueues(InstallState state) =>
         state
@@ -269,6 +271,7 @@ public sealed class UpdateService : IAsyncDisposable
                 or InstallState.Installing
                 or InstallState.Queued
                 or InstallState.NeedsAttention
+                or InstallState.Failed
             );
 
     // ---- catalog ----
@@ -465,7 +468,21 @@ public sealed class UpdateService : IAsyncDisposable
         if (g is null)
             return;
         if (_launcher.IsRunning(postId))
+        {
             _launcher.Stop(postId);
+            // Wine processes outlive the umu wrapper; give them a moment so the folder is not deleted
+            // while a child is still writing into it.
+            try
+            {
+                _launcher
+                    .WaitForExitAsync(postId, CancellationToken.None)
+                    .Wait(TimeSpan.FromSeconds(20));
+            }
+            catch (AggregateException)
+            {
+                // already gone
+            }
+        }
         var path = g.ResolvePath(_settings.LibraryRoot);
         _log.LogInformation(
             "Uninstall {Name}: {Path} (delete files: {Delete})",
@@ -492,7 +509,19 @@ public sealed class UpdateService : IAsyncDisposable
                     );
                 }
             }
-            Directory.Delete(path, true);
+            try
+            {
+                Directory.Delete(path, true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                _log.LogWarning(
+                    "{Name}: could not delete {Path}: {Error}",
+                    g.Name,
+                    path,
+                    e.Message
+                );
+            }
         }
         if (Directory.Exists(prefix))
         {

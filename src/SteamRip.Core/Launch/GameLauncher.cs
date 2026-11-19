@@ -54,8 +54,20 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
     public event Action<long>? Started;
     public event Action<long, TimeSpan, int>? Exited;
 
-    public bool IsRunning(long postId) =>
-        _running.TryGetValue(postId, out var r) && !r.Process.HasExited;
+    public bool IsRunning(long postId)
+    {
+        if (!_running.TryGetValue(postId, out var r))
+            return false;
+        try
+        {
+            return !r.Process.HasExited;
+        }
+        catch (InvalidOperationException)
+        {
+            // The Exited handler already disposed it: nothing is running any more.
+            return false;
+        }
+    }
 
     public IReadOnlyCollection<long> RunningIds =>
         [.. _running.Where(kv => !kv.Value.Process.HasExited).Select(kv => kv.Key)];
@@ -205,8 +217,27 @@ public sealed class GameLauncher(ILogger<GameLauncher>? logger = null)
         proc.BeginOutputReadLine();
         proc.BeginErrorReadLine();
         var running = new RunningGame(spec, proc, started, lease);
-        _running[spec.PostId] = running;
-        Started?.Invoke(spec.PostId);
+        // A game that dies instantly can raise Exited before this line runs; the handler then removed
+        // nothing and disposed the process, so registering it would leave a dead entry behind.
+        bool exitedEarly;
+        try
+        {
+            exitedEarly = proc.HasExited;
+        }
+        catch (InvalidOperationException)
+        {
+            exitedEarly = true;
+        }
+        if (exitedEarly)
+        {
+            lease?.Dispose();
+            _log.LogWarning("{Name}: exited before it could be registered as running", spec.Name);
+        }
+        else
+        {
+            _running[spec.PostId] = running;
+            Started?.Invoke(spec.PostId);
+        }
         return running;
 
         void Keep(string? line)

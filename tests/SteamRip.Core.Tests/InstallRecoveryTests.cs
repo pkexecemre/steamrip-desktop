@@ -20,6 +20,9 @@ public sealed class InstallRecoveryTests
         Assert.False(UpdateService.AutoQueues(InstallState.Installing));
         Assert.False(UpdateService.AutoQueues(InstallState.NeedsAttention));
         Assert.True(UpdateService.AutoQueues(InstallState.Installed));
-        Assert.True(UpdateService.AutoQueues(InstallState.Failed));
+        // A failed attempt may have failed for a reason that does not go away (a broken mirror, an
+        // unwritable folder); re-queueing it hourly repeats a multi-gigabyte download, so it waits
+        // for the Retry button the way NeedsAttention does.
+        Assert.False(UpdateService.AutoQueues(InstallState.Failed));
     }
 }

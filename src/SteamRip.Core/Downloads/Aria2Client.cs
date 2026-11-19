@@ -290,8 +290,18 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
                     BaseAddress = new Uri($"http://127.0.0.1:{port}/jsonrpc"),
                 };
                 var session = new Aria2Session(process, rpc, secret, log, stderr);
-                if (await session.WaitForRpcAsync(TimeSpan.FromSeconds(10), ct))
-                    return session;
+                try
+                {
+                    if (await session.WaitForRpcAsync(TimeSpan.FromSeconds(10), ct))
+                        return session;
+                }
+                catch
+                {
+                    // Cancelled while aria2 was still starting: without this the child keeps the port and
+                    // the download directory for the rest of the app's life.
+                    await session.DisposeAsync().ConfigureAwait(false);
+                    throw;
+                }
                 var why = session.Stderr.Trim();
                 await session.DisposeAsync().ConfigureAwait(false);
                 log.LogWarning(
