@@ -394,4 +394,208 @@ public class GoldenTests
             o.Environment,
             o.Wrapper,
         };
+
+    [Fact]
+    public void Compose_recordings_match()
+    {
+        LaunchSpec Spec(
+            long? appId,
+            string? slug,
+            string? proton,
+            string? args,
+            LaunchOptions? options
+        ) =>
+            new(
+                1,
+                "Test Game",
+                "/games/Test Game",
+                "game.exe",
+                proton,
+                args,
+                appId,
+                options,
+                "/prefixes/Test Game",
+                slug
+            );
+
+        LaunchOptions With(
+            bool? gameMode = null,
+            bool? gamescope = null,
+            string? gamescopeArgs = null,
+            bool? mangoHud = null,
+            string? mangoHudConfig = null,
+            bool? hdr = null,
+            bool? wayland = null,
+            bool? fsr = null,
+            bool? fsync = null,
+            bool? protonLog = null,
+            string? dllOverrides = null,
+            string? environment = null,
+            string? wrapper = null
+        ) =>
+            new(
+                mangoHud,
+                mangoHudConfig,
+                gameMode,
+                gamescope,
+                gamescopeArgs,
+                hdr,
+                wayland,
+                fsr,
+                fsync,
+                protonLog,
+                dllOverrides,
+                environment,
+                wrapper
+            );
+
+        (
+            string Name,
+            LaunchSpec Spec,
+            string? Runner,
+            string[] Tools,
+            (int Width, int Height)? Screen
+        )[] cases =
+        [
+            ("direct, no runner", Spec(null, null, null, "--dry-run", null), null, [], null),
+            (
+                "umu + defaults, gamemode missing",
+                Spec(2483190, "test-game", "GE-Proton11-12", null, With(gameMode: true)),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+            (
+                "umu + gamemoderun",
+                Spec(2483190, "test-game", "GE-Proton11-12", null, With(gameMode: true)),
+                "/usr/bin/umu-run",
+                ["gamemoderun"],
+                null
+            ),
+            (
+                "gamescope with screen and hdr and mangohud",
+                Spec(
+                    2483190,
+                    "test-game",
+                    "GE-Proton11-12",
+                    "\"hello world\" --flag",
+                    With(
+                        gameMode: false,
+                        gamescope: true,
+                        gamescopeArgs: "-f --adaptive-sync",
+                        mangoHud: true,
+                        mangoHudConfig: "gpu_stats",
+                        hdr: true
+                    )
+                ),
+                "/usr/bin/umu-run",
+                ["gamescope"],
+                (2560, 1440)
+            ),
+            (
+                "gamescope enabled but missing",
+                Spec(null, "sluggy", null, null, With(gamescope: true, gamescopeArgs: "-f")),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+            (
+                "hdr without gamescope keeps wayland on",
+                Spec(null, null, null, null, With(hdr: true)),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+            (
+                "hdr without gamescope and wayland already set",
+                Spec(null, null, null, null, With(hdr: true, wayland: true)),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+            (
+                "hdr with gamescope and ENABLE_HDR_WSI in env",
+                Spec(
+                    null,
+                    null,
+                    null,
+                    null,
+                    With(gamescope: true, hdr: true, environment: "ENABLE_HDR_WSI=1")
+                ),
+                "/usr/bin/umu-run",
+                ["gamescope"],
+                null
+            ),
+            (
+                "forced hdr env warns and still applies",
+                Spec(
+                    5,
+                    "s",
+                    "/opt/proton",
+                    null,
+                    With(environment: "DXVK_HDR=1\nPROTON_USE_HDR=1\nOWN=kept")
+                ),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+            (
+                "wrapper, fsr, no fsync, proton log, dll overrides",
+                Spec(
+                    5,
+                    null,
+                    null,
+                    null,
+                    With(
+                        gameMode: false,
+                        fsr: true,
+                        fsync: false,
+                        protonLog: true,
+                        dllOverrides: "  xinput1_4=n,b  ",
+                        wrapper: "mangohud --dlsym"
+                    )
+                ),
+                "/usr/bin/umu-run",
+                [],
+                null
+            ),
+        ];
+
+        var recorded = cases
+            .Select(c =>
+            {
+                var compose = GameLauncher.Compose(
+                    c.Spec,
+                    c.Runner,
+                    "/games/Test Game/game.exe",
+                    "/prefixes/Test Game",
+                    tool => c.Tools.Contains(tool) ? "/usr/bin/" + tool : null,
+                    c.Screen
+                );
+                return new
+                {
+                    name = c.Name,
+                    runner = c.Runner,
+                    tools = c.Tools,
+                    screen = c.Screen is { } s ? new { width = s.Width, height = s.Height } : null,
+                    spec = new
+                    {
+                        steam_app_id = c.Spec.SteamAppId,
+                        slug = c.Spec.Slug,
+                        proton_path = c.Spec.ProtonPath,
+                        arguments = c.Spec.Arguments,
+                        options = Snapshot(c.Spec.Options ?? LaunchOptions.AppDefaults),
+                    },
+                    command = compose.Command.ToList(),
+                    environment = compose
+                        .Environment.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                        .Select(kv => new[] { kv.Key, kv.Value })
+                        .ToList(),
+                    warnings = compose.Warnings.ToList(),
+                };
+            })
+            .ToList();
+
+        RecordOrCheck("compose.json", recorded);
+    }
 }

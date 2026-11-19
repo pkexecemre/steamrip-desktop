@@ -250,3 +250,73 @@ fn merge_matches_the_original() {
         assert_eq!(merged, case.merged, "merged options");
     }
 }
+
+#[derive(Deserialize)]
+struct ComposeSpec {
+    steam_app_id: Option<i64>,
+    slug: Option<String>,
+    proton_path: Option<String>,
+    arguments: Option<String>,
+    options: serde_json::Value,
+}
+
+#[derive(Deserialize)]
+struct ComposeScreen {
+    width: u32,
+    height: u32,
+}
+
+#[derive(Deserialize)]
+struct ComposeCase {
+    name: String,
+    runner: Option<String>,
+    tools: Vec<String>,
+    screen: Option<ComposeScreen>,
+    spec: ComposeSpec,
+    command: Vec<String>,
+    environment: Vec<Vec<String>>,
+    warnings: Vec<String>,
+}
+
+#[test]
+fn compose_matches_the_original() {
+    let cases: Vec<ComposeCase> = load("compose.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        let options: steamrip_core::launch_options::LaunchOptions =
+            serde_json::from_value(case.spec.options).expect("options");
+        let spec = steamrip_core::launch::LaunchSpec {
+            steam_app_id: case.spec.steam_app_id,
+            slug: case.spec.slug.clone(),
+            proton_path: case.spec.proton_path.clone(),
+            arguments: case.spec.arguments.clone(),
+            options: Some(options),
+        };
+        let tools = case.tools.clone();
+        let composed = steamrip_core::launch::compose(
+            &spec,
+            case.runner.as_deref(),
+            "/games/Test Game/game.exe",
+            Some("/prefixes/Test Game"),
+            |tool| {
+                tools
+                    .iter()
+                    .any(|t| t == tool)
+                    .then(|| format!("/usr/bin/{tool}"))
+            },
+            case.screen.as_ref().map(|s| (s.width, s.height)),
+        );
+        assert_eq!(composed.command, case.command, "command for {}", case.name);
+        let env: Vec<Vec<String>> = composed
+            .environment
+            .iter()
+            .map(|(k, v)| vec![k.clone(), v.clone()])
+            .collect();
+        assert_eq!(env, case.environment, "environment for {}", case.name);
+        assert_eq!(
+            composed.warnings, case.warnings,
+            "warnings for {}",
+            case.name
+        );
+    }
+}

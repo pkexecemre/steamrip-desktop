@@ -32,6 +32,8 @@ applied by hand because its CLI does not target .NET:
 | `prefix::root/dir` | `PrefixManager.Root/Dir` | `fixtures/prefix_paths.json` |
 | `launch_options::merge_over` | `LaunchOptions.MergeOver` | `fixtures/merge.json` |
 | `launch_options::parse_environment` | `LaunchOptions.ParseEnvironment` | `fixtures/environment.json` |
+| `launch::compose` | `GameLauncher.Compose` | `fixtures/compose.json` |
+| `launch::split_args` | `GameLauncher.SplitArgs` | `fixtures/compose.json` |
 
 ## Adding a unit
 

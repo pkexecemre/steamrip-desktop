@@ -4,5 +4,6 @@
 
 pub mod archive;
 pub mod catalog;
+pub mod launch;
 pub mod launch_options;
 pub mod prefix;

@@ -1,0 +1,549 @@
+{
+  "cases": [
+    {
+      "name": "direct, no runner",
+      "runner": null,
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": null,
+        "slug": null,
+        "proton_path": null,
+        "arguments": "--dry-run",
+        "options": {
+          "MangoHud": false,
+          "MangoHudConfig": null,
+          "GameMode": true,
+          "Gamescope": false,
+          "GamescopeArgs": "-f",
+          "Hdr": false,
+          "Wayland": false,
+          "Fsr": false,
+          "Fsync": true,
+          "ProtonLog": false,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/games/Test Game/game.exe",
+        "--dry-run"
+      ],
+      "environment": [],
+      "warnings": []
+    },
+    {
+      "name": "umu \u002B defaults, gamemode missing",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": 2483190,
+        "slug": "test-game",
+        "proton_path": "GE-Proton11-12",
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": true,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": null,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-2483190"
+        ],
+        [
+          "PROTONPATH",
+          "GE-Proton11-12"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": [
+        "gamemode is enabled but gamemoderun is not installed; skipping it."
+      ]
+    },
+    {
+      "name": "umu \u002B gamemoderun",
+      "runner": "/usr/bin/umu-run",
+      "tools": [
+        "gamemoderun"
+      ],
+      "screen": null,
+      "spec": {
+        "steam_app_id": 2483190,
+        "slug": "test-game",
+        "proton_path": "GE-Proton11-12",
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": true,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": null,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/gamemoderun",
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-2483190"
+        ],
+        [
+          "PROTONPATH",
+          "GE-Proton11-12"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": []
+    },
+    {
+      "name": "gamescope with screen and hdr and mangohud",
+      "runner": "/usr/bin/umu-run",
+      "tools": [
+        "gamescope"
+      ],
+      "screen": {
+        "width": 2560,
+        "height": 1440
+      },
+      "spec": {
+        "steam_app_id": 2483190,
+        "slug": "test-game",
+        "proton_path": "GE-Proton11-12",
+        "arguments": "\u0022hello world\u0022 --flag",
+        "options": {
+          "MangoHud": true,
+          "MangoHudConfig": "gpu_stats",
+          "GameMode": false,
+          "Gamescope": true,
+          "GamescopeArgs": "-f --adaptive-sync",
+          "Hdr": true,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/gamescope",
+        "-f",
+        "--adaptive-sync",
+        "-W",
+        "2560",
+        "-H",
+        "1440",
+        "--hdr-enabled",
+        "--mangoapp",
+        "--",
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe",
+        "hello world",
+        "--flag"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-2483190"
+        ],
+        [
+          "MANGOHUD_CONFIG",
+          "gpu_stats"
+        ],
+        [
+          "PROTONPATH",
+          "GE-Proton11-12"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": []
+    },
+    {
+      "name": "gamescope enabled but missing",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": null,
+        "slug": "sluggy",
+        "proton_path": null,
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": null,
+          "Gamescope": true,
+          "GamescopeArgs": "-f",
+          "Hdr": null,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-steamrip-sluggy"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": [
+        "gamescope is enabled but not installed; launching without it."
+      ]
+    },
+    {
+      "name": "hdr without gamescope keeps wayland on",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": null,
+        "slug": null,
+        "proton_path": null,
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": null,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": true,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-default"
+        ],
+        [
+          "PROTON_ENABLE_WAYLAND",
+          "1"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": [
+        "HDR without gamescope needs Wine\u0027s Wayland driver; enabling PROTON_ENABLE_WAYLAND for this launch."
+      ]
+    },
+    {
+      "name": "hdr without gamescope and wayland already set",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": null,
+        "slug": null,
+        "proton_path": null,
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": null,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": true,
+          "Wayland": true,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": null,
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-default"
+        ],
+        [
+          "PROTON_ENABLE_WAYLAND",
+          "1"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": []
+    },
+    {
+      "name": "hdr with gamescope and ENABLE_HDR_WSI in env",
+      "runner": "/usr/bin/umu-run",
+      "tools": [
+        "gamescope"
+      ],
+      "screen": null,
+      "spec": {
+        "steam_app_id": null,
+        "slug": null,
+        "proton_path": null,
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": null,
+          "Gamescope": true,
+          "GamescopeArgs": null,
+          "Hdr": true,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": "ENABLE_HDR_WSI=1",
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/gamescope",
+        "--hdr-enabled",
+        "--",
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "ENABLE_HDR_WSI",
+          "1"
+        ],
+        [
+          "GAMEID",
+          "umu-default"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": [
+        "ENABLE_HDR_WSI is set in the environment; gamescope HDR works without it and it can break the output."
+      ]
+    },
+    {
+      "name": "forced hdr env warns and still applies",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": 5,
+        "slug": "s",
+        "proton_path": "/opt/proton",
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": null,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": null,
+          "Wayland": null,
+          "Fsr": null,
+          "Fsync": null,
+          "ProtonLog": null,
+          "DllOverrides": null,
+          "Environment": "DXVK_HDR=1\nPROTON_USE_HDR=1\nOWN=kept",
+          "Wrapper": null
+        }
+      },
+      "command": [
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "DXVK_HDR",
+          "1"
+        ],
+        [
+          "GAMEID",
+          "umu-5"
+        ],
+        [
+          "OWN",
+          "kept"
+        ],
+        [
+          "PROTONPATH",
+          "/opt/proton"
+        ],
+        [
+          "PROTON_USE_HDR",
+          "1"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ]
+      ],
+      "warnings": [
+        "DXVK_HDR=1 is set in the environment; current Proton builds detect HDR themselves and this forces PQ output onto what Wine sees as an SDR display (grey blacks). Use PROTON_FORCE_HDR=1 if you really need to force it.",
+        "PROTON_USE_HDR=1 is set in the environment; current Proton builds detect HDR themselves and this forces PQ output onto what Wine sees as an SDR display (grey blacks). Use PROTON_FORCE_HDR=1 if you really need to force it."
+      ]
+    },
+    {
+      "name": "wrapper, fsr, no fsync, proton log, dll overrides",
+      "runner": "/usr/bin/umu-run",
+      "tools": [],
+      "screen": null,
+      "spec": {
+        "steam_app_id": 5,
+        "slug": null,
+        "proton_path": null,
+        "arguments": null,
+        "options": {
+          "MangoHud": null,
+          "MangoHudConfig": null,
+          "GameMode": false,
+          "Gamescope": null,
+          "GamescopeArgs": null,
+          "Hdr": null,
+          "Wayland": null,
+          "Fsr": true,
+          "Fsync": false,
+          "ProtonLog": true,
+          "DllOverrides": "  xinput1_4=n,b  ",
+          "Environment": null,
+          "Wrapper": "mangohud --dlsym"
+        }
+      },
+      "command": [
+        "mangohud",
+        "--dlsym",
+        "/usr/bin/umu-run",
+        "/games/Test Game/game.exe"
+      ],
+      "environment": [
+        [
+          "GAMEID",
+          "umu-5"
+        ],
+        [
+          "PROTON_LOG",
+          "1"
+        ],
+        [
+          "PROTON_NO_FSYNC",
+          "1"
+        ],
+        [
+          "STORE",
+          "none"
+        ],
+        [
+          "WINEDLLOVERRIDES",
+          "xinput1_4=n,b"
+        ],
+        [
+          "WINEPREFIX",
+          "/prefixes/Test Game"
+        ],
+        [
+          "WINE_FULLSCREEN_FSR",
+          "1"
+        ]
+      ],
+      "warnings": []
+    }
+  ]
+}
