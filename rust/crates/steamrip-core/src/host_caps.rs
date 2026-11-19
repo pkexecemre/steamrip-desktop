@@ -281,6 +281,70 @@ pub fn parse_wlr_outputs(json: &str) -> Vec<DisplayInfo> {
         .collect()
 }
 
+/// One GPU as vulkaninfo describes it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GpuInfo {
+    pub vendor: String,
+    pub driver: Option<String>,
+    pub driver_info: Option<String>,
+    pub driver_version: Option<String>,
+}
+
+fn vulkan_header() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"(?m)^GPU\d+:")
+}
+
+fn vulkan_field() -> &'static Regex {
+    static RE: OnceLock<Regex> = OnceLock::new();
+    re(&RE, r"(?m)^\s*(\w+)\s*=\s*(.+)$")
+}
+
+/// vulkaninfo --summary: the discrete GPU when there is one, else the first device.
+pub fn parse_vulkan_info(text: &str) -> Option<GpuInfo> {
+    if text.trim().is_empty() {
+        return None;
+    }
+    let blocks: Vec<&str> = vulkan_header().split(text).skip(1).collect();
+    let block = blocks
+        .iter()
+        .find(|b| b.contains("DISCRETE_GPU"))
+        .copied()
+        .or_else(|| blocks.first().copied())?;
+    let mut fields: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for caps in vulkan_field().captures_iter(block) {
+        let key = caps[1].to_string();
+        let value = caps[2].trim().to_string();
+        fields.entry(key).or_insert(value);
+    }
+    Some(GpuInfo {
+        vendor: fields
+            .get("vendorID")
+            .map(|v| vendor_name(v))
+            .unwrap_or_else(|| "unknown".to_string()),
+        driver: fields.get("driverName").cloned(),
+        driver_info: fields.get("driverInfo").cloned(),
+        driver_version: fields.get("driverVersion").cloned(),
+    })
+}
+
+/// The biggest mode across a set of DRM modes texts, or None when none has one.
+pub fn largest_screen_of(modes_texts: &[String]) -> Option<(i32, i32)> {
+    let mut best: Option<(i32, i32)> = None;
+    for modes in modes_texts {
+        let Some(caps) = screen_mode().captures(modes) else {
+            continue;
+        };
+        let width: i32 = caps[1].parse().ok()?;
+        let height: i32 = caps[2].parse().ok()?;
+        best = match best {
+            Some((bw, bh)) if bw * bh >= width * height => Some((bw, bh)),
+            _ => Some((width, height)),
+        };
+    }
+    best
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

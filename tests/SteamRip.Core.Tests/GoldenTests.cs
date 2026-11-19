@@ -1666,4 +1666,62 @@ public class GoldenTests
         };
         RecordOrCheck("settings_rules.json", payload);
     }
+
+    [Fact]
+    public void Vulkan_and_screen_recordings_match()
+    {
+        string[] vulkanTexts =
+        [
+            "",
+            "   ",
+            "GPU0:\n\tvendorID = 0x1002\n\tdriverName = radv\n\tdriverInfo = Mesa 26\n\tdriverVersion = 26.2.6\n\tdeviceType = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU",
+            "GPU0:\n\tvendorID = 0x8086\n\tdeviceType = PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\nGPU1:\n\tvendorID = 0x1002\n\tdriverName = radv\n\tdeviceType = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU",
+            "GPU0:\n\tdeviceType = PHYSICAL_DEVICE_TYPE_CPU",
+            "no fields at all",
+        ];
+
+        var vulkan = vulkanTexts
+            .Select(text =>
+            {
+                var info = HostCapabilities.ParseVulkanInfo(text);
+                return new
+                {
+                    input = text,
+                    gpu = info is null
+                        ? null
+                        : new
+                        {
+                            vendor = info.Vendor,
+                            driver = info.Driver,
+                            driver_info = info.DriverInfo,
+                            driver_version = info.DriverVersion,
+                        },
+                };
+            })
+            .ToList();
+
+        string[][] modeSets =
+        [
+            [],
+            [""],
+            ["1920x1080\n1280x720"],
+            ["1920x1080", "3440x1440"],
+            ["3440x1440", "1920x1080"],
+            ["3840x2160", "3440x1440", "1920x1080"],
+            ["nonsense"],
+        ];
+
+        var screens = modeSets
+            .Select(modes => new
+            {
+                modes,
+                largest = HostCapabilities.LargestScreenOf(modes) is { } s
+                    ? new { width = s.Width, height = s.Height }
+                    : null,
+            })
+            .ToList();
+
+        var payload = new[] { new { vulkan, screens } };
+        RecordOrCheck("vulkan_screen.json", payload);
+    }
 }

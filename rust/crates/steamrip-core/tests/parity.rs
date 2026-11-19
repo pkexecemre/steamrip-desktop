@@ -1172,3 +1172,68 @@ fn settings_rules_match_the_original() {
         );
     }
 }
+
+#[derive(Debug, Deserialize)]
+struct GpuRow {
+    vendor: String,
+    driver: Option<String>,
+    driver_info: Option<String>,
+    driver_version: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct VulkanRow {
+    input: String,
+    gpu: Option<GpuRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct SizePair {
+    width: i32,
+    height: i32,
+}
+
+#[derive(Deserialize)]
+struct ScreenRow {
+    modes: Vec<String>,
+    largest: Option<SizePair>,
+}
+
+#[derive(Deserialize)]
+struct VulkanCase {
+    vulkan: Vec<VulkanRow>,
+    screens: Vec<ScreenRow>,
+}
+
+#[test]
+fn vulkan_and_screen_match_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("vulkan_screen.json"))
+        .expect("vulkan_screen fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("json");
+    let case: VulkanCase = serde_json::from_value(doc["cases"][0].clone()).expect("vulkan case");
+    for row in &case.vulkan {
+        let got = steamrip_core::host_caps::parse_vulkan_info(&row.input);
+        match (got, row.gpu.as_ref()) {
+            (None, None) => {}
+            (Some(gpu), Some(expected)) => {
+                assert_eq!(gpu.vendor, expected.vendor, "vendor");
+                assert_eq!(gpu.driver, expected.driver, "driver");
+                assert_eq!(gpu.driver_info, expected.driver_info, "driver info");
+                assert_eq!(
+                    gpu.driver_version, expected.driver_version,
+                    "driver version"
+                );
+            }
+            (got, expected) => panic!("gpu mismatch: {got:?} vs {expected:?}"),
+        }
+    }
+    for row in &case.screens {
+        let expected = row.largest.as_ref().map(|s| (s.width, s.height));
+        assert_eq!(
+            steamrip_core::host_caps::largest_screen_of(&row.modes),
+            expected,
+            "largest for {:?}",
+            row.modes
+        );
+    }
+}

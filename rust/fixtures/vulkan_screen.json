@@ -1,0 +1,105 @@
+{
+  "cases": [
+    {
+      "vulkan": [
+        {
+          "input": "",
+          "gpu": null
+        },
+        {
+          "input": "   ",
+          "gpu": null
+        },
+        {
+          "input": "GPU0:\n\tvendorID = 0x1002\n\tdriverName = radv\n\tdriverInfo = Mesa 26\n\tdriverVersion = 26.2.6\n\tdeviceType = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU",
+          "gpu": {
+            "vendor": "AMD",
+            "driver": "radv",
+            "driver_info": "Mesa 26",
+            "driver_version": "26.2.6"
+          }
+        },
+        {
+          "input": "GPU0:\n\tvendorID = 0x8086\n\tdeviceType = PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU\nGPU1:\n\tvendorID = 0x1002\n\tdriverName = radv\n\tdeviceType = PHYSICAL_DEVICE_TYPE_DISCRETE_GPU",
+          "gpu": {
+            "vendor": "AMD",
+            "driver": "radv",
+            "driver_info": null,
+            "driver_version": null
+          }
+        },
+        {
+          "input": "GPU0:\n\tdeviceType = PHYSICAL_DEVICE_TYPE_CPU",
+          "gpu": {
+            "vendor": "unknown",
+            "driver": null,
+            "driver_info": null,
+            "driver_version": null
+          }
+        },
+        {
+          "input": "no fields at all",
+          "gpu": null
+        }
+      ],
+      "screens": [
+        {
+          "modes": [],
+          "largest": null
+        },
+        {
+          "modes": [
+            ""
+          ],
+          "largest": null
+        },
+        {
+          "modes": [
+            "1920x1080\n1280x720"
+          ],
+          "largest": {
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "modes": [
+            "1920x1080",
+            "3440x1440"
+          ],
+          "largest": {
+            "width": 3440,
+            "height": 1440
+          }
+        },
+        {
+          "modes": [
+            "3440x1440",
+            "1920x1080"
+          ],
+          "largest": {
+            "width": 3440,
+            "height": 1440
+          }
+        },
+        {
+          "modes": [
+            "3840x2160",
+            "3440x1440",
+            "1920x1080"
+          ],
+          "largest": {
+            "width": 3840,
+            "height": 2160
+          }
+        },
+        {
+          "modes": [
+            "nonsense"
+          ],
+          "largest": null
+        }
+      ]
+    }
+  ]
+}

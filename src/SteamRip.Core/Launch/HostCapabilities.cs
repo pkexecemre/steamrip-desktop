@@ -249,12 +249,16 @@ public sealed partial record HostCapabilities(
     }
 
     /// <summary>Largest connected output's preferred mode, for gamescope's <c>-W/-H</c> (it defaults to 1280x720).</summary>
-    public static (int Width, int Height)? LargestScreen()
+    public static (int Width, int Height)? LargestScreen() =>
+        OperatingSystem.IsLinux()
+            ? LargestScreenOf(ConnectedOutputs().Select(output => output.Modes))
+            : null;
+
+    /// <summary>The biggest mode across a set of DRM "modes" texts, or null when none has one.</summary>
+    public static (int Width, int Height)? LargestScreenOf(IEnumerable<string> modesTexts)
     {
-        if (!OperatingSystem.IsLinux())
-            return null;
         (int W, int H)? best = null;
-        foreach (var (_, modes) in ConnectedOutputs())
+        foreach (var modes in modesTexts)
         {
             var m = ScreenMode().Match(modes);
             if (!m.Success)
