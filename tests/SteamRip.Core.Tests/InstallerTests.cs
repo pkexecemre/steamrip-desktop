@@ -255,4 +255,33 @@ public class InstallerTests : IDisposable
         File.WriteAllText(Path.Combine(staging, "game.exe"), "x");
         Assert.Equal(staging, Installer.CollapseSingleDir(staging));
     }
+
+    [Fact]
+    public void Save_walk_survives_an_unreadable_subdirectory()
+    {
+        var root = Directory.CreateTempSubdirectory("sr-saves-");
+        var locked = Path.Combine(root.FullName, "locked");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(root.FullName, "ok", "Saves"));
+            Directory.CreateDirectory(Path.Combine(locked, "Saves"));
+
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(locked, UnixFileMode.None);
+
+            // One unreadable folder must not abort the walk: the update that backs saves up would fail
+            // before it deletes anything, and the user would lose the update for a stray permission.
+            var found = SaveLocator.FindInGameFolder(root.FullName);
+            Assert.Contains(Path.Combine("ok", "Saves"), found);
+        }
+        finally
+        {
+            if (!OperatingSystem.IsWindows() && Directory.Exists(locked))
+                File.SetUnixFileMode(
+                    locked,
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+                );
+            root.Delete(true);
+        }
+    }
 }

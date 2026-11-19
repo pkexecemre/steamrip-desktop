@@ -45,12 +45,20 @@ public static class SaveLocator
 
         void Walk(DirectoryInfo dir, int depth)
         {
-            IEnumerable<DirectoryInfo> children;
+            // Enumerate eagerly: the enumeration itself is what throws for an unreadable directory, and a
+            // lazy EnumerateDirectories() would move that failure into the loop below, where nothing catches
+            // it and the whole update dies on one bad folder.
+            List<DirectoryInfo> children;
             try
             {
-                children = dir.EnumerateDirectories();
+                children = [.. dir.EnumerateDirectories()];
             }
-            catch
+            catch (Exception e)
+                when (e
+                        is IOException
+                            or UnauthorizedAccessException
+                            or System.Security.SecurityException
+                )
             {
                 return;
             }
