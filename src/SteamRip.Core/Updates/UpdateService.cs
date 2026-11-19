@@ -797,6 +797,30 @@ public sealed class UpdateService : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// The name the fetched archive is written as inside the slug directory. The guard is
+    /// <c>Path.HasExtension</c>, which is true for a dotted name like <c>Game 1.2</c>:
+    /// such a name is kept as it is and never gets a <c>.rar</c> appended (and the installer's
+    /// unrar-only branch therefore never sees it). Recorded, not fixed.
+    /// </summary>
+    public static string ArchiveFileName(string? fileName, string slug)
+    {
+        var name = Installer.SafeName(fileName ?? slug + ".rar");
+        return Path.HasExtension(name) ? name : name + ".rar";
+    }
+
+    /// <summary>
+    /// The name the fetched <c>.torrent</c> metadata is written as: only the last segment of the
+    /// hoster's file name is used, and the extension is enforced case-insensitively.
+    /// </summary>
+    public static string TorrentFileName(string? fileName, string slug)
+    {
+        var name = Installer.SafeName(Path.GetFileName(fileName ?? slug + ".torrent"));
+        return name.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase)
+            ? name
+            : name + ".torrent";
+    }
+
     private async Task<string> DownloadWithRetryAsync(
         Job job,
         CatalogPost post,
@@ -844,9 +868,7 @@ public sealed class UpdateService : IAsyncDisposable
                     "No mirror could be resolved:\n" + string.Join("\n", errors)
                 );
 
-            var fileName = Installer.SafeName(resolved.FileName ?? post.Slug + ".rar");
-            if (!Path.HasExtension(fileName))
-                fileName += ".rar";
+            var fileName = ArchiveFileName(resolved.FileName, post.Slug);
             var dest = Path.Combine(slugDir, fileName);
 
             CheckDiskSpace(resolved.Size, _settings.DownloadsRoot, _settings.LibraryRoot);
@@ -913,11 +935,7 @@ public sealed class UpdateService : IAsyncDisposable
     )
     {
         Directory.CreateDirectory(slugDir);
-        var torrentName = Installer.SafeName(
-            Path.GetFileName(resolved.FileName ?? post.Slug + ".torrent")
-        );
-        if (!torrentName.EndsWith(".torrent", StringComparison.OrdinalIgnoreCase))
-            torrentName += ".torrent";
+        var torrentName = TorrentFileName(resolved.FileName, post.Slug);
         var torrentFile = Path.Combine(slugDir, torrentName);
         job.Set(JobStage.Downloading, $"Fetching torrent from {resolved.Host}…", 0);
         _log.LogInformation(
@@ -968,15 +986,27 @@ public sealed class UpdateService : IAsyncDisposable
     }
 
     /// <summary>The archive among a torrent's files: split sets resolve to their first volume, and the biggest wins.</summary>
-    public static string? PickArchive(IReadOnlyList<string> files)
+    public static string? PickArchive(IReadOnlyList<string> files) =>
+        PickArchive(files, File.Exists, f => new FileInfo(f).Length, ArchiveTool.LooksLikeArchive);
+
+    /// <summary>
+    /// The same rule with file existence, length and archive sniffing injected, so the decision
+    /// can be recorded and ported without touching the disk: missing files and anything that is
+    /// not a RAR/7z/ZIP are skipped, split sets collapse to their first volume, and the biggest
+    /// usable candidate wins (ties keep input order, as the stable sort did).
+    /// </summary>
+    public static string? PickArchive(
+        IReadOnlyList<string> files,
+        Func<string, bool> exists,
+        Func<string, long> length,
+        Func<string, bool> looksLikeArchive
+    )
     {
         var candidates = files
-            .Where(f => File.Exists(f) && ArchiveTool.LooksLikeArchive(f))
-            .Select(ArchiveTool.FirstPart)
+            .Where(f => exists(f) && looksLikeArchive(f))
+            .Select(f => ArchiveTool.FirstPart(f, exists))
             .ToList();
-        return candidates.Count == 0
-            ? null
-            : candidates.OrderByDescending(f => new FileInfo(f).Length).First();
+        return candidates.Count == 0 ? null : candidates.OrderByDescending(length).First();
     }
 
     /// <summary>Deletes the small junk a failed attempt leaves behind (HTML error pages), never a resumable payload.</summary>

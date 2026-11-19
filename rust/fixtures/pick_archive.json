@@ -1,0 +1,286 @@
+{
+  "pick_archive": [
+    {
+      "name": "two rar files: the bigger wins",
+      "files": [
+        "dl/Game.rar",
+        "dl/Game.Extra.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.rar",
+          "exists": true,
+          "length": 500,
+          "archive": true
+        },
+        {
+          "path": "dl/Game.Extra.rar",
+          "exists": true,
+          "length": 900,
+          "archive": true
+        }
+      ],
+      "picked": "dl/Game.Extra.rar"
+    },
+    {
+      "name": "split volumes: the first part wins even when it is smaller",
+      "files": [
+        "dl/Game.part02.rar",
+        "dl/Game.part03.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.part02.rar",
+          "exists": true,
+          "length": 900,
+          "archive": true
+        },
+        {
+          "path": "dl/Game.part03.rar",
+          "exists": true,
+          "length": 800,
+          "archive": true
+        },
+        {
+          "path": "dl/Game.part01.rar",
+          "exists": true,
+          "length": 100,
+          "archive": true
+        }
+      ],
+      "picked": "dl/Game.part01.rar"
+    },
+    {
+      "name": "split set whose first volume is missing keeps the volume it has",
+      "files": [
+        "dl/Game.part02.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.part02.rar",
+          "exists": true,
+          "length": 900,
+          "archive": true
+        },
+        {
+          "path": "dl/Game.part01.rar",
+          "exists": false,
+          "length": 0,
+          "archive": true
+        }
+      ],
+      "picked": "dl/Game.part02.rar"
+    },
+    {
+      "name": "html error page in the folder is ignored even when it is bigger",
+      "files": [
+        "dl/Game.rar",
+        "dl/index.html"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.rar",
+          "exists": true,
+          "length": 300,
+          "archive": true
+        },
+        {
+          "path": "dl/index.html",
+          "exists": true,
+          "length": 9000,
+          "archive": false
+        }
+      ],
+      "picked": "dl/Game.rar"
+    },
+    {
+      "name": ".part download file is not an archive",
+      "files": [
+        "dl/Game.rar.part"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.rar.part",
+          "exists": true,
+          "length": 4096,
+          "archive": false
+        }
+      ],
+      "picked": null
+    },
+    {
+      "name": "missing files are skipped",
+      "files": [
+        "dl/gone.rar",
+        "dl/Game.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/gone.rar",
+          "exists": false,
+          "length": 900,
+          "archive": true
+        },
+        {
+          "path": "dl/Game.rar",
+          "exists": true,
+          "length": 100,
+          "archive": true
+        }
+      ],
+      "picked": "dl/Game.rar"
+    },
+    {
+      "name": "only missing files: nothing to pick",
+      "files": [
+        "dl/gone.rar",
+        "dl/also-gone.7z"
+      ],
+      "probes": [
+        {
+          "path": "dl/gone.rar",
+          "exists": false,
+          "length": 900,
+          "archive": true
+        },
+        {
+          "path": "dl/also-gone.7z",
+          "exists": false,
+          "length": 800,
+          "archive": true
+        }
+      ],
+      "picked": null
+    },
+    {
+      "name": "empty payload has no archive",
+      "files": [],
+      "probes": [],
+      "picked": null
+    },
+    {
+      "name": "torrent metadata is not the archive",
+      "files": [
+        "dl/Game.torrent",
+        "dl/Game.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/Game.torrent",
+          "exists": true,
+          "length": 80,
+          "archive": false
+        },
+        {
+          "path": "dl/Game.rar",
+          "exists": true,
+          "length": 700,
+          "archive": true
+        }
+      ],
+      "picked": "dl/Game.rar"
+    },
+    {
+      "name": "equal sizes keep input order",
+      "files": [
+        "dl/b.rar",
+        "dl/a.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/b.rar",
+          "exists": true,
+          "length": 100,
+          "archive": true
+        },
+        {
+          "path": "dl/a.rar",
+          "exists": true,
+          "length": 100,
+          "archive": true
+        }
+      ],
+      "picked": "dl/b.rar"
+    },
+    {
+      "name": "7z and zip: the biggest archive wins",
+      "files": [
+        "dl/a.zip",
+        "dl/b.7z",
+        "dl/c.rar"
+      ],
+      "probes": [
+        {
+          "path": "dl/a.zip",
+          "exists": true,
+          "length": 100,
+          "archive": true
+        },
+        {
+          "path": "dl/b.7z",
+          "exists": true,
+          "length": 900,
+          "archive": true
+        },
+        {
+          "path": "dl/c.rar",
+          "exists": true,
+          "length": 400,
+          "archive": true
+        }
+      ],
+      "picked": "dl/b.7z"
+    }
+  ],
+  "names": [
+    {
+      "name": "null file name falls back to the slug",
+      "file_name": null,
+      "slug": "some-game",
+      "archive": "some-game.rar",
+      "torrent": "some-game.torrent"
+    },
+    {
+      "name": "dotted name counts as having an extension",
+      "file_name": "Game 1.2",
+      "slug": "game",
+      "archive": "Game_1.2",
+      "torrent": "Game_1.2.torrent"
+    },
+    {
+      "name": "name with a slash",
+      "file_name": "My Games/Final Cut",
+      "slug": "game",
+      "archive": "My_Games_Final_Cut.rar",
+      "torrent": "Final_Cut.torrent"
+    },
+    {
+      "name": "plain name gets the archive extension",
+      "file_name": "Game",
+      "slug": "game",
+      "archive": "Game.rar",
+      "torrent": "Game.torrent"
+    },
+    {
+      "name": "name that already has an extension keeps it",
+      "file_name": "Game.rar",
+      "slug": "game",
+      "archive": "Game.rar",
+      "torrent": "Game.rar.torrent"
+    },
+    {
+      "name": "torrent extension is matched case-insensitively",
+      "file_name": "Game.TORRENT",
+      "slug": "game",
+      "archive": "Game.TORRENT",
+      "torrent": "Game.TORRENT"
+    },
+    {
+      "name": "trailing dot has no extension",
+      "file_name": "Game.",
+      "slug": "game",
+      "archive": "Game..rar",
+      "torrent": "Game..torrent"
+    }
+  ]
+}
