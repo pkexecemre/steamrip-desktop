@@ -32,7 +32,11 @@ public sealed class Downloader(
     public Aria2Client? Aria2 => aria2;
 
     /// <summary>What the next transfer will actually run: "aria2c" or the built-in HTTP loop.</summary>
-    public string EngineName => aria2 is { Available: true } && PreferAria2 ? "aria2c" : "http";
+    public string EngineName => EngineNameFor(aria2 is { Available: true }, PreferAria2);
+
+    /// <summary>What a transfer would run: aria2c when it is installed and preferred, else the built-in loop.</summary>
+    public static string EngineNameFor(bool aria2Available, bool preferAria2) =>
+        aria2Available && preferAria2 ? "aria2c" : "http";
 
     /// <summary>True when a resolved link points at a <c>.torrent</c> instead of the archive: some hosters only publish those.</summary>
     public static bool IsTorrent(ResolvedDownload src) =>

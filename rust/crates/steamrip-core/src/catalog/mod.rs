@@ -81,3 +81,34 @@ pub fn game_size_text(content: &str) -> Option<String> {
         .captures(content)
         .map(|c| c[1].trim().to_string())
 }
+
+/// One WordPress category: the genre list the site publishes.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Category {
+    pub id: i64,
+    pub name: String,
+    pub count: i32,
+}
+
+/// /wp/v2/categories JSON array -> categories, names HTML-decoded, missing counts as zero.
+pub fn parse_categories(json: &str) -> Vec<Category> {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(json) else {
+        return Vec::new();
+    };
+    let Some(items) = value.as_array() else {
+        return Vec::new();
+    };
+    items
+        .iter()
+        .filter_map(|item| {
+            let id = item.get("id")?.as_i64()?;
+            let raw = item
+                .get("name")
+                .and_then(|n| n.as_str())
+                .unwrap_or_default();
+            let name = html_escape::decode_html_entities(raw).into_owned();
+            let count = item.get("count").and_then(|c| c.as_i64()).unwrap_or(0) as i32;
+            Some(Category { id, name, count })
+        })
+        .collect()
+}

@@ -910,3 +910,75 @@ fn collapse_matches_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct CategoriesCase {
+    input: String,
+    categories: Vec<steamrip_core::catalog::Category>,
+}
+
+#[test]
+fn categories_match_the_original() {
+    let cases: Vec<CategoriesCase> = load("categories.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    let fixture = std::fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../../tests/SteamRip.Core.Tests/Fixtures/categories.json"),
+    )
+    .expect("categories fixture");
+    for case in cases {
+        let input = if case.input == "<fixture>" {
+            fixture.clone()
+        } else {
+            case.input.clone()
+        };
+        assert_eq!(
+            steamrip_core::catalog::parse_categories(&input),
+            case.categories,
+            "categories for {:?}",
+            case.input
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct TorrentRow {
+    file_name: Option<String>,
+    url: String,
+    is_torrent: bool,
+}
+
+#[derive(Deserialize)]
+struct EngineRow {
+    available: bool,
+    prefer: bool,
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct TorrentEngineCase {
+    torrents: Vec<TorrentRow>,
+    #[serde(rename = "engineNames")]
+    engine_names: Vec<EngineRow>,
+}
+
+#[test]
+fn torrent_and_engine_match_the_original() {
+    let cases: Vec<TorrentEngineCase> = load("torrent_engine.json");
+    let case = cases.first().expect("torrent case");
+    for row in &case.torrents {
+        assert_eq!(
+            steamrip_core::downloader::is_torrent(row.file_name.as_deref(), &row.url),
+            row.is_torrent,
+            "is_torrent {}",
+            row.url
+        );
+    }
+    for row in &case.engine_names {
+        assert_eq!(
+            steamrip_core::downloader::engine_name(row.available, row.prefer),
+            row.name,
+            "engine name"
+        );
+    }
+}

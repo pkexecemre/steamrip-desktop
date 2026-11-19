@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "torrents": [
+        {
+          "file_name": "game.rar",
+          "url": "https://x/game.rar",
+          "is_torrent": false
+        },
+        {
+          "file_name": "game.torrent",
+          "url": "https://x/game.rar",
+          "is_torrent": true
+        },
+        {
+          "file_name": null,
+          "url": "https://x/game.torrent",
+          "is_torrent": true
+        },
+        {
+          "file_name": null,
+          "url": "https://x/GAME.TORRENT",
+          "is_torrent": true
+        },
+        {
+          "file_name": "game.rar",
+          "url": "https://x/game.rar?t=1",
+          "is_torrent": false
+        }
+      ],
+      "engineNames": [
+        {
+          "available": true,
+          "prefer": true,
+          "name": "aria2c"
+        },
+        {
+          "available": true,
+          "prefer": false,
+          "name": "http"
+        },
+        {
+          "available": false,
+          "prefer": true,
+          "name": "http"
+        },
+        {
+          "available": false,
+          "prefer": false,
+          "name": "http"
+        }
+      ]
+    }
+  ]
+}

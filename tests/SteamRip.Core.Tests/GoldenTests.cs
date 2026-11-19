@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using SteamRip.Core.Catalog;
 using SteamRip.Core.Data;
+using SteamRip.Core.Downloads;
 using SteamRip.Core.Hosters;
 using SteamRip.Core.Install;
 using SteamRip.Core.Launch;
@@ -1384,5 +1385,100 @@ public class GoldenTests
             .ToList();
 
         RecordOrCheck("collapse.json", recorded);
+    }
+
+    [Fact]
+    public void Categories_recordings_match()
+    {
+        var q = (char)34;
+        string[] payloads =
+        [
+            Fixture.Read("categories.json"),
+            "[]",
+            "[{" + q + "id" + q + ":1," + q + "name" + q + ":" + q + "A &amp; B" + q + "}]",
+            "[{"
+                + q
+                + "id"
+                + q
+                + ":2,"
+                + q
+                + "name"
+                + q
+                + ":"
+                + q
+                + "X"
+                + q
+                + ","
+                + q
+                + "count"
+                + q
+                + ":0}]",
+        ];
+
+        var cases = payloads
+            .Select(json => new
+            {
+                input = json.Length < 200 ? json : "<fixture>",
+                categories = CatalogParser
+                    .ParseCategories(json)
+                    .Select(c => new
+                    {
+                        id = c.Id,
+                        name = c.Name,
+                        count = c.Count,
+                    })
+                    .ToList(),
+            })
+            .ToList();
+
+        RecordOrCheck("categories.json", cases);
+    }
+
+    [Fact]
+    public void Torrent_and_engine_recordings_match()
+    {
+        (string? FileName, string Url)[] links =
+        [
+            ("game.rar", "https://x/game.rar"),
+            ("game.torrent", "https://x/game.rar"),
+            (null, "https://x/game.torrent"),
+            (null, "https://x/GAME.TORRENT"),
+            ("game.rar", "https://x/game.rar?t=1"),
+        ];
+
+        var torrents = links
+            .Select(l => new
+            {
+                file_name = l.FileName,
+                url = l.Url,
+                is_torrent = Downloader.IsTorrent(
+                    new ResolvedDownload(
+                        Hoster.FileDitch,
+                        l.Url,
+                        new Dictionary<string, string>(),
+                        l.FileName
+                    )
+                ),
+            })
+            .ToList();
+
+        (bool Available, bool Prefer)[] engines =
+        [
+            (true, true),
+            (true, false),
+            (false, true),
+            (false, false),
+        ];
+
+        var engineNames = engines
+            .Select(e => new
+            {
+                available = e.Available,
+                prefer = e.Prefer,
+                name = Downloader.EngineNameFor(e.Available, e.Prefer),
+            })
+            .ToList();
+
+        RecordOrCheck("torrent_engine.json", new[] { new { torrents, engineNames } });
     }
 }

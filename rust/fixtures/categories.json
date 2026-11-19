@@ -1,0 +1,133 @@
+{
+  "cases": [
+    {
+      "input": "\u003Cfixture\u003E",
+      "categories": [
+        {
+          "id": 26,
+          "name": "Action",
+          "count": 2743
+        },
+        {
+          "id": 27,
+          "name": "Adventure",
+          "count": 2552
+        },
+        {
+          "id": 29,
+          "name": "Anime",
+          "count": 428
+        },
+        {
+          "id": 53,
+          "name": "Building",
+          "count": 271
+        },
+        {
+          "id": 52,
+          "name": "First-person Shooter",
+          "count": 145
+        },
+        {
+          "id": 32,
+          "name": "Horror",
+          "count": 524
+        },
+        {
+          "id": 33,
+          "name": "Indie",
+          "count": 2705
+        },
+        {
+          "id": 1538,
+          "name": "Multiplayer",
+          "count": 382
+        },
+        {
+          "id": 1984,
+          "name": "Nudity",
+          "count": 34
+        },
+        {
+          "id": 45,
+          "name": "Open World",
+          "count": 303
+        },
+        {
+          "id": 35,
+          "name": "Racing",
+          "count": 237
+        },
+        {
+          "id": 63,
+          "name": "Role-playing Game",
+          "count": 1237
+        },
+        {
+          "id": 70,
+          "name": "Sci-fi",
+          "count": 235
+        },
+        {
+          "id": 41,
+          "name": "Shooters",
+          "count": 380
+        },
+        {
+          "id": 37,
+          "name": "Simulation",
+          "count": 1665
+        },
+        {
+          "id": 38,
+          "name": "Sports",
+          "count": 250
+        },
+        {
+          "id": 42,
+          "name": "Strategy",
+          "count": 1179
+        },
+        {
+          "id": 119,
+          "name": "Survival",
+          "count": 266
+        },
+        {
+          "id": 1,
+          "name": "Uncategorized",
+          "count": 17
+        },
+        {
+          "id": 39,
+          "name": "Virtual Reality",
+          "count": 122
+        }
+      ]
+    },
+    {
+      "input": "[]",
+      "categories": []
+    },
+    {
+      "input": "[{\u0022id\u0022:1,\u0022name\u0022:\u0022A \u0026amp; B\u0022}]",
+      "categories": [
+        {
+          "id": 1,
+          "name": "A \u0026 B",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "input": "[{\u0022id\u0022:2,\u0022name\u0022:\u0022X\u0022,\u0022count\u0022:0}]",
+      "categories": [
+        {
+          "id": 2,
+          "name": "X",
+          "count": 0
+        }
+      ]
+    }
+  ]
+}
