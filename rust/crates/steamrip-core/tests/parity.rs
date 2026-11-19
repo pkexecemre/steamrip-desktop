@@ -711,3 +711,43 @@ fn top_games_match_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct MirrorCase {
+    input: String,
+    mirrors: Vec<steamrip_core::catalog::Mirror>,
+}
+
+#[test]
+fn mirrors_match_the_original() {
+    let cases: Vec<MirrorCase> = load("mirrors.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::catalog::mirrors_from_html(&case.input),
+            case.mirrors,
+            "mirrors for {:?}",
+            case.input
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct GameSizeCase {
+    input: String,
+    size: Option<String>,
+}
+
+#[test]
+fn game_size_matches_the_original() {
+    let cases: Vec<GameSizeCase> = load("game_size.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::catalog::game_size_text(&case.input),
+            case.size,
+            "size for {:?}",
+            case.input
+        );
+    }
+}

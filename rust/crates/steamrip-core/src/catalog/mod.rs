@@ -20,3 +20,64 @@ pub fn parse_top_games(html: &str) -> Vec<i64> {
     }
     ids
 }
+
+/// One mirror link from a post body.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Mirror {
+    pub host: crate::hoster::Hoster,
+    pub url: String,
+}
+
+fn mirror_anchor() -> &'static regex::Regex {
+    use regex::Regex;
+    use std::sync::OnceLock;
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)<a\b[^>]*\bshortc-button\b[^>]*>").expect("valid anchor regex")
+    })
+}
+
+fn href_in(anchor: &str) -> Option<String> {
+    use regex::Regex;
+    use std::sync::OnceLock;
+    static RE: OnceLock<Regex> = OnceLock::new();
+    let regex = RE.get_or_init(|| Regex::new(r#"(?i)href="([^"]+)""#).expect("valid href regex"));
+    regex.captures(anchor).map(|c| c[1].to_string())
+}
+
+fn game_size_regex() -> &'static regex::Regex {
+    use regex::Regex;
+    use std::sync::OnceLock;
+    static RE: OnceLock<Regex> = OnceLock::new();
+    RE.get_or_init(|| {
+        Regex::new(r"(?i)Game Size:\s*</strong>\s*([0-9.,]+\s*[KMGT]B)")
+            .expect("valid game size regex")
+    })
+}
+
+/// Mirror links in a post body: normalized, de-duplicated by url, without FileCrypt wrappers.
+pub fn mirrors_from_html(content: &str) -> Vec<Mirror> {
+    let mut mirrors: Vec<Mirror> = Vec::new();
+    for anchor in mirror_anchor().find_iter(content) {
+        let Some(raw) = href_in(anchor.as_str()) else {
+            continue;
+        };
+        let url = crate::hoster::normalize(&html_escape::decode_html_entities(&raw));
+        if mirrors.iter().any(|m| m.url == url) {
+            continue;
+        }
+        let host = crate::hoster::detect(&url);
+        if host == crate::hoster::Hoster::FileCrypt {
+            continue;
+        }
+        mirrors.push(Mirror { host, url });
+    }
+    mirrors
+}
+
+/// The "Game Size" line inside content.rendered, as the site prints it.
+pub fn game_size_text(content: &str) -> Option<String> {
+    game_size_regex()
+        .captures(content)
+        .map(|c| c[1].trim().to_string())
+}

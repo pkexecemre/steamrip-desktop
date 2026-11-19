@@ -39,6 +39,31 @@ public static partial class CatalogParser
         return (long)Math.Round(number * scale);
     }
 
+    /// <summary>Mirror links in a post body: normalized, de-duplicated by url, without FileCrypt wrappers.</summary>
+    public static IReadOnlyList<Mirror> MirrorsFromHtml(string content)
+    {
+        var mirrors = new List<Mirror>();
+        foreach (Match a in MirrorAnchor().Matches(content))
+        {
+            var h = Href().Match(a.Value);
+            if (!h.Success)
+                continue;
+            var url = HosterDetector.Normalize(WebUtility.HtmlDecode(h.Groups[1].Value));
+            if (mirrors.Any(x => x.Url == url))
+                continue;
+            var host = HosterDetector.Detect(url);
+            // FileCrypt is a CAPTCHA/ad wrapper around other hosts - drop it; every such post has another mirror.
+            if (host == Hoster.FileCrypt)
+                continue;
+            mirrors.Add(new Mirror(host, url));
+        }
+        return mirrors;
+    }
+
+    /// <summary>The "Game Size" line inside content.rendered, as the site prints it.</summary>
+    public static string? GameSizeText(string content) =>
+        GameSize().Match(content) is { Success: true } gs ? gs.Groups[1].Value.Trim() : null;
+
     [GeneratedRegex(@"class=""post-item post-(\d+)\b")]
     private static partial Regex TopGamesItem();
 
@@ -99,25 +124,8 @@ public static partial class CatalogParser
                 };
         }
 
-        var mirrors = new List<Mirror>();
-        foreach (Match a in MirrorAnchor().Matches(content))
-        {
-            var h = Href().Match(a.Value);
-            if (!h.Success)
-                continue;
-            var url = HosterDetector.Normalize(WebUtility.HtmlDecode(h.Groups[1].Value));
-            if (mirrors.Any(x => x.Url == url))
-                continue;
-            var host = HosterDetector.Detect(url);
-            // FileCrypt is a CAPTCHA/ad wrapper around other hosts — drop it; every such post has another mirror.
-            if (host == Hoster.FileCrypt)
-                continue;
-            mirrors.Add(new Mirror(host, url));
-        }
-
-        var size = GameSize().Match(content) is { Success: true } gs
-            ? gs.Groups[1].Value.Trim()
-            : null;
+        var mirrors = MirrorsFromHtml(content);
+        var size = GameSizeText(content);
         IReadOnlyList<long> categories =
             p.TryGetProperty("categories", out var cats) && cats.ValueKind == JsonValueKind.Array
                 ?

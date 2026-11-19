@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "input": "",
+      "size": null
+    },
+    {
+      "input": "\u003Cp\u003EGame Size: \u003C/strong\u003E12.3 GB\u003C/p\u003E",
+      "size": "12.3 GB"
+    },
+    {
+      "input": "Game Size:\u003C/strong\u003E  1,5 TB  ",
+      "size": "1,5 TB"
+    },
+    {
+      "input": "game size: \u003C/strong\u003E750 MB",
+      "size": "750 MB"
+    },
+    {
+      "input": "Game Size: 12.3 GB",
+      "size": null
+    },
+    {
+      "input": "\u003Cp\u003EGame Size:\u003C/strong\u003E unknown\u003C/p\u003E",
+      "size": null
+    }
+  ]
+}

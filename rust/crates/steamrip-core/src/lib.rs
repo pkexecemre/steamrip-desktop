@@ -5,6 +5,7 @@
 pub mod archive;
 pub mod catalog;
 pub mod host_caps;
+pub mod hoster;
 pub mod hosters;
 pub mod launch;
 pub mod launch_options;

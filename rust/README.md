@@ -47,6 +47,9 @@ applied by hand because its CLI does not target .NET:
 | `proton_release::parse_latest` | `ProtonDownloader.ParseLatest` | `fixtures/proton_release.json` |
 | `proton_release::parse_checksum` | `ProtonDownloader.ParseChecksum` | `fixtures/proton_checksum.json` |
 | `catalog::parse_top_games` | `CatalogParser.ParseTopGames` | `fixtures/top_games.json` |
+| `hoster::detect/normalize` | `HosterDetector.Detect/Normalize` | `fixtures/mirrors.json` |
+| `catalog::mirrors_from_html` | `CatalogParser.MirrorsFromHtml` | `fixtures/mirrors.json` |
+| `catalog::game_size_text` | `CatalogParser.GameSizeText` | `fixtures/game_size.json` |
 | `host_caps::edid_has_hdr` | `HostCapabilities.EdidHasHdr` | `fixtures/host_capabilities.json` |
 | `host_caps::parse_kscreen` | `HostCapabilities.ParseKScreen` | `fixtures/host_capabilities.json` |
 | `host_caps::vendor_name` | `HostCapabilities.VendorName` | `fixtures/host_capabilities.json` |

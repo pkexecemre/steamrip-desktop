@@ -1174,4 +1174,53 @@ public class GoldenTests
 
         RecordOrCheck("top_games.json", cases);
     }
+
+    [Fact]
+    public void Mirrors_recordings_match()
+    {
+        string[] bodies =
+        [
+            "",
+            "<a class=\"shortc-button\" href=\"https://fileditch.com/f/x.rar\"></a>",
+            "<a class=\"shortc-button\" href=\"https://fileditch.com/f/x.rar\"></a><a class=\"shortc-button\" href=\"https://fileditch.com/f/x.rar\"></a>",
+            "<a class=\"shortc-button\" href=\"//bzzhr.co/abc\"></a>",
+            "<a class=\"shortc-button\" href=\"https://filecrypt.cc/Container/ABC.html\"></a>",
+            "<a class=\"shortc-button\" href=\"https://unknown.example/x\"></a>",
+            "<a class='shortc-button' href='https://megadb.net/x?pt=y&amp;z=1'></a>",
+            "<a class=\"shortc-button\" href=\"https://gofile.io/d/abc\"></a><a class=\"shortc-button\" href=\"https://1fichier.com/?abc\"></a>",
+        ];
+
+        var cases = bodies
+            .Select(content => new
+            {
+                input = content,
+                mirrors = CatalogParser
+                    .MirrorsFromHtml(content)
+                    .Select(m => new { host = m.Host.ToString(), url = m.Url })
+                    .ToList(),
+            })
+            .ToList();
+
+        RecordOrCheck("mirrors.json", cases);
+    }
+
+    [Fact]
+    public void Game_size_recordings_match()
+    {
+        string[] bodies =
+        [
+            "",
+            "<p>Game Size: </strong>12.3 GB</p>",
+            "Game Size:</strong>  1,5 TB  ",
+            "game size: </strong>750 MB",
+            "Game Size: 12.3 GB",
+            "<p>Game Size:</strong> unknown</p>",
+        ];
+
+        var cases = bodies
+            .Select(content => new { input = content, size = CatalogParser.GameSizeText(content) })
+            .ToList();
+
+        RecordOrCheck("game_size.json", cases);
+    }
 }
