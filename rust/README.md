@@ -84,6 +84,10 @@ applied by hand because its CLI does not target .NET:
 | `url_rules::is_download_link` | `InteractivePage.IsDownloadLink` | `fixtures/url_rules.json` |
 | `launch_options::effective_launch` | `UpdateService.EffectiveLaunch` | `fixtures/effective_launch.json` |
 | `exe_finder::rank/best` | `ExeFinder.Rank` | `fixtures/exe_finder.json` |
+| `app_ids::tokens` | `SteamAppIdResolver.Tokens` | `fixtures/app_ids.json` |
+| `app_ids::names_match` | `SteamAppIdResolver.NamesMatch` | `fixtures/app_ids.json` |
+| `app_ids::pick_search_match` | `SteamAppIdResolver.PickSearchMatch` | `fixtures/app_ids.json` |
+| `downloader::plan_range` | `Downloader.PlanRange` | `fixtures/range_plan.json` |
 
 ## Adding a unit
 
