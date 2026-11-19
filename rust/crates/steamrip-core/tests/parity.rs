@@ -751,3 +751,88 @@ fn game_size_matches_the_original() {
         );
     }
 }
+
+#[derive(Deserialize)]
+struct VersionKeyRow {
+    name: String,
+    key: Vec<i32>,
+}
+
+#[derive(Deserialize)]
+struct VersionComparison {
+    a: String,
+    b: String,
+    result: i32,
+}
+
+#[derive(Deserialize)]
+struct VersionsCase {
+    keys: Vec<VersionKeyRow>,
+    comparisons: Vec<VersionComparison>,
+    newest: Option<String>,
+}
+
+#[test]
+fn proton_versions_match_the_original() {
+    let cases: Vec<VersionsCase> = load("proton_versions.json");
+    let case = cases.first().expect("versions case");
+    for row in &case.keys {
+        assert_eq!(
+            steamrip_core::proton::version_key(&row.name),
+            row.key,
+            "key for {}",
+            row.name
+        );
+    }
+    for cmp in &case.comparisons {
+        let got = steamrip_core::proton::compare_versions(
+            &steamrip_core::proton::version_key(&cmp.a),
+            &steamrip_core::proton::version_key(&cmp.b),
+        );
+        assert_eq!(got as i32, cmp.result, "compare {} vs {}", cmp.a, cmp.b);
+    }
+    let names: Vec<String> = case.keys.iter().map(|r| r.name.clone()).collect();
+    assert_eq!(
+        steamrip_core::proton::newest_build_name(&names),
+        case.newest,
+        "newest build"
+    );
+}
+
+#[derive(Deserialize)]
+struct DisplayNameCase {
+    input: String,
+    name: Option<String>,
+}
+
+#[test]
+fn proton_display_name_matches_the_original() {
+    let cases: Vec<DisplayNameCase> = load("proton_display_name.json");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::proton::display_name(&case.input),
+            case.name,
+            "display name for {:?}",
+            case.input
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct InstallerSafeNameCase {
+    input: String,
+    safe: String,
+}
+
+#[test]
+fn installer_safe_name_matches_the_original() {
+    let cases: Vec<InstallerSafeNameCase> = load("installer_safe_name.json");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::installer::safe_name(&case.input),
+            case.safe,
+            "safe name for {:?}",
+            case.input
+        );
+    }
+}

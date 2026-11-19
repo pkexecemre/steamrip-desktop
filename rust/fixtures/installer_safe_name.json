@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "input": "a b",
+      "safe": "a_b"
+    },
+    {
+      "input": "a/b",
+      "safe": "a_b"
+    },
+    {
+      "input": "",
+      "safe": "unknown"
+    },
+    {
+      "input": "   ",
+      "safe": "___"
+    },
+    {
+      "input": "ok-name",
+      "safe": "ok-name"
+    },
+    {
+      "input": "\u00C7ok \u00D6zel",
+      "safe": "\u00C7ok_\u00D6zel"
+    },
+    {
+      "input": "a\u0000b",
+      "safe": "a_b"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "input": "nothing here",
+      "name": null
+    },
+    {
+      "input": "\u0022display_name\u0022 \u0022GE-Proton11-12\u0022",
+      "name": "GE-Proton11-12"
+    },
+    {
+      "input": "\u0022display_name\u0022   \u0022Proton-CachyOS-11.0\u0022",
+      "name": "Proton-CachyOS-11.0"
+    },
+    {
+      "input": "\u0022display_name\u0022",
+      "name": null
+    }
+  ]
+}

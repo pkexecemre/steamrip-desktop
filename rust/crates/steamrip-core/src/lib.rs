@@ -7,6 +7,7 @@ pub mod catalog;
 pub mod host_caps;
 pub mod hoster;
 pub mod hosters;
+pub mod installer;
 pub mod launch;
 pub mod launch_options;
 pub mod prefix;

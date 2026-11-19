@@ -70,23 +70,36 @@ public static partial class ProtonLocator
     [GeneratedRegex(@"\d+")]
     private static partial Regex Digits();
 
+    /// <summary>Compares two version keys the way the build list is sorted: missing parts count as zero.</summary>
+    public static int CompareVersions(IReadOnlyList<int>? x, IReadOnlyList<int>? y)
+    {
+        x ??= [];
+        y ??= [];
+        for (var i = 0; i < Math.Max(x.Count, y.Count); i++)
+        {
+            var c = (i < x.Count ? x[i] : 0).CompareTo(i < y.Count ? y[i] : 0);
+            if (c != 0)
+                return c;
+        }
+        return 0;
+    }
+
+    /// <summary>The newest build name: the first one when several share a version key.</summary>
+    public static string? NewestBuildName(IEnumerable<string> names) =>
+        names
+            .OrderByDescending(VersionKey, Comparer<int[]>.Create(CompareVersions))
+            .FirstOrDefault();
+
     private sealed class VersionComparer : IComparer<int[]>
     {
         public static readonly VersionComparer Instance = new();
 
-        public int Compare(int[]? x, int[]? y)
-        {
-            x ??= [];
-            y ??= [];
-            for (var i = 0; i < Math.Max(x.Length, y.Length); i++)
-            {
-                var c = (i < x.Length ? x[i] : 0).CompareTo(i < y.Length ? y[i] : 0);
-                if (c != 0)
-                    return c;
-            }
-            return 0;
-        }
+        public int Compare(int[]? x, int[]? y) => CompareVersions(x, y);
     }
+
+    /// <summary>The display name a Proton build advertises in its compatibilitytool.vdf.</summary>
+    public static string? DisplayName(string compatibilityToolVdf) =>
+        DisplayName().Match(compatibilityToolVdf) is { Success: true } m ? m.Groups[1].Value : null;
 
     public static IReadOnlyList<ProtonBuild> Find()
     {

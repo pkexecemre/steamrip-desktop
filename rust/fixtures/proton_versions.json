@@ -1,0 +1,232 @@
+{
+  "cases": [
+    {
+      "keys": [
+        {
+          "name": "GE-Proton11-3",
+          "key": [
+            11,
+            3
+          ]
+        },
+        {
+          "name": "GE-Proton9-27",
+          "key": [
+            9,
+            27
+          ]
+        },
+        {
+          "name": "dwproton-11.0-16",
+          "key": [
+            11,
+            0,
+            16
+          ]
+        },
+        {
+          "name": "dwproton-11.0-9",
+          "key": [
+            11,
+            0,
+            9
+          ]
+        },
+        {
+          "name": "Proton-CachyOS-11.0",
+          "key": [
+            11,
+            0
+          ]
+        },
+        {
+          "name": "no digits",
+          "key": []
+        }
+      ],
+      "comparisons": [
+        {
+          "a": "GE-Proton11-3",
+          "b": "GE-Proton11-3",
+          "result": 0
+        },
+        {
+          "a": "GE-Proton11-3",
+          "b": "GE-Proton9-27",
+          "result": 1
+        },
+        {
+          "a": "GE-Proton11-3",
+          "b": "dwproton-11.0-16",
+          "result": 1
+        },
+        {
+          "a": "GE-Proton11-3",
+          "b": "dwproton-11.0-9",
+          "result": 1
+        },
+        {
+          "a": "GE-Proton11-3",
+          "b": "Proton-CachyOS-11.0",
+          "result": 1
+        },
+        {
+          "a": "GE-Proton11-3",
+          "b": "no digits",
+          "result": 1
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "GE-Proton11-3",
+          "result": -1
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "GE-Proton9-27",
+          "result": 0
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "dwproton-11.0-16",
+          "result": -1
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "dwproton-11.0-9",
+          "result": -1
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "Proton-CachyOS-11.0",
+          "result": -1
+        },
+        {
+          "a": "GE-Proton9-27",
+          "b": "no digits",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "GE-Proton11-3",
+          "result": -1
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "GE-Proton9-27",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "dwproton-11.0-16",
+          "result": 0
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "dwproton-11.0-9",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "Proton-CachyOS-11.0",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-16",
+          "b": "no digits",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "GE-Proton11-3",
+          "result": -1
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "GE-Proton9-27",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "dwproton-11.0-16",
+          "result": -1
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "dwproton-11.0-9",
+          "result": 0
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "Proton-CachyOS-11.0",
+          "result": 1
+        },
+        {
+          "a": "dwproton-11.0-9",
+          "b": "no digits",
+          "result": 1
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "GE-Proton11-3",
+          "result": -1
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "GE-Proton9-27",
+          "result": 1
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "dwproton-11.0-16",
+          "result": -1
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "dwproton-11.0-9",
+          "result": -1
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "Proton-CachyOS-11.0",
+          "result": 0
+        },
+        {
+          "a": "Proton-CachyOS-11.0",
+          "b": "no digits",
+          "result": 1
+        },
+        {
+          "a": "no digits",
+          "b": "GE-Proton11-3",
+          "result": -1
+        },
+        {
+          "a": "no digits",
+          "b": "GE-Proton9-27",
+          "result": -1
+        },
+        {
+          "a": "no digits",
+          "b": "dwproton-11.0-16",
+          "result": -1
+        },
+        {
+          "a": "no digits",
+          "b": "dwproton-11.0-9",
+          "result": -1
+        },
+        {
+          "a": "no digits",
+          "b": "Proton-CachyOS-11.0",
+          "result": -1
+        },
+        {
+          "a": "no digits",
+          "b": "no digits",
+          "result": 0
+        }
+      ],
+      "newest": "GE-Proton11-3"
+    }
+  ]
+}

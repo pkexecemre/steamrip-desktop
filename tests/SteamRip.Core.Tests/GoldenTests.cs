@@ -1223,4 +1223,81 @@ public class GoldenTests
 
         RecordOrCheck("game_size.json", cases);
     }
+
+    [Fact]
+    public void Proton_versions_recordings_match()
+    {
+        string[] names =
+        [
+            "GE-Proton11-3",
+            "GE-Proton9-27",
+            "dwproton-11.0-16",
+            "dwproton-11.0-9",
+            "Proton-CachyOS-11.0",
+            "no digits",
+        ];
+
+        var keys = names
+            .Select(name => new { name, key = ProtonLocator.VersionKey(name) })
+            .ToList();
+
+        var comparisons = names
+            .SelectMany(a =>
+                names.Select(b => new
+                {
+                    a,
+                    b,
+                    result = Math.Sign(
+                        ProtonLocator.CompareVersions(
+                            ProtonLocator.VersionKey(a),
+                            ProtonLocator.VersionKey(b)
+                        )
+                    ),
+                })
+            )
+            .ToList();
+
+        RecordOrCheck(
+            "proton_versions.json",
+            new[]
+            {
+                new
+                {
+                    keys,
+                    comparisons,
+                    newest = ProtonLocator.NewestBuildName(names),
+                },
+            }
+        );
+    }
+
+    [Fact]
+    public void Proton_display_name_recordings_match()
+    {
+        var q = (char)34;
+        string[] vdfs =
+        [
+            "nothing here",
+            q + "display_name" + q + " " + q + "GE-Proton11-12" + q,
+            q + "display_name" + q + "   " + q + "Proton-CachyOS-11.0" + q,
+            q + "display_name" + q,
+        ];
+
+        var cases = vdfs.Select(vdf => new { input = vdf, name = ProtonLocator.DisplayName(vdf) })
+            .ToList();
+
+        RecordOrCheck("proton_display_name.json", cases);
+    }
+
+    [Fact]
+    public void Installer_safe_name_recordings_match()
+    {
+        string[] inputs = ["a b", "a/b", "", "   ", "ok-name", "Çok Özel", "a" + (char)0 + "b"];
+
+        var cases = inputs
+            .Select(input => new { input, safe = Installer.SafeName(input) })
+            .ToList();
+
+        RecordOrCheck("installer_safe_name.json", cases);
+    }
 }
