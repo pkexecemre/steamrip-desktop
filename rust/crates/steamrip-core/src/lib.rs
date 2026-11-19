@@ -10,5 +10,6 @@ pub mod launch;
 pub mod launch_options;
 pub mod prefix;
 pub mod proton;
+pub mod proton_release;
 pub mod save_locator;
 pub mod updates;

@@ -1,0 +1,26 @@
+{
+  "cases": [
+    {
+      "input": "",
+      "ids": []
+    },
+    {
+      "input": "\u003Cdiv class=\u0022post-item post-57136 x\u0022\u003E\u003C/div\u003E\u003Cdiv class=\u0022post-item post-42\u0022\u003E\u003C/div\u003E",
+      "ids": [
+        57136,
+        42
+      ]
+    },
+    {
+      "input": "\u003Cdiv class=\u0022post-item post-7\u0022\u003E\u003C/div\u003E\u003Cdiv class=\u0022post-item post-7\u0022\u003E\u003C/div\u003E\u003Cdiv class=\u0022post-item post-9\u0022\u003E\u003C/div\u003E",
+      "ids": [
+        7,
+        9
+      ]
+    },
+    {
+      "input": "\u003Cdiv class=\u0022post-item-post-5\u0022\u003E\u003C/div\u003E",
+      "ids": []
+    }
+  ]
+}

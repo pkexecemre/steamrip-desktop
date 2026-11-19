@@ -1,0 +1,18 @@
+{
+  "cases": [
+    {
+      "parsed": {
+        "tag": "dwproton-11.0-16",
+        "archive": "https://github.com/dawn-winery/dwproton-mirror/releases/download/dwproton-11.0-16/dwproton-11.0-16-x86_64.tar.xz",
+        "archive_name": "dwproton-11.0-16-x86_64.tar.xz",
+        "checksum": "https://github.com/dawn-winery/dwproton-mirror/releases/download/dwproton-11.0-16/dwproton-11.0-16-x86_64.sha512sum"
+      }
+    },
+    {
+      "parsed": null
+    },
+    {
+      "parsed": null
+    }
+  ]
+}

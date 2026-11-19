@@ -626,3 +626,88 @@ fn percent_values_match_the_original() {
         );
     }
 }
+
+#[derive(Debug, Deserialize)]
+struct ReleaseCase {
+    parsed: Option<ReleaseFields>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseFields {
+    tag: String,
+    archive: String,
+    archive_name: String,
+    checksum: Option<String>,
+}
+
+#[test]
+fn proton_release_matches_the_original() {
+    let raw = std::fs::read_to_string(fixtures_dir().join("proton_release.json")).expect("fixture");
+    let doc: serde_json::Value = serde_json::from_str(&raw).expect("json");
+    let cases = doc["cases"].as_array().expect("cases");
+    let fixture = std::fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../../tests/SteamRip.Core.Tests/Fixtures/dwproton_release.json"),
+    )
+    .expect("dwproton fixture");
+    let inputs = [
+        fixture.as_str(),
+        r#"{\"tag_name\":\"v1\",\"assets\":[{\"name\":\"other.zip\",\"browser_download_url\":\"https://x/y.zip\"}]}"#,
+        r#"{\"assets\":[]}"#,
+    ];
+    assert_eq!(cases.len(), inputs.len(), "case count");
+    for (case, input) in cases.iter().zip(inputs) {
+        let expected: ReleaseCase = serde_json::from_value(case.clone()).expect("case");
+        let got = steamrip_core::proton_release::parse_latest(input);
+        match (got, expected.parsed) {
+            (None, None) => {}
+            (Some(release), Some(fields)) => {
+                assert_eq!(release.tag, fields.tag);
+                assert_eq!(release.archive_url, fields.archive);
+                assert_eq!(release.archive_name, fields.archive_name);
+                assert_eq!(release.checksum_url, fields.checksum);
+            }
+            (got, expected) => panic!("release mismatch: {got:?} vs {expected:?}"),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct ChecksumCase {
+    file: String,
+    hash: Option<String>,
+}
+
+#[test]
+fn proton_checksum_matches_the_original() {
+    let cases: Vec<ChecksumCase> = load("proton_checksum.json");
+    let text = "abc123  dwproton-11.0-16-x86_64.tar.xz\ndef456 *dwproton-other.tar.xz\nshort\nfedcba  dwproton-11.0-16-x86_64.sha512sum\n";
+    for case in cases {
+        assert_eq!(
+            steamrip_core::proton_release::parse_checksum(text, &case.file),
+            case.hash,
+            "checksum for {:?}",
+            case.file
+        );
+    }
+}
+
+#[derive(Deserialize)]
+struct TopGamesCase {
+    input: String,
+    ids: Vec<i64>,
+}
+
+#[test]
+fn top_games_match_the_original() {
+    let cases: Vec<TopGamesCase> = load("top_games.json");
+    assert!(!cases.is_empty(), "fixture has no cases");
+    for case in cases {
+        assert_eq!(
+            steamrip_core::catalog::parse_top_games(&case.input),
+            case.ids,
+            "ids for {:?}",
+            case.input
+        );
+    }
+}

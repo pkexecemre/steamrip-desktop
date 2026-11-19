@@ -1098,4 +1098,80 @@ public class GoldenTests
 
         RecordOrCheck("percent_values.json", cases);
     }
+
+    [Fact]
+    public void Proton_release_recordings_match()
+    {
+        var fixture = Fixture.Read("dwproton_release.json");
+        var noAsset =
+            "{\"tag_name\":\"v1\",\"assets\":[{\"name\":\"other.zip\",\"browser_download_url\":\"https://x/y.zip\"}]}";
+        var noTag = "{\"assets\":[]}";
+
+        var cases = new[] { fixture, noAsset, noTag }
+            .Select(json =>
+            {
+                var release = ProtonDownloader.ParseLatest(json);
+                return new
+                {
+                    parsed = release is null
+                        ? null
+                        : new
+                        {
+                            tag = release.Tag,
+                            archive = release.ArchiveUrl,
+                            archive_name = release.ArchiveName,
+                            checksum = release.ChecksumUrl,
+                        },
+                };
+            })
+            .ToList();
+
+        RecordOrCheck("proton_release.json", cases);
+    }
+
+    [Fact]
+    public void Proton_checksum_recordings_match()
+    {
+        var text =
+            "abc123  dwproton-11.0-16-x86_64.tar.xz"
+            + "\n"
+            + "def456 *dwproton-other.tar.xz"
+            + "\n"
+            + "short"
+            + "\n"
+            + "fedcba  dwproton-11.0-16-x86_64.sha512sum"
+            + "\n";
+
+        string[] files =
+        [
+            "dwproton-11.0-16-x86_64.tar.xz",
+            "dwproton-other.tar.xz",
+            "missing-file.tar.xz",
+            "",
+        ];
+
+        var cases = files
+            .Select(file => new { file, hash = ProtonDownloader.ParseChecksum(text, file) })
+            .ToList();
+
+        RecordOrCheck("proton_checksum.json", cases);
+    }
+
+    [Fact]
+    public void Top_games_recordings_match()
+    {
+        string[] pages =
+        [
+            "",
+            "<div class=\"post-item post-57136 x\"></div><div class=\"post-item post-42\"></div>",
+            "<div class=\"post-item post-7\"></div><div class=\"post-item post-7\"></div><div class=\"post-item post-9\"></div>",
+            "<div class=\"post-item-post-5\"></div>",
+        ];
+
+        var cases = pages
+            .Select(html => new { input = html, ids = CatalogParser.ParseTopGames(html) })
+            .ToList();
+
+        RecordOrCheck("top_games.json", cases);
+    }
 }
