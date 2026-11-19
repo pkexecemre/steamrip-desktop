@@ -314,4 +314,25 @@ public sealed class PrefixManagerTests : IDisposable
             root.Delete(true);
         }
     }
+
+    [Fact]
+    public void Reset_keeps_the_copy_it_just_made_even_at_zero()
+    {
+        var root = Directory.CreateTempSubdirectory("sr-prefix-zero-");
+        try
+        {
+            var prefix = Path.Combine(root.FullName, "game");
+            Directory.CreateDirectory(Path.Combine(prefix, "drive_c"));
+            Directory.CreateDirectory(Path.Combine(root.FullName, "game.bak-20200101-000000"));
+
+            var aside = PrefixManager.Reset(prefix, keepBackups: 0);
+
+            Assert.NotNull(aside);
+            Assert.True(Directory.Exists(aside));
+        }
+        finally
+        {
+            root.Delete(true);
+        }
+    }
 }

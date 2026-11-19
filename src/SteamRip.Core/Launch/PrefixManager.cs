@@ -232,7 +232,9 @@ public static class PrefixManager
             return null;
         var aside = AsidePath(prefixDir, DateTime.UtcNow);
         MoveDirectory(prefixDir, aside);
-        PruneAside(prefixDir, keepBackups);
+        // At least the copy this call just made survives: a reset is meant to leave a way back, and
+        // keepBackups: 0 used to delete the aside immediately and return its path anyway.
+        PruneAside(prefixDir, Math.Max(keepBackups, 1));
         return aside;
     }
 
