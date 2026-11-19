@@ -50,6 +50,7 @@ applied by hand because its CLI does not target .NET:
 | `hoster::detect/normalize` | `HosterDetector.Detect/Normalize` | `fixtures/mirrors.json` |
 | `catalog::mirrors_from_html` | `CatalogParser.MirrorsFromHtml` | `fixtures/mirrors.json` |
 | `catalog::game_size_text` | `CatalogParser.GameSizeText` | `fixtures/game_size.json` |
+| `catalog::parse_one` | `CatalogParser.ParseOne` | `fixtures/parse_one.json` |
 | `proton::version_key/compare_versions` | `ProtonLocator.VersionKey/CompareVersions` | `fixtures/proton_versions.json` |
 | `proton::newest_build_name` | `ProtonLocator.NewestBuildName` | `fixtures/proton_versions.json` |
 | `proton::display_name` | `ProtonLocator.DisplayName` | `fixtures/proton_display_name.json` |
