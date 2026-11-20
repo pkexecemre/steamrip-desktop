@@ -178,6 +178,11 @@
     <Style Selector="ListBoxItem:pointerover Border.row">
         <Setter Property="Background" Value="{StaticResource Raised}" />
     </Style>
+    <Style Selector="Border.event">
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="0,4" />
+    </Style>
     <Style Selector="Border.row">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />

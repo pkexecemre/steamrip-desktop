@@ -38,6 +38,10 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
     public string UpdatesLabel =>
         UpdatesAvailable == 1 ? "1 update" : $"{UpdatesAvailable} updates";
 
+    /// <summary>One quiet line under the title: how much is installed and how long it has been played.</summary>
+    [ObservableProperty]
+    public partial string Summary { get; set; } = "";
+
     [ObservableProperty]
     public partial bool IsEmpty { get; set; } = true;
 
@@ -82,6 +86,12 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
             Items.Remove(gone);
         UpdatesAvailable = updates;
         IsEmpty = Items.Count == 0;
+        Summary =
+            Items.Count == 0
+                ? ""
+                : $"{Items.Count} game{(Items.Count == 1 ? "" : "s")}, "
+                    + $"{installs.Sum(g => g.PlaytimeSeconds) / 3600.0:0.#} h played"
+                    + (updates > 0 ? $", {updates} waiting on you" : "");
     }
 
     public async Task PlayAsync(LibraryItem item)

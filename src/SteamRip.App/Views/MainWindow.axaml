@@ -112,6 +112,11 @@
                             <TextBlock Text="{Binding UpdatesLabel}" />
                         </Border>
                     </StackPanel>
+                    <TextBlock
+                        Classes="meta"
+                        Text="{Binding Summary}"
+                        IsVisible="{Binding !IsEmpty}"
+                    />
                 </StackPanel>
                 <StackPanel
                     DockPanel.Dock="Top"
@@ -355,7 +360,12 @@
                             ToolTip.Tip="Sort order"
                         />
                     </StackPanel>
-                    <TextBox PlaceholderText="Search by name…" Text="{Binding Query}" />
+                    <TextBox
+                        PlaceholderText="Search by name…"
+                        Text="{Binding Query}"
+                        MaxWidth="460"
+                        HorizontalAlignment="Left"
+                    />
                 </DockPanel>
                 <TextBlock
                     DockPanel.Dock="Top"
@@ -643,27 +653,30 @@
                         <ItemsControl ItemsSource="{Binding Events}" Margin="14,10">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:ActivityLine">
-                                    <Grid ColumnDefinitions="92,74,*" Margin="0,3">
-                                        <TextBlock
-                                            Classes="mono muted"
-                                            FontSize="11"
-                                            Text="{Binding When}"
-                                        />
-                                        <TextBlock
-                                            Grid.Column="1"
-                                            Classes="mono"
-                                            FontSize="11"
-                                            Text="{Binding Kind}"
-                                            Classes.red="{Binding IsError}"
-                                            Classes.muted="{Binding !IsError}"
-                                        />
-                                        <TextBlock
-                                            Grid.Column="2"
-                                            FontSize="12.5"
-                                            Text="{Binding Message}"
-                                            TextWrapping="Wrap"
-                                        />
-                                    </Grid>
+                                    <Border Classes="event">
+                                        <Grid ColumnDefinitions="118,92,*">
+                                            <TextBlock
+                                                Classes="mono muted"
+                                                FontSize="11"
+                                                Text="{Binding When}"
+                                            />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Classes="mono"
+                                                FontSize="11"
+                                                Text="{Binding Kind}"
+                                                TextTrimming="CharacterEllipsis"
+                                                Classes.red="{Binding IsError}"
+                                                Classes.muted="{Binding !IsError}"
+                                            />
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                FontSize="12.5"
+                                                Text="{Binding Message}"
+                                                TextWrapping="Wrap"
+                                            />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
