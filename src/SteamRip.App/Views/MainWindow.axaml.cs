@@ -22,8 +22,13 @@ public partial class MainWindow : Window
         var compact = width < CompactWidth;
         var rail = this.FindControl<Border>("Rail");
         var shell = this.FindControl<Grid>("Shell");
+        var sheet = this.FindControl<Border>("Sheet");
         if (rail is null || shell is null)
             return;
+
+        // The sheet never takes more than ~86% of the window, so it stays usable on a small one.
+        if (sheet is not null)
+            sheet.Width = Math.Clamp(width * 0.86, 360, 560);
 
         if (compact == rail.Classes.Contains("compact"))
             return;
