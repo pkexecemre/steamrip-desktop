@@ -164,8 +164,12 @@
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
     <Style Selector="Button.nav.active">
-        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Violet}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+    <Style Selector="Button.nav.active TextBlock.nav-label">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Button.nav TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
@@ -176,7 +180,14 @@
 
     <!-- Game rows: a hairline, a hover lift, no card. -->
     <Style Selector="ListBoxItem:pointerover Border.row">
-        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="Background" Value="#1F1730" />
+    </Style>
+    <Style Selector="Border.row">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.12" />
+            </Transitions>
+        </Setter>
     </Style>
     <Style Selector="Border.event">
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -192,9 +203,18 @@
 
     <Style Selector="Border.cover">
         <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="CornerRadius" Value="3" />
         <Setter Property="ClipToBounds" Value="True" />
         <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="BoxShadow" Value="0 0 0 1 #33FFFFFF" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover Border.cover">
+        <Setter Property="RenderTransform" Value="scale(1.06)" />
     </Style>
     <Style Selector="TextBlock.coverInitial">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
@@ -275,13 +295,18 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.primary">
-        <Setter Property="Background" Value="{StaticResource Amber}" />
-        <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        <Setter Property="Background" Value="{StaticResource Signal}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#FFC866" />
-        <Setter Property="Foreground" Value="{StaticResource Ink}" />
+        <Setter Property="Background" Value="{StaticResource Signal}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
     </Style>
     <Style Selector="Button.action">
         <Setter Property="Background" Value="Transparent" />

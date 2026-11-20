@@ -1,0 +1,89 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:SteamRip.App.ViewModels"
+    x:Class="SteamRip.App.Views.Pages.ActivityView"
+    x:DataType="vm:ActivityViewModel"
+>
+    <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,*">
+        <StackPanel Margin="0,0,0,16" Spacing="3">
+            <TextBlock Classes="h1" Text="Activity" />
+            <TextBlock
+                Classes="meta"
+                Text="What the app did, newest first. Every line is also in the log file."
+            />
+        </StackPanel>
+
+        <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="0">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Events}" Margin="14,10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:ActivityLine">
+                            <Border Classes="event">
+                                <Grid ColumnDefinitions="118,92,*">
+                                    <TextBlock
+                                        Classes="mono muted"
+                                        FontSize="11"
+                                        Text="{Binding When}"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Classes="mono"
+                                        FontSize="11"
+                                        Text="{Binding Kind}"
+                                        TextTrimming="CharacterEllipsis"
+                                        Classes.red="{Binding IsError}"
+                                        Classes.muted="{Binding !IsError}"
+                                    />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        FontSize="12.5"
+                                        Text="{Binding Message}"
+                                        TextWrapping="Wrap"
+                                    />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,18,0,8">
+            <StackPanel Spacing="2" VerticalAlignment="Center">
+                <TextBlock Classes="label" Text="Session log" />
+                <TextBlock
+                    Classes="mono muted"
+                    FontSize="10.5"
+                    Text="{Binding LogDir}"
+                    TextTrimming="CharacterEllipsis"
+                />
+            </StackPanel>
+            <Button
+                Grid.Column="1"
+                Classes="quiet"
+                Content="Open log folder"
+                Command="{Binding OpenLogDirCommand}"
+                VerticalAlignment="Center"
+            />
+        </Grid>
+
+        <Border Grid.Row="3" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="0">
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Live}" Margin="14,10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock
+                                Classes="mono muted"
+                                FontSize="11"
+                                Text="{Binding}"
+                                TextWrapping="Wrap"
+                                Margin="0,1"
+                            />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

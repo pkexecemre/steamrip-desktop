@@ -5,16 +5,20 @@
     RequestedThemeVariant="Dark"
 >
     <Application.Resources>
-        <!-- Palette: cold ink, one amber accent, no glow. Colours carry state, not decoration. -->
-        <Color x:Key="InkColor">#0C0F14</Color>
-        <Color x:Key="PanelColor">#11151B</Color>
-        <Color x:Key="RaisedColor">#181D25</Color>
-        <Color x:Key="LineColor">#242B35</Color>
-        <Color x:Key="TextColor">#E8EBF0</Color>
-        <Color x:Key="MutedColor">#8D97A6</Color>
-        <Color x:Key="AmberColor">#F2B544</Color>
-        <Color x:Key="GreenColor">#62C08D</Color>
-        <Color x:Key="RedColor">#E2685D</Color>
+        <!-- Palette lifted from steamrip.com itself: violet ink, electric purple, pink, cyan. -->
+        <Color x:Key="InkColor">#120E1B</Color>
+        <Color x:Key="PanelColor">#181226</Color>
+        <Color x:Key="RaisedColor">#221936</Color>
+        <Color x:Key="LineColor">#2E2344</Color>
+        <Color x:Key="TextColor">#F2EEFA</Color>
+        <Color x:Key="MutedColor">#9C8FB5</Color>
+        <Color x:Key="VioletColor">#8438FF</Color>
+        <Color x:Key="VioletSoftColor">#A855F7</Color>
+        <Color x:Key="PinkColor">#FF007A</Color>
+        <Color x:Key="CyanColor">#31B5FF</Color>
+        <Color x:Key="AmberColor">#FFC581</Color>
+        <Color x:Key="GreenColor">#5FC08C</Color>
+        <Color x:Key="RedColor">#F32758</Color>
 
         <SolidColorBrush x:Key="Ink" Color="{StaticResource InkColor}" />
         <SolidColorBrush x:Key="Panel" Color="{StaticResource PanelColor}" />
@@ -22,9 +26,22 @@
         <SolidColorBrush x:Key="Line" Color="{StaticResource LineColor}" />
         <SolidColorBrush x:Key="Text" Color="{StaticResource TextColor}" />
         <SolidColorBrush x:Key="Muted" Color="{StaticResource MutedColor}" />
+        <SolidColorBrush x:Key="Violet" Color="{StaticResource VioletColor}" />
+        <SolidColorBrush x:Key="VioletSoft" Color="{StaticResource VioletSoftColor}" />
+        <SolidColorBrush x:Key="Pink" Color="{StaticResource PinkColor}" />
+        <SolidColorBrush x:Key="Cyan" Color="{StaticResource CyanColor}" />
         <SolidColorBrush x:Key="Amber" Color="{StaticResource AmberColor}" />
         <SolidColorBrush x:Key="Green" Color="{StaticResource GreenColor}" />
         <SolidColorBrush x:Key="Red" Color="{StaticResource RedColor}" />
+        <LinearGradientBrush x:Key="Signal" StartPoint="0%,0%" EndPoint="100%,0%">
+            <GradientStop Offset="0" Color="{StaticResource VioletColor}" />
+            <GradientStop Offset="1" Color="{StaticResource PinkColor}" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="SignalDown" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="{StaticResource VioletColor}" />
+            <GradientStop Offset="0.6" Color="{StaticResource PinkColor}" />
+            <GradientStop Offset="1" Color="{StaticResource AmberColor}" />
+        </LinearGradientBrush>
         <!-- Popups (menus, flyouts, combo dropdowns) inherit Fluent's grey otherwise. Same ink/panel/line as the cards. -->
         <SolidColorBrush
             x:Key="MenuFlyoutPresenterBackground"

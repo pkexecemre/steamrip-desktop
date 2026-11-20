@@ -1,0 +1,358 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:SteamRip.App.ViewModels"
+    x:Class="SteamRip.App.Views.Pages.SettingsView"
+    x:DataType="vm:SettingsViewModel"
+>
+    <ScrollViewer>
+        <StackPanel Margin="28,24,28,20" Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
+            <StackPanel Spacing="3">
+                <TextBlock Classes="h1" Text="Settings" />
+                <TextBlock
+                    Classes="meta"
+                    Text="Saved as you type. Paths apply to new installs; the Proton and download choices to the next launch or job."
+                />
+            </StackPanel>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Folders" />
+                    <TextBlock
+                        MaxWidth="640"
+                        HorizontalAlignment="Left"
+                        Classes="meta"
+                        Text="Games are extracted to &lt;library&gt;/&lt;game-slug&gt;. Each keeps its own Wine prefix outside the game folder (default &lt;library&gt;/.prefixes/&lt;game-slug&gt;), so an update swap, an uninstall or a delete cannot take the saves with it; prefixes still sitting in a game folder are moved there on the next launch. Archives land in the downloads folder and are deleted after install unless you say otherwise."
+                        TextWrapping="Wrap"
+                    />
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Library folder"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <ContentControl Grid.Column="1">
+                            <TextBox Text="{Binding LibraryRoot}" />
+                        </ContentControl>
+                    </Grid>
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Downloads folder"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <ContentControl Grid.Column="1">
+                            <TextBox Text="{Binding DownloadsRoot}" />
+                        </ContentControl>
+                    </Grid>
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Prefixes folder"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <StackPanel Grid.Column="1" Spacing="10">
+                            <TextBox
+                                Text="{Binding PrefixRoot}"
+                                PlaceholderText="{Binding LibraryRoot}"
+                            />
+                            <TextBlock
+                                Classes="meta"
+                                TextWrapping="Wrap"
+                                Text="Empty means &lt;library&gt;/.prefixes."
+                            />
+                            <ToggleSwitch
+                                IsChecked="{Binding DeletePrefixOnUninstall}"
+                                OnContent="Delete the prefix when uninstalling (saves go too)"
+                                OffContent="Keep the prefix when uninstalling (saves stay)"
+                            />
+                        </StackPanel>
+                    </Grid>
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Save backups to keep per game"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <StackPanel Grid.Column="1" Spacing="10">
+                            <NumericUpDown
+                                Value="{Binding KeepBackups}"
+                                Minimum="0"
+                                Maximum="10"
+                                Width="140"
+                                HorizontalAlignment="Left"
+                            />
+                            <ToggleSwitch
+                                IsChecked="{Binding DeleteArchiveAfterInstall}"
+                                OnContent="Delete archive after install"
+                                OffContent="Keep archive after install"
+                            />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Downloads" />
+                    <TextBlock
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                        Text="aria2 splits a transfer over many connections, resumes a half-finished file, retries a host that hung up, checks the hash the hoster published and opens the .torrent mirrors some hosters serve instead of an archive. Without it the app falls back to its own single-connection downloader."
+                    />
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Engine"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <ContentControl Grid.Column="1">
+                            <ComboBox
+                                ItemsSource="{Binding Engines}"
+                                SelectedItem="{Binding DownloadEngine}"
+                                HorizontalAlignment="Stretch"
+                            />
+                        </ContentControl>
+                    </Grid>
+                    <ToggleSwitch
+                        IsChecked="{Binding TorrentMirrors}"
+                        OnContent="Use .torrent mirrors when no direct link resolves"
+                        OffContent="Skip .torrent mirrors (direct files only)"
+                    />
+                    <TextBlock
+                        Classes="mono muted"
+                        Text="{Binding DownloadLine}"
+                        TextWrapping="Wrap"
+                    />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Playing" />
+                    <TextBlock
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                        Text="Games run through umu-run with the Proton build below (per-game override in Launch options). GE-Proton and DW-Proton are downloaded on first use and kept current; expect a wait that one time, and the same for umu's runtime."
+                    />
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="Default Proton"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <ContentControl Grid.Column="1">
+                            <ComboBox
+                                ItemsSource="{Binding Protons}"
+                                SelectedItem="{Binding DefaultProton}"
+                                HorizontalAlignment="Stretch"
+                            />
+                        </ContentControl>
+                    </Grid>
+                    <TextBlock
+                        Classes="mono muted"
+                        Text="{Binding LauncherLine}"
+                        TextWrapping="Wrap"
+                    />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Launch defaults" />
+                    <TextBlock
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                        Text="Applied to every game unless its Launch options say otherwise. Missing tools are skipped with a note in the log, never a failed launch. HDR needs a Wayland session and either gamescope or Wine's Wayland driver; the check below tells you which you have."
+                    />
+                    <ContentControl Content="{Binding Launch}" />
+                    <DockPanel Margin="0,6,0,0">
+                        <Button
+                            DockPanel.Dock="Right"
+                            Classes="quiet"
+                            Content="Re-check"
+                            Command="{Binding RecheckCommand}"
+                            VerticalAlignment="Top"
+                        />
+                        <StackPanel Spacing="4">
+                            <TextBlock Classes="eyebrow" Text="CAPABILITY CHECK" />
+                            <TextBlock
+                                Classes="mono muted"
+                                Text="{Binding CapabilityText}"
+                                TextWrapping="Wrap"
+                            />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Mirrors and Cloudflare" />
+                    <TextBlock
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                        Text="FileDitch and BuzzHeavier pages sit behind browser checks; FlareSolverr passes them for you. GoFile and MegaDB need nothing. If every automatic route fails, the queue offers 'Solve in browser'."
+                    />
+                    <TextBlock Text="FlareSolverr URL" Classes="label" />
+                    <DockPanel>
+                        <Button
+                            DockPanel.Dock="Right"
+                            Classes="quiet"
+                            Content="Test"
+                            Command="{Binding TestSolverCommand}"
+                            Margin="6,0,0,0"
+                        />
+                        <TextBox
+                            Text="{Binding FlareSolverrUrl, UpdateSourceTrigger=PropertyChanged}"
+                            PlaceholderText="http://192.168.1.10:8191"
+                            FontFamily="{StaticResource Mono}"
+                            FontSize="12"
+                        />
+                    </DockPanel>
+                    <TextBlock
+                        Classes="muted"
+                        Text="{Binding SolverTest}"
+                        IsVisible="{Binding SolverTest, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    />
+                    <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                        <TextBlock
+                            Classes="label"
+                            Text="SteamGridDB API key"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Center"
+                        />
+                        <ContentControl Grid.Column="1">
+                            <TextBox
+                                Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=PropertyChanged}"
+                                PasswordChar="•"
+                                PlaceholderText="Optional — free key from steamgriddb.com → Preferences"
+                                FontFamily="{StaticResource Mono}"
+                                FontSize="12"
+                            />
+                        </ContentControl>
+                    </Grid>
+                    <TextBlock
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                        Text="Used for sharp 600×900 covers and shortcut icons. Without a key, covers fall back to Steam's library art. Clear covers/ after changing the key so cards re-fetch."
+                    />
+                    <TextBlock
+                        Text="Mirror preference (comma-separated: FileDitch, GoFile, MegaDb, BuzzHeavier)"
+                        Classes="muted"
+                        TextWrapping="Wrap"
+                    />
+                    <TextBox
+                        Text="{Binding HosterOrder}"
+                        FontFamily="{StaticResource Mono}"
+                        FontSize="12"
+                    />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="10">
+                    <TextBlock Classes="h2" Text="Schedule and tray" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <StackPanel>
+                            <TextBlock Text="Check the catalog every (minutes)" Classes="label" />
+                            <NumericUpDown
+                                Value="{Binding CheckIntervalMinutes}"
+                                Minimum="5"
+                                Maximum="1440"
+                                Width="160"
+                            />
+                        </StackPanel>
+                    </StackPanel>
+                    <ToggleSwitch
+                        IsChecked="{Binding Autostart}"
+                        OnContent="Start with the system (hidden in tray)"
+                        OffContent="Don't start with the system"
+                    />
+                    <ToggleSwitch
+                        IsChecked="{Binding StartHidden}"
+                        OnContent="Start hidden in the tray"
+                        OffContent="Show the window on start"
+                    />
+                    <ToggleSwitch
+                        IsChecked="{Binding ShortcutMenu}"
+                        OnContent="Add installed games to the app menu"
+                        OffContent="No app menu entries for games"
+                    />
+                    <ToggleSwitch
+                        IsChecked="{Binding ShortcutDesktop}"
+                        OnContent="Put a shortcut for each game on the desktop"
+                        OffContent="No desktop shortcuts for games"
+                    />
+                    <ToggleSwitch
+                        IsChecked="{Binding NotifyNewGames}"
+                        OnContent="Notify when new games are posted"
+                        OffContent="Only notify about my games"
+                    />
+                    <Button
+                        Classes="quiet"
+                        Content="Send a test notification"
+                        Command="{Binding TestNotificationCommand}"
+                        HorizontalAlignment="Left"
+                    />
+                </StackPanel>
+            </Border>
+
+            <Border Classes="section">
+                <StackPanel Spacing="6">
+                    <TextBlock Classes="h2" Text="On this machine" />
+                    <TextBlock Classes="mono muted" Text="{Binding VersionLine}" />
+                    <TextBlock
+                        Classes="mono muted"
+                        Text="{Binding ToolsLine}"
+                        TextWrapping="Wrap"
+                    />
+                    <TextBlock Classes="mono muted" Text="{Binding SecretsLine}" />
+                    <DockPanel>
+                        <Button
+                            DockPanel.Dock="Right"
+                            Classes="quiet"
+                            Content="Open"
+                            Command="{Binding OpenConfigDirCommand}"
+                        />
+                        <TextBlock
+                            Classes="mono muted"
+                            Text="{Binding ConfigDir}"
+                            VerticalAlignment="Center"
+                        />
+                    </DockPanel>
+                    <DockPanel>
+                        <Button
+                            DockPanel.Dock="Right"
+                            Classes="quiet"
+                            Content="Open"
+                            Command="{Binding OpenLogDirCommand}"
+                        />
+                        <TextBlock
+                            Classes="mono muted"
+                            Text="{Binding LogDir}"
+                            VerticalAlignment="Center"
+                        />
+                    </DockPanel>
+                    <ToggleSwitch
+                        IsChecked="{Binding VerboseLogging}"
+                        OnContent="Verbose log (HTTP status codes, solver steps, page sizes)"
+                        OffContent="Normal log (resolve, download, install, errors)"
+                    />
+                </StackPanel>
+            </Border>
+
+            <TextBlock
+                Classes="muted"
+                Text="Changes save by themselves. Hoster order and FlareSolverr URL apply to the next job; library paths apply to new installs."
+                TextWrapping="Wrap"
+            />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

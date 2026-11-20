@@ -1,0 +1,87 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:SteamRip.App.ViewModels"
+    x:Class="SteamRip.App.Views.Pages.LaunchOptionsEditorView"
+    x:DataType="vm:LaunchOptionsEditor"
+>
+    <StackPanel Spacing="8">
+        <TextBlock
+            Classes="muted"
+            TextWrapping="Wrap"
+            Text="Only the environment and wrapper apply on Windows; the rest is for Proton on Linux."
+            IsVisible="{Binding !IsLinux}"
+        />
+        <UniformGrid Columns="2" IsEnabled="{Binding IsLinux}">
+            <CheckBox Content="{Binding MangoHudLabel}" IsChecked="{Binding MangoHud}" />
+            <CheckBox Content="{Binding GameModeLabel}" IsChecked="{Binding GameMode}" />
+            <CheckBox Content="{Binding GamescopeLabel}" IsChecked="{Binding Gamescope}" />
+            <CheckBox Content="{Binding HdrLabel}" IsChecked="{Binding Hdr}" />
+            <CheckBox Content="{Binding WaylandLabel}" IsChecked="{Binding Wayland}" />
+            <CheckBox Content="{Binding FsrLabel}" IsChecked="{Binding Fsr}" />
+            <CheckBox Content="{Binding FsyncLabel}" IsChecked="{Binding Fsync}" />
+            <CheckBox
+                Content="{Binding ProtonLogLabel}"
+                IsChecked="{Binding ProtonLog}"
+                ToolTip.Tip="PROTON_LOG=1: Wine writes its debug channels to a file in your home directory. Turn it on when a game does not start, then look for err:, 'unimplemented function' or 'Unhandled exception'."
+            />
+        </UniformGrid>
+        <TextBlock
+            Classes="amber"
+            TextWrapping="Wrap"
+            Text="{Binding HdrWarning}"
+            IsVisible="{Binding HasHdrWarning}"
+        />
+        <Grid ColumnDefinitions="*,12,*" IsEnabled="{Binding IsLinux}">
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Classes="label" Text="Gamescope arguments" />
+                <TextBox
+                    Text="{Binding GamescopeArgs}"
+                    PlaceholderText="{Binding GamescopeArgsPlaceholder}"
+                    FontFamily="{StaticResource Mono}"
+                    FontSize="12"
+                />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="4">
+                <TextBlock Classes="label" Text="MangoHud config" />
+                <TextBox
+                    Text="{Binding MangoHudConfig}"
+                    PlaceholderText="{Binding MangoHudConfigPlaceholder}"
+                    FontFamily="{StaticResource Mono}"
+                    FontSize="12"
+                />
+            </StackPanel>
+        </Grid>
+        <TextBlock Classes="label" Text="DLL overrides" IsVisible="{Binding IsLinux}" />
+        <TextBox
+            Text="{Binding DllOverrides}"
+            PlaceholderText="{Binding DllOverridesPlaceholder}"
+            FontFamily="{StaticResource Mono}"
+            FontSize="12"
+            IsVisible="{Binding IsLinux}"
+        />
+        <TextBlock Classes="eyebrow" Text="ENVIRONMENT (KEY=VALUE PER LINE, APPLIED LAST)" />
+        <TextBox
+            Text="{Binding Environment}"
+            PlaceholderText="{Binding EnvironmentPlaceholder}"
+            AcceptsReturn="True"
+            MinHeight="64"
+            FontFamily="{StaticResource Mono}"
+            FontSize="12"
+        />
+        <TextBlock Classes="eyebrow" Text="WRAPPER COMMAND" />
+        <TextBox
+            Text="{Binding Wrapper}"
+            PlaceholderText="{Binding WrapperPlaceholder}"
+            FontFamily="{StaticResource Mono}"
+            FontSize="12"
+        />
+        <Button
+            Classes="quiet"
+            Content="Back to Settings defaults"
+            Command="{Binding ResetCommand}"
+            HorizontalAlignment="Left"
+            IsVisible="{Binding IsPerGame}"
+        />
+    </StackPanel>
+</UserControl>

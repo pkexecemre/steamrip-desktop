@@ -1,0 +1,205 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:SteamRip.App.ViewModels"
+    x:Class="SteamRip.App.Views.Pages.LibraryView"
+    x:DataType="vm:LibraryViewModel"
+>
+    <DockPanel Margin="28,24,28,20">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,18" Spacing="3">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Classes="h1" Text="Library" VerticalAlignment="Center" />
+                <Border
+                    Classes="pill amber"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding UpdatesAvailable}"
+                >
+                    <TextBlock Text="{Binding UpdatesLabel}" />
+                </Border>
+            </StackPanel>
+            <TextBlock Classes="meta" Text="{Binding Summary}" IsVisible="{Binding !IsEmpty}" />
+        </StackPanel>
+        <StackPanel
+            DockPanel.Dock="Top"
+            Spacing="14"
+            Margin="0,6,0,24"
+            IsVisible="{Binding IsEmpty}"
+        >
+            <TextBlock Classes="h1" FontSize="26" Text="Nothing installed yet." Margin="0,0,0,-6" />
+            <TextBlock
+                Classes="muted"
+                TextWrapping="Wrap"
+                MaxWidth="560"
+                HorizontalAlignment="Left"
+                LineHeight="19"
+                Text="Browse the catalog and pick a game. It downloads, checks the archive, extracts into your library and gets its own Proton prefix on first play. Updates arrive on their own."
+            />
+            <Button
+                Classes="primary"
+                Content="Browse the catalog"
+                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NavigateCommand}"
+                CommandParameter="Browse"
+                HorizontalAlignment="Left"
+                Padding="14,7"
+            />
+        </StackPanel>
+        <TextBlock
+            DockPanel.Dock="Top"
+            Classes="red"
+            Margin="0,0,0,10"
+            TextWrapping="Wrap"
+            Text="{Binding LastError}"
+            IsVisible="{Binding LastError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+        />
+        <ListBox ItemsSource="{Binding Items}" Classes="plain">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:LibraryItem">
+                    <Border Classes="row">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="cover" Width="52" Height="72">
+                                <Panel>
+                                    <TextBlock
+                                        Classes="coverInitial"
+                                        Text="{Binding Initial}"
+                                        IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
+                                    />
+                                    <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+                                </Panel>
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock
+                                        Text="{Binding Name}"
+                                        FontWeight="SemiBold"
+                                        FontSize="14.5"
+                                        TextTrimming="CharacterEllipsis"
+                                    />
+                                    <Border Classes="pill" IsVisible="{Binding IsRunning}">
+                                        <TextBlock Classes="green" Text="running" />
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock
+                                        Classes="mono muted"
+                                        FontSize="11"
+                                        Text="{Binding InstalledVersion}"
+                                    />
+                                    <TextBlock
+                                        Classes="mono amber"
+                                        FontSize="11"
+                                        Text="{Binding SiteVersion}"
+                                        IsVisible="{Binding HasUpdate}"
+                                    />
+                                    <TextBlock Classes="meta" Text="{Binding SizeText}" />
+                                    <TextBlock Classes="meta" Text="{Binding Playtime}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock
+                                        Classes="meta"
+                                        Text="{Binding StatusLine}"
+                                        TextTrimming="CharacterEllipsis"
+                                    />
+                                    <TextBlock
+                                        Classes="mono muted"
+                                        FontSize="10.5"
+                                        Text="{Binding ExeLine}"
+                                        TextTrimming="CharacterEllipsis"
+                                    />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="4"
+                                VerticalAlignment="Center"
+                            >
+                                <Button
+                                    Classes="primary"
+                                    Content="Play"
+                                    Command="{Binding PlayCommand}"
+                                    IsVisible="{Binding !IsRunning}"
+                                    IsEnabled="{Binding CanPlay}"
+                                    MinWidth="64"
+                                />
+                                <Button
+                                    Classes="danger"
+                                    Content="Stop"
+                                    Command="{Binding StopCommand}"
+                                    IsVisible="{Binding IsRunning}"
+                                    MinWidth="64"
+                                />
+                                <Button
+                                    Classes="quiet"
+                                    Content="Update"
+                                    Command="{Binding UpdateNowCommand}"
+                                    IsVisible="{Binding HasUpdate}"
+                                    IsEnabled="{Binding IsIdle}"
+                                    Foreground="{StaticResource Amber}"
+                                />
+                                <Button
+                                    Classes="link"
+                                    Content="Options"
+                                    Command="{Binding OptionsCommand}"
+                                />
+                                <Button Classes="link" Content="···">
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuItem
+                                                Header="{Binding AutoLabel}"
+                                                Command="{Binding ToggleAutoCommand}"
+                                            />
+                                            <Separator />
+                                            <MenuItem
+                                                Header="{Binding MenuShortcutLabel}"
+                                                Command="{Binding ToggleMenuShortcutCommand}"
+                                            />
+                                            <MenuItem
+                                                Header="{Binding DesktopShortcutLabel}"
+                                                Command="{Binding ToggleDesktopShortcutCommand}"
+                                            />
+                                            <Separator IsVisible="{Binding IsLinux}" />
+                                            <MenuItem
+                                                Header="Winetricks"
+                                                Command="{Binding WinetricksCommand}"
+                                                IsVisible="{Binding IsLinux}"
+                                                ToolTip.Tip="Open winetricks against this game's Proton prefix (same Proton wine as Play)"
+                                            />
+                                            <MenuItem
+                                                Header="Run exe…"
+                                                Command="{Binding RunExeCommand}"
+                                                IsVisible="{Binding IsLinux}"
+                                                ToolTip.Tip="Run an .exe or .msi (for example from _CommonRedist) inside this game's prefix"
+                                            />
+                                            <MenuItem
+                                                Header="Prefix info"
+                                                Command="{Binding PrefixInfoCommand}"
+                                                IsVisible="{Binding IsLinux}"
+                                                ToolTip.Tip="Size, Proton build and launch count of this game's Wine prefix (also in the log)"
+                                            />
+                                            <MenuItem
+                                                Header="Reset prefix (moves it aside)"
+                                                Command="{Binding ResetPrefixCommand}"
+                                                IsVisible="{Binding IsLinux}"
+                                                ToolTip.Tip="Move the prefix to a .bak folder and let the next launch build a clean one. Nothing is deleted."
+                                            />
+                                            <Separator />
+                                            <MenuItem
+                                                Header="Forget (keep files)"
+                                                Command="{Binding ForgetCommand}"
+                                            />
+                                            <MenuItem
+                                                Classes="danger"
+                                                Header="Uninstall and delete files"
+                                                Command="{Binding DeleteCommand}"
+                                            />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

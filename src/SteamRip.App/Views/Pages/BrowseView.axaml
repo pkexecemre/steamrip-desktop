@@ -1,0 +1,181 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:SteamRip.App.ViewModels"
+    x:Class="SteamRip.App.Views.Pages.BrowseView"
+    x:DataType="vm:BrowseViewModel"
+>
+    <DockPanel Margin="28,24,28,20">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                    <Button Classes="quiet" Content="Sync now" Command="{Binding SyncCommand}" />
+                    <Button
+                        Classes="quiet"
+                        Content="Full re-sync"
+                        Command="{Binding FullSyncCommand}"
+                        ToolTip.Tip="Re-fetch all ~5,000 posts (about 50 requests)"
+                    />
+                </StackPanel>
+                <TextBlock Classes="h1" Text="Browse" />
+            </DockPanel>
+        </StackPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <StackPanel
+                DockPanel.Dock="Right"
+                Orientation="Horizontal"
+                Spacing="6"
+                Margin="8,0,0,0"
+            >
+                <ComboBox
+                    ItemsSource="{Binding Genres}"
+                    SelectedItem="{Binding Genre}"
+                    DisplayMemberBinding="{Binding Name}"
+                    MinWidth="170"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Genre (the site's categories)"
+                />
+                <ComboBox
+                    ItemsSource="{Binding Sorts}"
+                    SelectedItem="{Binding Sort}"
+                    DisplayMemberBinding="{Binding Label}"
+                    MinWidth="170"
+                    VerticalAlignment="Center"
+                    ToolTip.Tip="Sort order"
+                />
+            </StackPanel>
+            <TextBox
+                PlaceholderText="Search by name…"
+                Text="{Binding Query}"
+                MaxWidth="460"
+                HorizontalAlignment="Left"
+            />
+        </DockPanel>
+        <TextBlock
+            DockPanel.Dock="Top"
+            Classes="meta"
+            Text="{Binding Summary}"
+            TextWrapping="Wrap"
+            Margin="0,-4,0,14"
+        />
+        <StackPanel
+            DockPanel.Dock="Top"
+            Spacing="12"
+            Margin="0,10,0,0"
+            IsVisible="{Binding IsEmpty}"
+        >
+            <StackPanel Spacing="12" IsVisible="{Binding !HasCatalog}">
+                <TextBlock Classes="h2" Text="No catalog yet." />
+                <TextBlock
+                    Classes="meta"
+                    MaxWidth="520"
+                    HorizontalAlignment="Left"
+                    TextWrapping="Wrap"
+                    Text="The first sync starts a few seconds after launch and takes a minute. If nothing appears, press Sync now."
+                />
+                <Button
+                    Classes="quiet"
+                    Content="Sync now"
+                    Command="{Binding SyncCommand}"
+                    HorizontalAlignment="Left"
+                />
+            </StackPanel>
+            <StackPanel Spacing="12" IsVisible="{Binding HasCatalog}">
+                <TextBlock Classes="h2" Text="Nothing matches that." />
+                <TextBlock
+                    Classes="meta"
+                    MaxWidth="520"
+                    HorizontalAlignment="Left"
+                    TextWrapping="Wrap"
+                    Text="Clear the search or pick another genre. The catalog itself is still there."
+                />
+                <Button
+                    Classes="quiet"
+                    Content="Clear filters"
+                    Command="{Binding ClearFiltersCommand}"
+                    HorizontalAlignment="Left"
+                />
+            </StackPanel>
+        </StackPanel>
+        <ListBox ItemsSource="{Binding Items}" Classes="plain">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:BrowseItem">
+                    <Border Classes="row" Padding="16,10">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="2">
+                            <Border
+                                Grid.Column="0"
+                                Classes="cover"
+                                Width="44"
+                                Height="66"
+                                Margin="0,0,12,0"
+                            >
+                                <Panel>
+                                    <TextBlock
+                                        Classes="coverInitial"
+                                        FontSize="18"
+                                        Text="{Binding Initial}"
+                                        IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
+                                    />
+                                    <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+                                </Panel>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock
+                                        Text="{Binding Name}"
+                                        FontWeight="SemiBold"
+                                        FontSize="14"
+                                    />
+                                    <TextBlock
+                                        Classes="mono muted"
+                                        Text="{Binding Version}"
+                                        VerticalAlignment="Center"
+                                    />
+                                </StackPanel>
+                                <TextBlock Classes="meta" Margin="0,3,0,0">
+                                    <Run Text="{Binding Size}" />
+                                    <Run Text=", updated " />
+                                    <Run Text="{Binding Updated}" />
+                                    <Run Text=", via " />
+                                    <Run Text="{Binding Mirrors}" />
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="6"
+                                VerticalAlignment="Center"
+                            >
+                                <Border Classes="pill" IsVisible="{Binding Installed}">
+                                    <TextBlock FontSize="11" Classes="green" Text="In library" />
+                                </Border>
+                                <Border
+                                    Classes="pill"
+                                    IsVisible="{Binding Unsupported}"
+                                    ToolTip.Tip="This post only has mirrors the app can't resolve (1fichier, FileCrypt…)"
+                                >
+                                    <TextBlock
+                                        FontSize="11"
+                                        Classes="muted"
+                                        Text="No supported mirror"
+                                    />
+                                </Border>
+                                <Button
+                                    Classes="action"
+                                    Content="Install"
+                                    Command="{Binding InstallCommand}"
+                                    IsVisible="{Binding CanInstall}"
+                                />
+                                <Button
+                                    Classes="quiet"
+                                    Content="Page"
+                                    Command="{Binding OpenPageCommand}"
+                                />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>
