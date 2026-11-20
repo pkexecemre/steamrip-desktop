@@ -36,11 +36,13 @@ public partial class ActivityViewModel : ObservableObject
     public void Refresh()
     {
         Events.Clear();
-        OnPropertyChanged(nameof(IsEmpty));
         foreach (var (at, kind, message) in _s.Db.RecentEvents())
             Events.Add(
                 new ActivityLine(at.ToLocalTime().ToString("yyyy-MM-dd HH:mm"), kind, message)
             );
+        // After the rows are in: notifying right after Clear() told the page it was empty and the
+        // table stayed hidden even though the events were there.
+        OnPropertyChanged(nameof(IsEmpty));
     }
 }
 
