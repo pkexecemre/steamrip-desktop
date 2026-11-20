@@ -735,49 +735,80 @@
                         <StackPanel Spacing="10">
                             <TextBlock Classes="h2" Text="Folders" />
                             <TextBlock
-                                Classes="muted"
+                                MaxWidth="640"
+                                HorizontalAlignment="Left"
+                                Classes="meta"
                                 Text="Games are extracted to &lt;library&gt;/&lt;game-slug&gt;. Each keeps its own Wine prefix outside the game folder (default &lt;library&gt;/.prefixes/&lt;game-slug&gt;), so an update swap, an uninstall or a delete cannot take the saves with it; prefixes still sitting in a game folder are moved there on the next launch. Archives land in the downloads folder and are deleted after install unless you say otherwise."
                                 TextWrapping="Wrap"
                             />
-                            <TextBlock Text="Library folder" Classes="label" />
-                            <TextBox Text="{Binding LibraryRoot}" />
-                            <TextBlock Text="Downloads folder" Classes="label" />
-                            <TextBox Text="{Binding DownloadsRoot}" />
-                            <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
                                 <TextBlock
-                                    Text="Prefixes folder (empty = &lt;library&gt;/.prefixes)"
                                     Classes="label"
+                                    Text="Library folder"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
                                 />
-                                <TextBox
-                                    Text="{Binding PrefixRoot}"
-                                    PlaceholderText="{Binding LibraryRoot}"
+                                <ContentControl Grid.Column="1">
+                                    <TextBox Text="{Binding LibraryRoot}" />
+                                </ContentControl>
+                            </Grid>
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="Downloads folder"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
                                 />
-                                <ToggleSwitch
-                                    IsChecked="{Binding DeletePrefixOnUninstall}"
-                                    OnContent="Delete the prefix when uninstalling (saves go too)"
-                                    OffContent="Keep the prefix when uninstalling (saves stay)"
+                                <ContentControl Grid.Column="1">
+                                    <TextBox Text="{Binding DownloadsRoot}" />
+                                </ContentControl>
+                            </Grid>
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="Prefixes folder"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
                                 />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Spacing="16">
-                                <StackPanel>
-                                    <TextBlock
-                                        Text="Save backups to keep per game"
-                                        Classes="label"
+                                <StackPanel Grid.Column="1" Spacing="10">
+                                    <TextBox
+                                        Text="{Binding PrefixRoot}"
+                                        PlaceholderText="{Binding LibraryRoot}"
                                     />
+                                    <TextBlock
+                                        Classes="meta"
+                                        TextWrapping="Wrap"
+                                        Text="Empty means &lt;library&gt;/.prefixes."
+                                    />
+                                    <ToggleSwitch
+                                        IsChecked="{Binding DeletePrefixOnUninstall}"
+                                        OnContent="Delete the prefix when uninstalling (saves go too)"
+                                        OffContent="Keep the prefix when uninstalling (saves stay)"
+                                    />
+                                </StackPanel>
+                            </Grid>
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="Save backups to keep per game"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
+                                />
+                                <StackPanel Grid.Column="1" Spacing="10">
                                     <NumericUpDown
                                         Value="{Binding KeepBackups}"
                                         Minimum="0"
                                         Maximum="10"
                                         Width="140"
+                                        HorizontalAlignment="Left"
+                                    />
+                                    <ToggleSwitch
+                                        IsChecked="{Binding DeleteArchiveAfterInstall}"
+                                        OnContent="Delete archive after install"
+                                        OffContent="Keep archive after install"
                                     />
                                 </StackPanel>
-                                <ToggleSwitch
-                                    IsChecked="{Binding DeleteArchiveAfterInstall}"
-                                    OnContent="Delete archive after install"
-                                    OffContent="Keep archive after install"
-                                    VerticalAlignment="Bottom"
-                                />
-                            </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
 
@@ -789,12 +820,21 @@
                                 TextWrapping="Wrap"
                                 Text="aria2 splits a transfer over many connections, resumes a half-finished file, retries a host that hung up, checks the hash the hoster published and opens the .torrent mirrors some hosters serve instead of an archive. Without it the app falls back to its own single-connection downloader."
                             />
-                            <TextBlock Text="Engine" Classes="label" />
-                            <ComboBox
-                                ItemsSource="{Binding Engines}"
-                                SelectedItem="{Binding DownloadEngine}"
-                                HorizontalAlignment="Stretch"
-                            />
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="Engine"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
+                                />
+                                <ContentControl Grid.Column="1">
+                                    <ComboBox
+                                        ItemsSource="{Binding Engines}"
+                                        SelectedItem="{Binding DownloadEngine}"
+                                        HorizontalAlignment="Stretch"
+                                    />
+                                </ContentControl>
+                            </Grid>
                             <ToggleSwitch
                                 IsChecked="{Binding TorrentMirrors}"
                                 OnContent="Use .torrent mirrors when no direct link resolves"
@@ -816,12 +856,21 @@
                                 TextWrapping="Wrap"
                                 Text="Games run through umu-run with the Proton build below (per-game override in Launch options). GE-Proton and DW-Proton are downloaded on first use and kept current; expect a wait that one time, and the same for umu's runtime."
                             />
-                            <TextBlock Text="Default Proton" Classes="label" />
-                            <ComboBox
-                                ItemsSource="{Binding Protons}"
-                                SelectedItem="{Binding DefaultProton}"
-                                HorizontalAlignment="Stretch"
-                            />
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="Default Proton"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
+                                />
+                                <ContentControl Grid.Column="1">
+                                    <ComboBox
+                                        ItemsSource="{Binding Protons}"
+                                        SelectedItem="{Binding DefaultProton}"
+                                        HorizontalAlignment="Stretch"
+                                    />
+                                </ContentControl>
+                            </Grid>
                             <TextBlock
                                 Classes="mono muted"
                                 Text="{Binding LauncherLine}"
@@ -888,14 +937,23 @@
                                 Text="{Binding SolverTest}"
                                 IsVisible="{Binding SolverTest, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             />
-                            <TextBlock Text="SteamGridDB API key" Classes="label" />
-                            <TextBox
-                                Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=PropertyChanged}"
-                                PasswordChar="•"
-                                PlaceholderText="Optional — free key from steamgriddb.com → Preferences"
-                                FontFamily="{StaticResource Mono}"
-                                FontSize="12"
-                            />
+                            <Grid ColumnDefinitions="200,*" ColumnSpacing="18">
+                                <TextBlock
+                                    Classes="label"
+                                    Text="SteamGridDB API key"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="Center"
+                                />
+                                <ContentControl Grid.Column="1">
+                                    <TextBox
+                                        Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=PropertyChanged}"
+                                        PasswordChar="•"
+                                        PlaceholderText="Optional — free key from steamgriddb.com → Preferences"
+                                        FontFamily="{StaticResource Mono}"
+                                        FontSize="12"
+                                    />
+                                </ContentControl>
+                            </Grid>
                             <TextBlock
                                 Classes="muted"
                                 TextWrapping="Wrap"
