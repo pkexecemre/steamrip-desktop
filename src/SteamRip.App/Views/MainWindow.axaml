@@ -231,7 +231,17 @@
             Margin="0,0,24,22"
             IsVisible="{Binding ToastVisible}"
         >
-            <TextBlock Text="{Binding Toast}" FontSize="12.5" />
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding Toast}" FontSize="12.5" />
+                <Border
+                    x:Name="ToastBar"
+                    Height="2"
+                    CornerRadius="1"
+                    Background="{StaticResource Signal}"
+                    RenderTransformOrigin="0%,50%"
+                    RenderTransform="scaleX(1)"
+                />
+            </StackPanel>
         </Border>
 
         <!-- Launch options: a sheet over the window, sectioned like Settings. -->

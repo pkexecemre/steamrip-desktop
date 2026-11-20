@@ -176,7 +176,7 @@
             <TextBlock Classes="red" TextWrapping="Wrap" Text="{Binding LastError}" />
         </Border>
 
-        <ListBox ItemsSource="{Binding Items}" Classes="plain" Margin="0,2,0,0">
+        <ListBox x:Name="Shelf" ItemsSource="{Binding Items}" Classes="plain" Margin="0,2,0,0">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:LibraryItem">
                     <Border Classes="row">

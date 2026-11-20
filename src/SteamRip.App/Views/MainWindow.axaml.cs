@@ -122,6 +122,32 @@ public partial class MainWindow : Window, IDisposable
 
     private DispatcherTimer? _pulse;
 
+    /// <summary>The toast's underline empties over the toast's own 2.5 seconds.</summary>
+    private static readonly Animation Drain = new()
+    {
+        Duration = TimeSpan.FromMilliseconds(2500),
+        Easing = new LinearEasing(),
+        Children =
+        {
+            new KeyFrame
+            {
+                Cue = new Cue(0d),
+                Setters =
+                {
+                    new Setter(RenderTransformProperty, TransformOperations.Parse("scaleX(1)")),
+                },
+            },
+            new KeyFrame
+            {
+                Cue = new Cue(1d),
+                Setters =
+                {
+                    new Setter(RenderTransformProperty, TransformOperations.Parse("scaleX(0)")),
+                },
+            },
+        },
+    };
+
     private INotifyPropertyChanged? _viewModel;
 
     public MainWindow()
@@ -152,6 +178,8 @@ public partial class MainWindow : Window, IDisposable
                 break;
             case "ToastVisible" when this.FindControl<Border>("Toast") is { IsVisible: true } toast:
                 _ = AnimateInAsync(toast, SlideUp);
+                if (this.FindControl<Border>("ToastBar") is { } bar)
+                    _ = AnimateInAsync(bar, Drain);
                 break;
             case "IsEditing" when this.FindControl<Border>("Sheet") is { IsVisible: true } sheet:
                 _ = AnimateInAsync(sheet, SheetIn);
@@ -174,9 +202,10 @@ public partial class MainWindow : Window, IDisposable
         }
         finally
         {
-            // Whatever the clock did, the page must end visible and in place.
+            // Whatever the clock did, the control must end visible and in place.
             page.Opacity = 1;
-            page.RenderTransform = TransformOperations.Parse("none");
+            if (page.Name != "ToastBar")
+                page.RenderTransform = TransformOperations.Parse("none");
         }
     }
 
