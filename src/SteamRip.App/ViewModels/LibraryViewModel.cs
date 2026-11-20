@@ -141,6 +141,15 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
     public bool HasShortcut(LibraryItem item, ShortcutPlace place) =>
         s.Updates.HasShortcut(item.Game.PostId, place);
 
+    /// <summary>Queues the game again after a failure; the row's own message tells the user to do this.</summary>
+    public void Retry(LibraryItem item)
+    {
+        if (item.Post is not { } post)
+            return;
+        s.Updates.Enqueue(post, isUpdate: item.Game.State == InstallState.Installed);
+        s.Log.LogInformation("User retried {Name} from the library", item.Name);
+    }
+
     /// <summary>Stops the download or install this game has queued or running.</summary>
     public void Cancel(LibraryItem item)
     {
@@ -714,6 +723,12 @@ public sealed partial class LibraryItem : ObservableObject
 
     [RelayCommand]
     private void Cancel() => _owner.Cancel(this);
+
+    /// <summary>Needs a person: the last attempt stopped, so the row offers the retry directly.</summary>
+    public bool CanRetry => NeedsAttention && Post is not null;
+
+    [RelayCommand]
+    private void Retry() => _owner.Retry(this);
 
     [RelayCommand]
     private void Forget() => _owner.Uninstall(this, deleteFiles: false);

@@ -313,6 +313,13 @@
                                 />
                                 <Button
                                     Classes="action"
+                                    Content="Retry"
+                                    Command="{Binding RetryCommand}"
+                                    IsVisible="{Binding CanRetry}"
+                                    MinWidth="78"
+                                />
+                                <Button
+                                    Classes="action"
                                     Content="Update"
                                     Command="{Binding UpdateNowCommand}"
                                     IsVisible="{Binding HasUpdate}"
@@ -332,6 +339,12 @@
                                 >
                                     <Button.Flyout>
                                         <MenuFlyout>
+                                            <MenuItem
+                                                Header="Retry"
+                                                Command="{Binding RetryCommand}"
+                                                IsVisible="{Binding CanRetry}"
+                                            />
+                                            <Separator IsVisible="{Binding CanRetry}" />
                                             <MenuItem
                                                 Header="{Binding AutoLabel}"
                                                 Command="{Binding ToggleAutoCommand}"
