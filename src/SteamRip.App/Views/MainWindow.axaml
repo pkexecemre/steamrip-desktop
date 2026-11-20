@@ -1123,60 +1123,6 @@
                         />
                     </StackPanel>
 
-                    <StackPanel
-                        Classes="rail-status"
-                        DockPanel.Dock="Bottom"
-                        Spacing="8"
-                        Margin="6,14,0,0"
-                    >
-                        <Border
-                            Background="{StaticResource Ink}"
-                            BorderBrush="{StaticResource Line}"
-                            BorderThickness="1"
-                            CornerRadius="3"
-                            Padding="9,7"
-                        >
-                            <StackPanel Spacing="3">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Ellipse
-                                        Classes="dot"
-                                        Fill="{StaticResource Green}"
-                                        IsVisible="{Binding SolverHealthy}"
-                                    />
-                                    <Ellipse
-                                        Classes="dot"
-                                        Fill="{StaticResource Red}"
-                                        IsVisible="{Binding !SolverHealthy}"
-                                    />
-                                    <TextBlock
-                                        Classes="mono"
-                                        FontSize="10.5"
-                                        Text="challenge solver"
-                                        Foreground="{StaticResource Muted}"
-                                        ToolTip.Tip="{Binding SolverLine}"
-                                    />
-                                </StackPanel>
-                                <TextBlock
-                                    Classes="muted"
-                                    FontSize="11"
-                                    Text="{Binding SyncLine}"
-                                    TextWrapping="Wrap"
-                                    LineHeight="15"
-                                />
-                            </StackPanel>
-                        </Border>
-                        <Button
-                            Classes="quiet"
-                            Content="Sync now"
-                            Command="{Binding SyncNowCommand}"
-                            IsEnabled="{Binding !Syncing}"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Padding="10,5"
-                            FontSize="12"
-                        />
-                    </StackPanel>
-
                     <StackPanel Spacing="1">
                         <Button
                             Classes="nav"
@@ -1257,12 +1203,67 @@
                 </DockPanel>
             </Border>
 
-            <ContentControl
-                Grid.Column="1"
-                Content="{Binding Current}"
-                MaxWidth="1180"
-                HorizontalAlignment="Left"
-            />
+            <Grid Grid.Column="1" RowDefinitions="46,*">
+                <Border
+                    Background="{StaticResource Panel}"
+                    BorderBrush="{StaticResource Line}"
+                    BorderThickness="0,0,0,1"
+                    Padding="28,0"
+                >
+                    <DockPanel VerticalAlignment="Center">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
+                            <Ellipse
+                                Classes="dot"
+                                Fill="{StaticResource Green}"
+                                IsVisible="{Binding SolverHealthy}"
+                            />
+                            <Ellipse
+                                Classes="dot"
+                                Fill="{StaticResource Red}"
+                                IsVisible="{Binding !SolverHealthy}"
+                            />
+                            <TextBlock
+                                Classes="mono muted"
+                                FontSize="10.5"
+                                Text="{Binding SyncLine}"
+                                ToolTip.Tip="{Binding SolverLine}"
+                                VerticalAlignment="Center"
+                            />
+                            <Button
+                                Classes="link"
+                                Content="sync"
+                                Command="{Binding SyncNowCommand}"
+                                IsEnabled="{Binding !Syncing}"
+                                FontSize="11"
+                            />
+                        </StackPanel>
+                        <TextBlock
+                            Classes="mono"
+                            FontSize="10.5"
+                            Text="steamrip desktop"
+                            Foreground="{StaticResource Muted}"
+                        />
+                        <TextBlock
+                            Classes="mono"
+                            FontSize="10.5"
+                            Text=" / "
+                            Foreground="{StaticResource Line}"
+                        />
+                        <TextBlock
+                            Classes="mono"
+                            FontSize="10.5"
+                            Text="{Binding Section}"
+                            Foreground="{StaticResource Amber}"
+                        />
+                    </DockPanel>
+                </Border>
+                <ContentControl
+                    Grid.Row="1"
+                    Content="{Binding Current}"
+                    MaxWidth="1180"
+                    HorizontalAlignment="Left"
+                />
+            </Grid>
         </Grid>
 
         <!-- Toast: one line, bottom left of the content column, gone on its own. -->
