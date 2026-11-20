@@ -56,7 +56,11 @@ public partial class BrowseView : UserControl
             if (_shown)
                 return;
             _shown = true;
-            Dispatcher.UIThread.Post(PlayEntrance);
+            Dispatcher.UIThread.Post(async () =>
+            {
+                await Task.Delay(180);
+                PlayEntrance();
+            });
         };
         if (this.FindControl<ItemsControl>("Grid") is { } grid)
             grid.ContainerPrepared += OnTilePrepared;

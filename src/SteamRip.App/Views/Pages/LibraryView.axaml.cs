@@ -59,7 +59,13 @@ public partial class LibraryView : UserControl
             _shown = true;
             // The rows are laid out before the window is on screen; play the entrance now, on what
             // is actually realized, so it is visible instead of happening off-screen.
-            Avalonia.Threading.Dispatcher.UIThread.Post(PlayEntrance);
+            // The window is mapped a frame or two after layout: without this the wave plays to an empty
+            // screen and the user only sees its end state.
+            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+            {
+                await Task.Delay(180);
+                PlayEntrance();
+            });
         };
         if (this.FindControl<ListBox>("Shelf") is { } shelf)
             shelf.ContainerPrepared += OnRowPrepared;
