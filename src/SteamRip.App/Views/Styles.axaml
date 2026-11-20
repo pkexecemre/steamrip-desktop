@@ -64,6 +64,57 @@
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
 
+    <!-- Keyboard focus: one amber hairline around whatever has it, only while tabbing. -->
+    <Style Selector="Button">
+        <Setter Property="FocusAdorner">
+            <Template>
+                <Border
+                    BorderBrush="{StaticResource Amber}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Margin="1"
+                />
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="FocusAdorner">
+            <Template>
+                <Border
+                    BorderBrush="{StaticResource Amber}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Margin="1"
+                />
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="FocusAdorner">
+            <Template>
+                <Border
+                    BorderBrush="{StaticResource Amber}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Margin="1"
+                />
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="ToggleSwitch">
+        <Setter Property="FocusAdorner">
+            <Template>
+                <Border BorderBrush="{StaticResource Amber}" BorderThickness="1" Margin="1" />
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="FocusAdorner">
+            <Template>
+                <Border BorderBrush="{StaticResource Amber}" BorderThickness="1" Margin="0" />
+            </Template>
+        </Setter>
+    </Style>
     <!-- Nav rail: flat rows, a 2px amber spine on the current one. -->
     <!-- Compact rail (narrow window): icons only, labels gone, everything centred. -->
     <Style Selector="Border.compact TextBlock.nav-label">
