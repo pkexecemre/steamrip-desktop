@@ -9,6 +9,9 @@ public partial class ActivityViewModel : ObservableObject
 {
     private readonly AppServices _s;
     public ObservableCollection<ActivityLine> Events { get; } = [];
+
+    /// <summary>True until the first event arrives; the page says so instead of showing an empty table.</summary>
+    public bool IsEmpty => Events.Count == 0;
     public ObservableCollection<string> Live { get; } = [];
     public string LogDir { get; }
 
@@ -33,6 +36,7 @@ public partial class ActivityViewModel : ObservableObject
     public void Refresh()
     {
         Events.Clear();
+        OnPropertyChanged(nameof(IsEmpty));
         foreach (var (at, kind, message) in _s.Db.RecentEvents())
             Events.Add(
                 new ActivityLine(at.ToLocalTime().ToString("yyyy-MM-dd HH:mm"), kind, message)

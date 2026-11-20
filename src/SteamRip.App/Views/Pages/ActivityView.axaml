@@ -23,7 +23,30 @@
             />
         </StackPanel>
 
-        <Border Grid.Row="1" BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="0">
+        <StackPanel
+            Grid.Row="1"
+            Spacing="10"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Left"
+            Margin="4,0,0,0"
+            IsVisible="{Binding IsEmpty}"
+        >
+            <TextBlock Classes="h1" Text="Nothing has happened yet." />
+            <TextBlock
+                Classes="meta"
+                MaxWidth="520"
+                TextWrapping="Wrap"
+                Text="Sync the catalogue or install something; every step lands here and in the log file below."
+            />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            IsVisible="{Binding !IsEmpty}"
+            BorderBrush="{StaticResource Line}"
+            BorderThickness="1"
+            Padding="0"
+        >
             <ScrollViewer>
                 <ItemsControl ItemsSource="{Binding Events}" Margin="14,10">
                     <ItemsControl.ItemTemplate>

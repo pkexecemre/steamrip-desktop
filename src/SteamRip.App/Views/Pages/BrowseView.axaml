@@ -188,7 +188,7 @@
         </StackPanel>
 
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Items}" Margin="0,14,0,0">
+            <ItemsControl x:Name="Grid" ItemsSource="{Binding Items}" Margin="0,14,0,0">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel ItemWidth="176" ItemHeight="292" />
