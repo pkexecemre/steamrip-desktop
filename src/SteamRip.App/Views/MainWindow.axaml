@@ -43,7 +43,7 @@
                 />
                 <Grid ColumnDefinitions="*,12,*" IsEnabled="{Binding IsLinux}">
                     <StackPanel Grid.Column="0" Spacing="4">
-                        <TextBlock Classes="eyebrow" Text="GAMESCOPE ARGUMENTS" />
+                        <TextBlock Classes="label" Text="Gamescope arguments" />
                         <TextBox
                             Text="{Binding GamescopeArgs}"
                             PlaceholderText="{Binding GamescopeArgsPlaceholder}"
@@ -52,7 +52,7 @@
                         />
                     </StackPanel>
                     <StackPanel Grid.Column="2" Spacing="4">
-                        <TextBlock Classes="eyebrow" Text="MANGOHUD CONFIG" />
+                        <TextBlock Classes="label" Text="MangoHud config" />
                         <TextBox
                             Text="{Binding MangoHudConfig}"
                             PlaceholderText="{Binding MangoHudConfigPlaceholder}"
@@ -61,7 +61,7 @@
                         />
                     </StackPanel>
                 </Grid>
-                <TextBlock Classes="eyebrow" Text="DLL OVERRIDES" IsVisible="{Binding IsLinux}" />
+                <TextBlock Classes="label" Text="DLL overrides" IsVisible="{Binding IsLinux}" />
                 <TextBox
                     Text="{Binding DllOverrides}"
                     PlaceholderText="{Binding DllOverridesPlaceholder}"
@@ -1150,18 +1150,18 @@
             <ContentControl Grid.Column="1" Content="{Binding Current}" />
         </Grid>
 
-        <!-- Toast, bottom right -->
+        <!-- Toast: one line, bottom left of the content column, gone on its own. -->
         <Border
             Classes="toast"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
-            Margin="0,0,24,20"
+            Margin="0,0,24,22"
             IsVisible="{Binding ToastVisible}"
         >
-            <TextBlock Text="{Binding Toast}" />
+            <TextBlock Text="{Binding Toast}" FontSize="12.5" />
         </Border>
 
-        <!-- Launch options side sheet: an overlay over the whole window so every field fits and scrolls -->
+        <!-- Launch options: a sheet over the window, sectioned like Settings. -->
         <Panel IsVisible="{Binding IsEditing}">
             <Button
                 Classes="backdrop"
@@ -1169,11 +1169,11 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
             />
-            <Border Classes="sheet" HorizontalAlignment="Right" Width="600">
+            <Border Classes="sheet" HorizontalAlignment="Right" Width="560">
                 <DockPanel>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="24,20,20,12">
-                        <StackPanel>
-                            <TextBlock Classes="eyebrow" Text="LAUNCH OPTIONS" />
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="26,22,22,14">
+                        <StackPanel Spacing="2">
+                            <TextBlock Classes="mono muted" FontSize="10.5" Text="launch options" />
                             <TextBlock
                                 Classes="h1"
                                 Text="{Binding Editing.Name, FallbackValue=''}"
@@ -1189,47 +1189,74 @@
                         />
                     </Grid>
                     <ScrollViewer>
-                        <StackPanel Spacing="8" Margin="24,0,24,24" DataContext="{Binding Editing}">
-                            <TextBlock Classes="eyebrow" Text="INSTALL FOLDER" />
-                            <TextBox
-                                Text="{Binding CustomInstallPath}"
-                                PlaceholderText="{Binding DefaultInstallPath}"
-                                FontFamily="{StaticResource Mono}"
-                                FontSize="12"
-                            />
-                            <TextBlock
-                                Classes="muted"
-                                Text="Leave empty to use the Settings library folder; set an absolute path for a custom location."
-                                TextWrapping="Wrap"
-                            />
-                            <TextBlock Classes="eyebrow" Text="EXECUTABLE" Margin="0,6,0,0" />
-                            <ComboBox
-                                ItemsSource="{Binding Exes}"
-                                SelectedItem="{Binding SelectedExe}"
-                                HorizontalAlignment="Stretch"
-                                FontFamily="{StaticResource Mono}"
-                                FontSize="12"
-                            />
-                            <TextBlock Classes="eyebrow" Text="PROTON" Margin="0,6,0,0" />
-                            <ComboBox
-                                ItemsSource="{Binding Protons}"
-                                SelectedItem="{Binding SelectedProton}"
-                                HorizontalAlignment="Stretch"
-                            />
-                            <TextBlock Classes="eyebrow" Text="EXTRA ARGUMENTS" Margin="0,6,0,0" />
-                            <TextBox
-                                Text="{Binding LaunchArgs}"
-                                PlaceholderText="-windowed -nosplash"
-                                FontFamily="{StaticResource Mono}"
-                                FontSize="12"
-                            />
-                            <TextBlock
-                                Classes="eyebrow"
-                                Text="TWEAKS · start at the Settings defaults; only what you change is saved for this game"
-                                Margin="0,14,0,0"
-                            />
-                            <ContentControl Content="{Binding Launch}" />
-                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,14,0,0">
+                        <StackPanel Margin="26,0,26,26" DataContext="{Binding Editing}">
+                            <Border Classes="section" BorderThickness="0" Padding="0,0,0,16">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="h2" Text="Install folder" />
+                                    <TextBox
+                                        Text="{Binding CustomInstallPath}"
+                                        PlaceholderText="{Binding DefaultInstallPath}"
+                                        FontFamily="{StaticResource Mono}"
+                                        FontSize="12"
+                                    />
+                                    <TextBlock
+                                        Classes="meta"
+                                        TextWrapping="Wrap"
+                                        Text="Leave empty to use the library folder from Settings; an absolute path installs this game somewhere else."
+                                    />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="section">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Classes="h2" Text="Executable and Proton" />
+                                    <TextBlock Classes="label" Text="Executable" />
+                                    <ComboBox
+                                        ItemsSource="{Binding Exes}"
+                                        SelectedItem="{Binding SelectedExe}"
+                                        HorizontalAlignment="Stretch"
+                                        FontFamily="{StaticResource Mono}"
+                                        FontSize="12"
+                                    />
+                                    <TextBlock
+                                        Classes="label"
+                                        Text="Proton build"
+                                        Margin="0,6,0,0"
+                                    />
+                                    <ComboBox
+                                        ItemsSource="{Binding Protons}"
+                                        SelectedItem="{Binding SelectedProton}"
+                                        HorizontalAlignment="Stretch"
+                                    />
+                                    <TextBlock
+                                        Classes="label"
+                                        Text="Extra arguments"
+                                        Margin="0,6,0,0"
+                                    />
+                                    <TextBox
+                                        Text="{Binding LaunchArgs}"
+                                        PlaceholderText="-windowed -nosplash"
+                                        FontFamily="{StaticResource Mono}"
+                                        FontSize="12"
+                                    />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="section">
+                                <StackPanel Spacing="10">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Classes="h2" Text="Tweaks" />
+                                        <TextBlock
+                                            Classes="meta"
+                                            TextWrapping="Wrap"
+                                            Text="Starts from the Settings defaults; only what you change here is stored for this game."
+                                        />
+                                    </StackPanel>
+                                    <ContentControl Content="{Binding Launch}" />
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,18,0,0">
                                 <Button
                                     Classes="quiet"
                                     Content="Game folder"

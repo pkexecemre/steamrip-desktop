@@ -192,8 +192,8 @@ public sealed partial class LaunchOptionsEditor(
         inherited() is { } d
             ? (pick(d) ?? pick(LaunchOptions.AppDefaults)) switch
             {
-                true => " · default on",
-                false => " · default off",
+                true => ", default on",
+                false => ", default off",
                 null => "",
             }
             : "";
