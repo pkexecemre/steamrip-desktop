@@ -167,11 +167,13 @@
                     <DockPanel VerticalAlignment="Center">
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
                             <Ellipse
+                                x:Name="SyncDot"
                                 Classes="dot"
                                 Fill="{StaticResource Green}"
                                 IsVisible="{Binding SolverHealthy}"
                             />
                             <Ellipse
+                                x:Name="SyncDotBad"
                                 Classes="dot"
                                 Fill="{StaticResource Red}"
                                 IsVisible="{Binding !SolverHealthy}"
@@ -215,14 +217,14 @@
                     x:Name="Page"
                     Grid.Row="1"
                     Content="{Binding Current}"
-                    MaxWidth="1240"
-                    HorizontalAlignment="Left"
+                    HorizontalAlignment="Stretch"
                 />
             </Grid>
         </Grid>
 
         <!-- Toast: one line, bottom left of the content column, gone on its own. -->
         <Border
+            x:Name="Toast"
             Classes="toast"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"

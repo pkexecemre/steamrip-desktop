@@ -5,22 +5,79 @@
     x:Class="SteamRip.App.Views.Pages.BrowseView"
     x:DataType="vm:BrowseViewModel"
 >
+    <UserControl.Styles>
+        <!-- The tile is the store: a cover, a scrim, the name, and the action only on hover. -->
+        <Style Selector="Border.tile">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.tile">
+            <Setter Property="RenderTransform" Value="scale(1.035)" />
+        </Style>
+        <Style Selector="Border.tileCover">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Setter Property="Background" Value="{StaticResource Raised}" />
+            <Setter Property="BoxShadow" Value="0 6 18 0 #66000000" />
+            <Setter Property="Transitions">
+                <Transitions></Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.tileCover">
+            <Setter Property="BoxShadow" Value="0 10 30 0 #998438FF" />
+        </Style>
+        <Style Selector="Border.tileAction">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.14" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.tileAction">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Border.tileScrim">
+            <Setter Property="CornerRadius" Value="0,0,6,6" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                    <GradientStop Offset="0" Color="#00000000" />
+                    <GradientStop Offset="0.55" Color="#B3090512" />
+                    <GradientStop Offset="1" Color="#F2090512" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+
     <DockPanel Margin="28,24,28,20">
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
-                    <Button Classes="quiet" Content="Sync now" Command="{Binding SyncCommand}" />
-                    <Button
-                        Classes="quiet"
-                        Content="Full re-sync"
-                        Command="{Binding FullSyncCommand}"
-                        ToolTip.Tip="Re-fetch all ~5,000 posts (about 50 requests)"
-                    />
-                </StackPanel>
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,14">
+            <StackPanel Spacing="3">
                 <TextBlock Classes="h1" Text="Browse" />
-            </DockPanel>
-        </StackPanel>
-        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                <TextBlock Classes="meta" Text="{Binding Summary}" TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                Orientation="Horizontal"
+                Spacing="6"
+                VerticalAlignment="Center"
+            >
+                <Button Classes="quiet" Content="Sync now" Command="{Binding SyncCommand}" />
+                <Button
+                    Classes="quiet"
+                    Content="Full re-sync"
+                    Command="{Binding FullSyncCommand}"
+                    ToolTip.Tip="Re-fetch all ~5,000 posts (about 50 requests)"
+                />
+            </StackPanel>
+        </Grid>
+
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
             <StackPanel
                 DockPanel.Dock="Right"
                 Orientation="Horizontal"
@@ -47,25 +104,19 @@
             <TextBox
                 PlaceholderText="Search by name…"
                 Text="{Binding Query}"
-                MaxWidth="460"
+                MaxWidth="420"
                 HorizontalAlignment="Left"
             />
         </DockPanel>
-        <TextBlock
-            DockPanel.Dock="Top"
-            Classes="meta"
-            Text="{Binding Summary}"
-            TextWrapping="Wrap"
-            Margin="0,-4,0,14"
-        />
+
         <StackPanel
             DockPanel.Dock="Top"
             Spacing="12"
-            Margin="0,10,0,0"
+            Margin="0,28,0,0"
             IsVisible="{Binding IsEmpty}"
         >
             <StackPanel Spacing="12" IsVisible="{Binding !HasCatalog}">
-                <TextBlock Classes="h2" Text="No catalog yet." />
+                <TextBlock Classes="h1" Text="No catalog yet." />
                 <TextBlock
                     Classes="meta"
                     MaxWidth="520"
@@ -74,14 +125,14 @@
                     Text="The first sync starts a few seconds after launch and takes a minute. If nothing appears, press Sync now."
                 />
                 <Button
-                    Classes="quiet"
+                    Classes="primary"
                     Content="Sync now"
                     Command="{Binding SyncCommand}"
                     HorizontalAlignment="Left"
                 />
             </StackPanel>
             <StackPanel Spacing="12" IsVisible="{Binding HasCatalog}">
-                <TextBlock Classes="h2" Text="Nothing matches that." />
+                <TextBlock Classes="h1" Text="Nothing matches that." />
                 <TextBlock
                     Classes="meta"
                     MaxWidth="520"
@@ -97,85 +148,122 @@
                 />
             </StackPanel>
         </StackPanel>
-        <ListBox ItemsSource="{Binding Items}" Classes="plain">
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="vm:BrowseItem">
-                    <Border Classes="row" Padding="16,10">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="2">
-                            <Border
-                                Grid.Column="0"
-                                Classes="cover"
-                                Width="44"
-                                Height="66"
-                                Margin="0,0,12,0"
-                            >
-                                <Panel>
-                                    <TextBlock
-                                        Classes="coverInitial"
-                                        FontSize="18"
-                                        Text="{Binding Initial}"
-                                        IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
-                                    />
-                                    <Image Source="{Binding Cover}" Stretch="UniformToFill" />
-                                </Panel>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <TextBlock
-                                        Text="{Binding Name}"
-                                        FontWeight="SemiBold"
-                                        FontSize="14"
-                                    />
-                                    <TextBlock
-                                        Classes="mono muted"
-                                        Text="{Binding Version}"
+
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Items}" Margin="0,14,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemWidth="176" ItemHeight="292" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:BrowseItem">
+                        <Border Classes="tile" Margin="0,0,8,8" Width="168" Height="284">
+                            <Grid RowDefinitions="224,*">
+                                <Border Grid.Row="0" Classes="tileCover" Height="224">
+                                    <Panel>
+                                        <TextBlock
+                                            Classes="coverInitial"
+                                            FontSize="40"
+                                            Text="{Binding Initial}"
+                                            IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
+                                        />
+                                        <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+
+                                        <!-- the name sits on the artwork, like the site's cards -->
+                                        <Border
+                                            Classes="tileScrim"
+                                            VerticalAlignment="Bottom"
+                                            Height="120"
+                                        >
+                                            <StackPanel
+                                                VerticalAlignment="Bottom"
+                                                Margin="10,0,10,10"
+                                                Spacing="1"
+                                            >
+                                                <TextBlock
+                                                    Text="{Binding Name}"
+                                                    FontWeight="SemiBold"
+                                                    FontSize="13.5"
+                                                    TextWrapping="Wrap"
+                                                    MaxLines="2"
+                                                    TextTrimming="CharacterEllipsis"
+                                                />
+                                                <TextBlock
+                                                    Classes="mono"
+                                                    FontSize="10.5"
+                                                    Foreground="#C9BEE0"
+                                                    Text="{Binding Version}"
+                                                />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- status chips, top corners -->
+                                        <Border
+                                            Classes="pill"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Margin="8"
+                                            IsVisible="{Binding Installed}"
+                                        >
+                                            <TextBlock Classes="green" Text="in library" />
+                                        </Border>
+                                        <Border
+                                            Classes="pill"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Margin="8"
+                                            IsVisible="{Binding Unsupported}"
+                                            ToolTip.Tip="Only mirrors the app cannot resolve (1fichier, FileCrypt…)"
+                                        >
+                                            <TextBlock Classes="red" Text="no mirror" />
+                                        </Border>
+
+                                        <!-- the action appears when the pointer is on the tile -->
+                                        <Border
+                                            Classes="tileAction"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center"
+                                        >
+                                            <Button
+                                                Classes="primary"
+                                                Content="Install"
+                                                Command="{Binding InstallCommand}"
+                                                IsVisible="{Binding CanInstall}"
+                                                Padding="16,7"
+                                            />
+                                        </Border>
+                                    </Panel>
+                                </Border>
+                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="2,8,2,0">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            Classes="mono"
+                                            FontSize="10.5"
+                                            Foreground="#B9ABD4"
+                                            Text="{Binding Size}"
+                                        />
+                                        <TextBlock
+                                            Classes="mono muted"
+                                            FontSize="10"
+                                            Text="{Binding Updated}"
+                                            TextTrimming="CharacterEllipsis"
+                                        />
+                                    </StackPanel>
+                                    <Button
+                                        Grid.Column="1"
+                                        Classes="link"
+                                        Content="page"
+                                        Command="{Binding OpenPageCommand}"
+                                        FontSize="11"
                                         VerticalAlignment="Center"
                                     />
-                                </StackPanel>
-                                <TextBlock Classes="meta" Margin="0,3,0,0">
-                                    <Run Text="{Binding Size}" />
-                                    <Run Text=", updated " />
-                                    <Run Text="{Binding Updated}" />
-                                    <Run Text=", via " />
-                                    <Run Text="{Binding Mirrors}" />
-                                </TextBlock>
-                            </StackPanel>
-                            <StackPanel
-                                Grid.Column="2"
-                                Orientation="Horizontal"
-                                Spacing="6"
-                                VerticalAlignment="Center"
-                            >
-                                <Border Classes="pill" IsVisible="{Binding Installed}">
-                                    <TextBlock FontSize="11" Classes="green" Text="In library" />
-                                </Border>
-                                <Border
-                                    Classes="pill"
-                                    IsVisible="{Binding Unsupported}"
-                                    ToolTip.Tip="This post only has mirrors the app can't resolve (1fichier, FileCrypt…)"
-                                >
-                                    <TextBlock
-                                        FontSize="11"
-                                        Classes="muted"
-                                        Text="No supported mirror"
-                                    />
-                                </Border>
-                                <Button
-                                    Classes="action"
-                                    Content="Install"
-                                    Command="{Binding InstallCommand}"
-                                    IsVisible="{Binding CanInstall}"
-                                />
-                                <Button
-                                    Classes="quiet"
-                                    Content="Page"
-                                    Command="{Binding OpenPageCommand}"
-                                />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
     </DockPanel>
 </UserControl>

@@ -5,8 +5,72 @@
     x:Class="SteamRip.App.Views.Pages.LibraryView"
     x:DataType="vm:LibraryViewModel"
 >
-    <DockPanel Margin="28,24,28,20">
-        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,18" Spacing="3">
+    <UserControl.Styles>
+        <!--
+            The shelf. Each game is a wide row: hairline separated, never a card. Hover is the only
+            state that moves, so nothing animates when the page first lays out.
+            The cover sits on a violet halo that is transparent at rest and warms up on hover; the
+            cover itself lifts 4% and its rim goes from a cool hairline to violet.
+        -->
+        <Style Selector="Border.shelfHalo">
+            <Setter Property="Background" Value="#008438FF" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Margin" Value="-5" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.16" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.shelfHalo">
+            <Setter Property="Background" Value="#428438FF" />
+        </Style>
+        <Style Selector="Border.shelfCover">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#26FFFFFF" />
+            <Setter Property="BoxShadow" Value="0 8 20 0 #77000000" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.16" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.shelfCover">
+            <Setter Property="BorderBrush" Value="#80A855F7" />
+            <Setter Property="BoxShadow" Value="0 12 30 0 #668438FF" />
+            <Setter Property="RenderTransform" Value="scale(1.04)" />
+        </Style>
+        <!-- Where Play would be, a game that is running says so, and the dot breathes. -->
+        <Style Selector="Border.runPill">
+            <Setter Property="Background" Value="#145FC08C" />
+            <Setter Property="BorderBrush" Value="#665FC08C" />
+            <Setter Property="MinWidth" Value="78" />
+            <Setter Property="Padding" Value="9,5" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Ellipse.runDot">
+            <Setter Property="Opacity" Value="1" />
+            <Style.Animations>
+                <Animation Duration="0:0:1.7" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="0.3" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel Margin="28,24,28,18">
+        <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,14">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Classes="h1" Text="Library" VerticalAlignment="Center" />
                 <Border
@@ -18,99 +82,142 @@
                 </Border>
             </StackPanel>
             <TextBlock Classes="meta" Text="{Binding Summary}" IsVisible="{Binding !IsEmpty}" />
+            <Border Height="1" Background="{StaticResource Line}" Margin="0,10,0,0" />
         </StackPanel>
-        <StackPanel
+
+        <Border DockPanel.Dock="Top" IsVisible="{Binding IsEmpty}" Margin="0,42,0,0">
+            <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+                <Border
+                    Width="56"
+                    Height="2"
+                    CornerRadius="1"
+                    HorizontalAlignment="Left"
+                    Background="{StaticResource Signal}"
+                />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        FontSize="32"
+                        FontWeight="SemiBold"
+                        LetterSpacing="-0.8"
+                        Text="The shelf is"
+                    />
+                    <TextBlock
+                        FontSize="32"
+                        FontWeight="SemiBold"
+                        LetterSpacing="-0.8"
+                        Text="empty."
+                        Foreground="{StaticResource Signal}"
+                    />
+                </StackPanel>
+                <TextBlock
+                    Classes="muted"
+                    FontSize="13.5"
+                    LineHeight="21"
+                    TextWrapping="Wrap"
+                    Text="Browse the catalog and pick something to play — it downloads, verifies, extracts into your library and gets its own Proton prefix the first time you press play."
+                />
+                <Button
+                    Classes="primary"
+                    Content="Browse the catalog"
+                    Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NavigateCommand}"
+                    CommandParameter="Browse"
+                    HorizontalAlignment="Left"
+                    Padding="18,9"
+                    FontSize="13"
+                    Margin="0,4,0,0"
+                />
+            </StackPanel>
+        </Border>
+
+        <Border
             DockPanel.Dock="Top"
-            Spacing="14"
-            Margin="0,6,0,24"
-            IsVisible="{Binding IsEmpty}"
-        >
-            <TextBlock Classes="h1" FontSize="26" Text="Nothing installed yet." Margin="0,0,0,-6" />
-            <TextBlock
-                Classes="muted"
-                TextWrapping="Wrap"
-                MaxWidth="560"
-                HorizontalAlignment="Left"
-                LineHeight="19"
-                Text="Browse the catalog and pick a game. It downloads, checks the archive, extracts into your library and gets its own Proton prefix on first play. Updates arrive on their own."
-            />
-            <Button
-                Classes="primary"
-                Content="Browse the catalog"
-                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).NavigateCommand}"
-                CommandParameter="Browse"
-                HorizontalAlignment="Left"
-                Padding="14,7"
-            />
-        </StackPanel>
-        <TextBlock
-            DockPanel.Dock="Top"
-            Classes="red"
-            Margin="0,0,0,10"
-            TextWrapping="Wrap"
-            Text="{Binding LastError}"
+            BorderBrush="{StaticResource Red}"
+            BorderThickness="2,0,0,0"
+            Padding="11,2"
+            Margin="0,0,0,12"
             IsVisible="{Binding LastError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-        />
-        <ListBox ItemsSource="{Binding Items}" Classes="plain">
+        >
+            <TextBlock Classes="red" TextWrapping="Wrap" Text="{Binding LastError}" />
+        </Border>
+
+        <ListBox ItemsSource="{Binding Items}" Classes="plain" Margin="0,2,0,0">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="vm:LibraryItem">
                     <Border Classes="row">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-                            <Border Classes="cover" Width="52" Height="72">
-                                <Panel>
-                                    <TextBlock
-                                        Classes="coverInitial"
-                                        Text="{Binding Initial}"
-                                        IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
-                                    />
-                                    <Image Source="{Binding Cover}" Stretch="UniformToFill" />
-                                </Panel>
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock
-                                        Text="{Binding Name}"
-                                        FontWeight="SemiBold"
-                                        FontSize="14.5"
-                                        TextTrimming="CharacterEllipsis"
-                                    />
-                                    <Border Classes="pill" IsVisible="{Binding IsRunning}">
-                                        <TextBlock Classes="green" Text="running" />
-                                    </Border>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="18">
+                            <Panel
+                                Grid.Column="0"
+                                Width="72"
+                                Height="100"
+                                VerticalAlignment="Center"
+                            >
+                                <Border Classes="shelfHalo" />
+                                <Border Classes="cover shelfCover" Width="72" Height="100">
+                                    <Panel>
+                                        <TextBlock
+                                            Classes="coverInitial"
+                                            Text="{Binding Initial}"
+                                            IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
+                                        />
+                                        <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+                                    </Panel>
+                                </Border>
+                            </Panel>
+
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="5"
+                                Margin="2,0,0,0"
+                            >
+                                <TextBlock
+                                    Text="{Binding Name}"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    LetterSpacing="-0.2"
+                                    TextTrimming="CharacterEllipsis"
+                                />
+                                <StackPanel Orientation="Horizontal" Spacing="11">
                                     <TextBlock
                                         Classes="mono muted"
-                                        FontSize="11"
+                                        FontSize="11.5"
                                         Text="{Binding InstalledVersion}"
                                     />
                                     <TextBlock
+                                        Classes="mono muted"
+                                        FontSize="11.5"
+                                        Text="→"
+                                        IsVisible="{Binding HasUpdate}"
+                                    />
+                                    <TextBlock
                                         Classes="mono amber"
-                                        FontSize="11"
+                                        FontSize="11.5"
                                         Text="{Binding SiteVersion}"
                                         IsVisible="{Binding HasUpdate}"
                                     />
                                     <TextBlock Classes="meta" Text="{Binding SizeText}" />
                                     <TextBlock Classes="meta" Text="{Binding Playtime}" />
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                     <TextBlock
                                         Classes="meta"
                                         Text="{Binding StatusLine}"
                                         TextTrimming="CharacterEllipsis"
                                     />
                                     <TextBlock
+                                        Grid.Column="1"
                                         Classes="mono muted"
                                         FontSize="10.5"
                                         Text="{Binding ExeLine}"
                                         TextTrimming="CharacterEllipsis"
                                     />
-                                </StackPanel>
+                                </Grid>
                             </StackPanel>
+
                             <StackPanel
                                 Grid.Column="2"
                                 Orientation="Horizontal"
-                                Spacing="4"
+                                Spacing="6"
                                 VerticalAlignment="Center"
                             >
                                 <Button
@@ -119,29 +226,56 @@
                                     Command="{Binding PlayCommand}"
                                     IsVisible="{Binding !IsRunning}"
                                     IsEnabled="{Binding CanPlay}"
-                                    MinWidth="64"
+                                    MinWidth="78"
                                 />
+                                <Border Classes="pill runPill" IsVisible="{Binding IsRunning}">
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                    >
+                                        <Ellipse
+                                            Classes="runDot"
+                                            Width="5"
+                                            Height="5"
+                                            Fill="{StaticResource Green}"
+                                            VerticalAlignment="Center"
+                                        />
+                                        <TextBlock
+                                            Text="running"
+                                            FontSize="11"
+                                            FontWeight="Medium"
+                                            Foreground="{StaticResource Green}"
+                                        />
+                                    </StackPanel>
+                                </Border>
                                 <Button
                                     Classes="danger"
                                     Content="Stop"
                                     Command="{Binding StopCommand}"
                                     IsVisible="{Binding IsRunning}"
-                                    MinWidth="64"
+                                    MinWidth="78"
                                 />
                                 <Button
-                                    Classes="quiet"
+                                    Classes="action"
                                     Content="Update"
                                     Command="{Binding UpdateNowCommand}"
                                     IsVisible="{Binding HasUpdate}"
                                     IsEnabled="{Binding IsIdle}"
-                                    Foreground="{StaticResource Amber}"
                                 />
                                 <Button
                                     Classes="link"
                                     Content="Options"
                                     Command="{Binding OptionsCommand}"
                                 />
-                                <Button Classes="link" Content="···">
+                                <Button
+                                    Classes="link"
+                                    Content="···"
+                                    FontSize="13"
+                                    Padding="8,4"
+                                    ToolTip.Tip="Shortcuts, wrapper tools, prefix and uninstall"
+                                >
                                     <Button.Flyout>
                                         <MenuFlyout>
                                             <MenuItem
