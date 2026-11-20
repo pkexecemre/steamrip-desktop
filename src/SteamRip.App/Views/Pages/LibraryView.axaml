@@ -70,6 +70,33 @@
     </UserControl.Styles>
 
     <DockPanel Margin="28,24,28,18">
+        <Panel
+            DockPanel.Dock="Top"
+            Height="128"
+            Margin="-28,-24,-28,6"
+            ClipToBounds="True"
+            IsVisible="{Binding !IsEmpty}"
+        >
+            <Border>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                        <GradientStop Offset="0" Color="#CC8438FF" />
+                        <GradientStop Offset="0.55" Color="#66FF007A" />
+                        <GradientStop Offset="1" Color="#33120E1B" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <Border>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Offset="0" Color="#99120E1B" />
+                        <GradientStop Offset="0.55" Color="#CC120E1B" />
+                        <GradientStop Offset="1" Color="#FF120E1B" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+        </Panel>
+
         <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,14">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Classes="h1" Text="Library" VerticalAlignment="Center" />

@@ -184,6 +184,17 @@
         <Setter Property="BoxShadow" Value="inset 3 0 0 0 #8438FF" />
     </Style>
     <Style Selector="Border.row">
+        <Setter Property="RenderTransform" Value="rotate(0deg)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover Border.row">
+        <Setter Property="RenderTransform" Value="rotate(0.35deg) scale(1.004)" />
+    </Style>
+    <Style Selector="Border.row">
         <Setter Property="Transitions">
             <Transitions>
                 <BrushTransition Property="Background" Duration="0:0:0.12" />

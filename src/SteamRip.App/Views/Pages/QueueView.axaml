@@ -36,6 +36,44 @@
                 </Transitions>
             </Setter>
         </Style>
+        <Style Selector="Border.shine">
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Offset="0" Color="#00FFFFFF" />
+                    <GradientStop Offset="0.5" Color="#66FFFFFF" />
+                    <GradientStop Offset="1" Color="#00FFFFFF" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+        <Style Selector="Border.shine">
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Height" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="Opacity" Value="0.55" />
+            <Setter Property="RenderTransform" Value="translateX(-160px)" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Offset="0" Color="#00FFFFFF" />
+                    <GradientStop Offset="0.5" Color="#88FFFFFF" />
+                    <GradientStop Offset="1" Color="#00FFFFFF" />
+                </LinearGradientBrush>
+            </Setter>
+            <Style.Animations>
+                <Animation Duration="0:0:1.5" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RenderTransform" Value="translateX(-160px)" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RenderTransform" Value="translateX(1000px)" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
         <Style Selector="Border.chargeGlow">
             <Setter Property="Height" Value="10" />
             <Setter Property="Margin" Value="0,-3,0,-3" />
@@ -174,13 +212,20 @@
 
                                 <!-- the charge bar: gradient fill, a soft halo, and the indeterminate
                                      state the downloader already reports -->
-                                <Panel Margin="0,12,0,0" IsVisible="{Binding Active}">
+                                <Panel
+                                    Margin="0,12,0,0"
+                                    IsVisible="{Binding Active}"
+                                    ClipToBounds="True"
+                                    Height="10"
+                                >
                                     <Border Classes="chargeGlow" Opacity="0.45" />
+                                    <Border Classes="shine" />
                                     <ProgressBar
                                         Value="{Binding Fraction}"
                                         Maximum="1"
                                         IsIndeterminate="{Binding Indeterminate}"
                                         Height="4"
+                                        VerticalAlignment="Center"
                                         Background="#2A1F3D"
                                         Foreground="{StaticResource Signal}"
                                     />
