@@ -9,6 +9,7 @@
         <StackPanel Margin="0,0,0,16" Spacing="3">
             <TextBlock Classes="h1" Text="Activity" />
             <Border
+                x:Name="Rule"
                 Width="52"
                 Height="2"
                 CornerRadius="1"

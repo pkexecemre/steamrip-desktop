@@ -4,5 +4,9 @@ namespace SteamRip.App.Views.Pages;
 
 public partial class ActivityView : UserControl
 {
-    public ActivityView() => InitializeComponent();
+    public ActivityView()
+    {
+        InitializeComponent();
+        Loaded += (_, _) => RuleSweep.Play(Rule);
+    }
 }

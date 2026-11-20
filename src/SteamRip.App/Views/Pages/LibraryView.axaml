@@ -74,6 +74,7 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Classes="h1" Text="Library" VerticalAlignment="Center" />
                 <Border
+                    x:Name="Rule"
                     Width="52"
                     Height="2"
                     CornerRadius="1"

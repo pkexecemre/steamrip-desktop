@@ -55,6 +55,7 @@
             <StackPanel Spacing="3">
                 <TextBlock Classes="h1" Text="Queue" />
                 <Border
+                    x:Name="Rule"
                     Width="52"
                     Height="2"
                     CornerRadius="1"

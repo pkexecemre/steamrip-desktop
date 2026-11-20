@@ -4,5 +4,9 @@ namespace SteamRip.App.Views.Pages;
 
 public partial class SettingsView : UserControl
 {
-    public SettingsView() => InitializeComponent();
+    public SettingsView()
+    {
+        InitializeComponent();
+        Loaded += (_, _) => RuleSweep.Play(Rule);
+    }
 }
