@@ -32,6 +32,12 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
     [ObservableProperty]
     public partial int UpdatesAvailable { get; set; }
 
+    /// <summary>Only shown when there is at least one; reads as a count, not a sentence.</summary>
+    partial void OnUpdatesAvailableChanged(int value) => OnPropertyChanged(nameof(UpdatesLabel));
+
+    public string UpdatesLabel =>
+        UpdatesAvailable == 1 ? "1 update" : $"{UpdatesAvailable} updates";
+
     [ObservableProperty]
     public partial bool IsEmpty { get; set; } = true;
 

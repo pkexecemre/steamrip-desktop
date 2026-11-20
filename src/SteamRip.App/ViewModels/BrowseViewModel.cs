@@ -177,7 +177,7 @@ public sealed partial class BrowseItem(
     public string Updated => MainViewModel.Humanize(post.ModifiedUtc);
     public string Mirrors =>
         string.Join(
-            " · ",
+            ", ",
             post.Mirrors.Select(m => m.Host)
                 .Distinct()
                 .Select(h => h == Hoster.Unknown ? "other" : h.ToString())

@@ -2,9 +2,16 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 >
+    <!--
+        SteamRIP Desktop. One type family for the interface (IBM Plex Sans) and its mono sibling for
+        anything the machine produced: versions, paths, sizes, counts. One accent (amber) that only
+        marks the current place, the primary action and progress. Rows are separated by hairlines,
+        not wrapped in cards; nothing has a glow, a gradient or a shadow except the side sheet.
+    -->
     <Style Selector="Window">
         <Setter Property="Background" Value="{StaticResource Ink}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontFamily" Value="{StaticResource Sans}" />
         <Setter Property="FontSize" Value="13" />
     </Style>
 
@@ -27,34 +34,59 @@
     <Style Selector="TextBlock.red">
         <Setter Property="Foreground" Value="{StaticResource Red}" />
     </Style>
+
+    <!-- Type scale: 20 page, 15 row title, 13 body, 11.5 meta. -->
     <Style Selector="TextBlock.h1">
-        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="LetterSpacing" Value="-0.3" />
+        <Setter Property="LetterSpacing" Value="-0.2" />
     </Style>
+    <Style Selector="TextBlock.h2">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.meta">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+    </Style>
+    <!-- Kept for the older blocks that still use it: a quiet section label, not tracked-out caps. -->
     <Style Selector="TextBlock.eyebrow">
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="LetterSpacing" Value="1.2" />
+        <Setter Property="LetterSpacing" Value="0.4" />
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
 
-    <!-- Nav rail -->
+    <!-- Nav rail: flat rows, a 2px amber spine on the current one. -->
     <Style Selector="Button.nav">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="Padding" Value="14,9" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="BorderThickness" Value="2,0,0,0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontSize" Value="13" />
     </Style>
     <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource Panel}" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
     <Style Selector="Button.nav.active /template/ ContentPresenter">
         <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+    </Style>
+    <Style Selector="Button.nav.active">
+        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
     <Style Selector="Button.nav TextBlock">
@@ -64,22 +96,32 @@
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
 
-    <!-- Cards -->
+    <!-- Game rows: a hairline, a hover lift, no card. -->
+    <Style Selector="ListBoxItem:pointerover Border.row">
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+    </Style>
+    <Style Selector="Border.row">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
     <Style Selector="Border.cover">
-        <Setter Property="Background" Value="{StaticResource Line}" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="CornerRadius" Value="2" />
         <Setter Property="ClipToBounds" Value="True" />
         <Setter Property="VerticalAlignment" Value="Top" />
     </Style>
     <Style Selector="TextBlock.coverInitial">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- Virtualized game lists: look like ItemsControl, only realize visible rows so covers fetch for what's on screen. -->
+    <!-- Virtualized game lists: look like ItemsControl, only realize visible rows so covers fetch for what is on screen. -->
     <Style Selector="ListBox.plain">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
@@ -104,30 +146,44 @@
     </Style>
 
     <Style Selector="Border.card">
-        <Setter Property="Background" Value="{StaticResource Panel}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="Padding" Value="16,12" />
     </Style>
     <Style Selector="Border.pill">
-        <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="6,1" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.pill TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource Mono}" />
+        <Setter Property="FontSize" Value="10.5" />
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
     </Style>
     <Style Selector="Border.pill.amber">
         <Setter Property="Background" Value="{StaticResource Amber}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
     </Style>
     <Style Selector="Border.pill.amber TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Ink}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
-    <!-- Buttons -->
+    <!-- Buttons: the primary is the only filled control on screen. -->
     <Style Selector="Button">
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="3" />
         <Setter Property="Padding" Value="12,6" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+    </Style>
+    <Style Selector="Button:focus-visible /template/ ContentPresenter">
+        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{StaticResource Amber}" />
@@ -136,6 +192,17 @@
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="#FFC866" />
+        <Setter Property="Foreground" Value="{StaticResource Ink}" />
+    </Style>
+    <Style Selector="Button.action">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Amber}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.action:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Amber}" />
         <Setter Property="Foreground" Value="{StaticResource Ink}" />
     </Style>
     <Style Selector="Button.quiet">
@@ -148,32 +215,42 @@
         <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
+    <Style Selector="Button.link">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="2,0" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Amber}" />
+    </Style>
+
     <!-- Side sheet overlay -->
     <Style Selector="Button.backdrop">
-        <Setter Property="Background" Value="#99090B12" />
+        <Setter Property="Background" Value="#B3080A0E" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style Selector="Button.backdrop:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#99090B12" />
+        <Setter Property="Background" Value="#B3080A0E" />
     </Style>
     <Style Selector="Button.backdrop:pressed /template/ ContentPresenter">
-        <Setter Property="Background" Value="#99090B12" />
+        <Setter Property="Background" Value="#B3080A0E" />
     </Style>
     <Style Selector="Border.toast">
         <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="Padding" Value="14,9" />
-        <Setter Property="BoxShadow" Value="0 6 24 0 #66000000" />
     </Style>
     <Style Selector="Border.sheet">
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1,0,0,0" />
-        <Setter Property="BoxShadow" Value="-8 0 32 0 #66000000" />
+        <Setter Property="BoxShadow" Value="-12 0 40 0 #99000000" />
     </Style>
     <Style Selector="Button.danger">
         <Setter Property="Background" Value="Transparent" />
@@ -185,24 +262,29 @@
     <Style Selector="ProgressBar">
         <Setter Property="Foreground" Value="{StaticResource Amber}" />
         <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="MinHeight" Value="4" />
-        <Setter Property="Height" Value="4" />
-        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="MinHeight" Value="3" />
+        <Setter Property="Height" Value="3" />
+        <Setter Property="CornerRadius" Value="0" />
     </Style>
 
     <Style Selector="TextBox">
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="MinHeight" Value="30" />
     </Style>
-    <!-- Menus: compact rows, rounded hover, a thin line as separator. -->
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{StaticResource Amber}" />
+    </Style>
+
+    <!-- Menus: compact rows, square-ish hover, a hairline separator. -->
     <Style Selector="MenuFlyoutPresenter">
         <Setter Property="MinWidth" Value="220" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="4" />
     </Style>
     <Style Selector="MenuItem">
-        <Setter Property="FontSize" Value="13" />
-        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="CornerRadius" Value="2" />
         <Setter Property="Margin" Value="2,1" />
         <Setter Property="MinHeight" Value="0" />
     </Style>
@@ -215,14 +297,21 @@
         <Setter Property="Margin" Value="8,4" />
     </Style>
     <Style Selector="FlyoutPresenter">
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="Padding" Value="14" />
     </Style>
     <Style Selector="ToggleSwitch">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
     <Style Selector="Ellipse.dot">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
+        <Setter Property="Width" Value="6" />
+        <Setter Property="Height" Value="6" />
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="MinHeight" Value="30" />
+    </Style>
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 </Styles>
