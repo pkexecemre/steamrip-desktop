@@ -17,6 +17,17 @@ public partial class BrowseViewModel : ObservableObject
 
     [ObservableProperty]
     public partial string Summary { get; set; } = "";
+
+    /// <summary>Nothing to show: either no catalog yet or a filter that matches nothing.</summary>
+    public bool IsEmpty => Items.Count == 0;
+
+    /// <summary>Everything the database holds, so the empty state can say how big the catalog is.</summary>
+    [ObservableProperty]
+    public partial int Total { get; set; }
+
+    /// <summary>False before the first sync: an empty list then means "not yet", not "no match".</summary>
+    public bool HasCatalog => Total > 0;
+
     public ObservableCollection<BrowseItem> Items { get; } = [];
 
     public IReadOnlyList<SortOption> Sorts { get; } =
@@ -102,6 +113,7 @@ public partial class BrowseViewModel : ObservableObject
                 )
             );
         var total = _s.Db.PostCount();
+        Total = total;
         var genreId = Genre?.Id ?? 0;
         var filtered = !string.IsNullOrWhiteSpace(Query) || genreId != 0;
         var genreNote =
@@ -118,11 +130,23 @@ public partial class BrowseViewModel : ObservableObject
             : Items.Count >= Limit
                 ? $"Showing the {Limit} {Sort.Summary} matches of {total:N0}{genreNote}"
             : $"{Items.Count} match{(Items.Count == 1 ? "" : "es")} of {total:N0}{genreNote}";
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(HasCatalog));
     }
 
     public void Install(BrowseItem item)
     {
         _s.Updates.Enqueue(item.Post, isUpdate: false);
+        Refresh();
+    }
+
+    /// <summary>The empty state's one action: back to the whole catalog.</summary>
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        Query = "";
+        Sort = Sorts[0];
+        Genre = Genres.Count > 0 ? Genres[0] : AllGenres;
         Refresh();
     }
 

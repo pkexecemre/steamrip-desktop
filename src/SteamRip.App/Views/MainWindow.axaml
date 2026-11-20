@@ -364,6 +364,45 @@
                     TextWrapping="Wrap"
                     Margin="0,-4,0,14"
                 />
+                <StackPanel
+                    DockPanel.Dock="Top"
+                    Spacing="12"
+                    Margin="0,10,0,0"
+                    IsVisible="{Binding IsEmpty}"
+                >
+                    <StackPanel Spacing="12" IsVisible="{Binding !HasCatalog}">
+                        <TextBlock Classes="h2" Text="No catalog yet." />
+                        <TextBlock
+                            Classes="meta"
+                            MaxWidth="520"
+                            HorizontalAlignment="Left"
+                            TextWrapping="Wrap"
+                            Text="The first sync starts a few seconds after launch and takes a minute. If nothing appears, press Sync now."
+                        />
+                        <Button
+                            Classes="quiet"
+                            Content="Sync now"
+                            Command="{Binding SyncCommand}"
+                            HorizontalAlignment="Left"
+                        />
+                    </StackPanel>
+                    <StackPanel Spacing="12" IsVisible="{Binding HasCatalog}">
+                        <TextBlock Classes="h2" Text="Nothing matches that." />
+                        <TextBlock
+                            Classes="meta"
+                            MaxWidth="520"
+                            HorizontalAlignment="Left"
+                            TextWrapping="Wrap"
+                            Text="Clear the search or pick another genre. The catalog itself is still there."
+                        />
+                        <Button
+                            Classes="quiet"
+                            Content="Clear filters"
+                            Command="{Binding ClearFiltersCommand}"
+                            HorizontalAlignment="Left"
+                        />
+                    </StackPanel>
+                </StackPanel>
                 <ListBox ItemsSource="{Binding Items}" Classes="plain">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="vm:BrowseItem">
