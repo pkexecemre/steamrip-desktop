@@ -43,6 +43,35 @@
         <Style Selector="ListBoxItem:pointerover Border.tileAction">
             <Setter Property="Opacity" Value="1" />
         </Style>
+        <!-- A light crosses the artwork once each time the pointer arrives: the animation belongs to
+             the :pointerover style, so it runs on hover and stops when the pointer leaves. -->
+        <Style Selector="Border.sheen">
+            <Setter Property="Width" Value="70" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="RenderTransform" Value="translateX(-120px)" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Offset="0" Color="#00FFFFFF" />
+                    <GradientStop Offset="0.5" Color="#59FFFFFF" />
+                    <GradientStop Offset="1" Color="#00FFFFFF" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.sheen">
+            <Setter Property="Opacity" Value="0.9" />
+            <Style.Animations>
+                <Animation Duration="0:0:0.75" IterationCount="1">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RenderTransform" Value="translateX(-120px)" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RenderTransform" Value="translateX(280px)" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
         <Style Selector="Border.tileScrim">
             <Setter Property="CornerRadius" Value="0,0,6,6" />
             <Setter Property="Background">
@@ -178,6 +207,7 @@
                                             IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
                                         />
                                         <Image Source="{Binding Cover}" Stretch="UniformToFill" />
+                                        <Border Classes="sheen" />
 
                                         <!-- the name sits on the artwork, like the site's cards -->
                                         <Border

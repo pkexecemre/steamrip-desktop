@@ -568,6 +568,12 @@ public sealed partial class LibraryItem : ObservableObject
     /// <summary>The job this game is running, if any: the row shows its status and can stop it.</summary>
     public Job? RunningJob => _job;
 
+    /// <summary>How far the running job is, for the thin bar under the row; null while it is indeterminate.</summary>
+    public double? JobFraction => _job?.Fraction;
+
+    /// <summary>True while the job has no measurable progress yet (resolving, or aria2 warming up).</summary>
+    public bool JobIndeterminate => _job is not null && IsBusy && _job.Fraction is null;
+
     public bool IsBusy =>
         _job?.Stage
             is JobStage.Queued
