@@ -53,6 +53,9 @@ public sealed class Settings
     public bool AutoUpdatesPaused { get; set; }
     public bool NotifyNewGames { get; set; }
     public bool StartHidden { get; set; } = true;
+
+    /// <summary>Which page the window opens on: the one that was open when it last closed.</summary>
+    public string StartSection { get; set; } = "Library";
     public bool Autostart { get; set; }
 
     /// <summary>Create an app-menu entry for every game after install (removed again on uninstall).</summary>

@@ -8,6 +8,30 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly AppServices _s;
     private readonly DispatcherTimer _health;
+
+    /// <summary>Where the window opens: the section it was left on, if that page still exists.</summary>
+    private void RestoreSection()
+    {
+        var start = _s.Settings.StartSection;
+        if (start is "Library" or "Browse" or "Queue" or "Activity" or "Settings")
+            NavigateCommand.Execute(start);
+    }
+
+    private DispatcherTimer? _rememberPoll;
+
+    private void Remember(string section)
+    {
+        _rememberPoll?.Stop();
+        _rememberPoll = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
+        _rememberPoll.Tick += (_, _) =>
+        {
+            _rememberPoll?.Stop();
+            _s.Settings.StartSection = section;
+            _s.Settings.Save();
+        };
+        _rememberPoll.Start();
+    }
+
     private readonly DispatcherTimer _runningPoll;
 
     public LibraryViewModel Library { get; }
@@ -105,11 +129,14 @@ public partial class MainViewModel : ObservableObject
                 _runningPoll.Stop();
         };
         _ = CheckSolverAsync();
+        RestoreSection();
     }
 
     [RelayCommand]
     private void Navigate(string section)
     {
+        if (section != Section)
+            Remember(section);
         Section = section;
         Current = section switch
         {
