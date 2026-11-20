@@ -8,6 +8,14 @@
     <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,*">
         <StackPanel Margin="0,0,0,16" Spacing="3">
             <TextBlock Classes="h1" Text="Activity" />
+            <Border
+                Width="52"
+                Height="2"
+                CornerRadius="1"
+                Background="{StaticResource Signal}"
+                HorizontalAlignment="Left"
+                Margin="0,2,0,0"
+            />
             <TextBlock
                 Classes="meta"
                 Text="What the app did, newest first. Every line is also in the log file."

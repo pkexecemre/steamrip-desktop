@@ -74,6 +74,14 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Classes="h1" Text="Library" VerticalAlignment="Center" />
                 <Border
+                    Width="52"
+                    Height="2"
+                    CornerRadius="1"
+                    Background="{StaticResource Signal}"
+                    HorizontalAlignment="Left"
+                    Margin="0,2,0,0"
+                />
+                <Border
                     Classes="pill amber"
                     VerticalAlignment="Center"
                     IsVisible="{Binding UpdatesAvailable}"

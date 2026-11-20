@@ -181,6 +181,7 @@
     <!-- Game rows: a hairline, a hover lift, no card. -->
     <Style Selector="ListBoxItem:pointerover Border.row">
         <Setter Property="Background" Value="#1F1730" />
+        <Setter Property="BoxShadow" Value="inset 3 0 0 0 #8438FF" />
     </Style>
     <Style Selector="Border.row">
         <Setter Property="Transitions">

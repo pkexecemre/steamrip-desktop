@@ -160,7 +160,7 @@
             <Grid Grid.Column="1" RowDefinitions="46,*">
                 <Border
                     Background="{StaticResource Panel}"
-                    BorderBrush="{StaticResource Line}"
+                    BorderBrush="{StaticResource Signal}"
                     BorderThickness="0,0,0,1"
                     Padding="28,0"
                 >
