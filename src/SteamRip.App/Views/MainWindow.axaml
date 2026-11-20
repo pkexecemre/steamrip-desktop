@@ -634,7 +634,7 @@
 
         <!-- ============ ACTIVITY ============ -->
         <DataTemplate DataType="vm:ActivityViewModel">
-            <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,2*">
+            <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,*">
                 <StackPanel Margin="0,0,0,16" Spacing="3">
                     <TextBlock Classes="h1" Text="Activity" />
                     <TextBlock
