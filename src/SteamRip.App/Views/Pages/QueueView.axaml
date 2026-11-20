@@ -5,8 +5,53 @@
     x:Class="SteamRip.App.Views.Pages.QueueView"
     x:DataType="vm:QueueViewModel"
 >
+    <UserControl.Styles>
+        <!-- The running job is the only thing on this page that moves: a gradient bar with a light
+             sweeping through it, and a halo behind it that breathes. Everything else is still. -->
+        <Style Selector="Border.job">
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="16,14" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.14" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.job:pointerover">
+            <Setter Property="Background" Value="#1F1730" />
+        </Style>
+        <Style Selector="Border.charge">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="{StaticResource Raised}" />
+        </Style>
+        <Style Selector="Border.chargeFill">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Background" Value="{StaticResource Signal}" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.6" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.chargeGlow">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Margin" Value="0,-3,0,-3" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                    <GradientStop Offset="0" Color="#008438FF" />
+                    <GradientStop Offset="0.5" Color="#558438FF" />
+                    <GradientStop Offset="1" Color="#00FF007A" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+
     <DockPanel Margin="28,24,28,20">
-        <Grid DockPanel.Dock="Top" Margin="0,0,0,20" ColumnDefinitions="*,Auto">
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,18" ColumnDefinitions="*,Auto">
             <StackPanel Spacing="3">
                 <TextBlock Classes="h1" Text="Queue" />
                 <TextBlock
@@ -36,10 +81,10 @@
         <StackPanel
             DockPanel.Dock="Top"
             Spacing="10"
-            Margin="0,4,0,0"
+            Margin="0,6,0,0"
             IsVisible="{Binding IsEmpty}"
         >
-            <TextBlock Classes="h2" Text="Nothing queued." />
+            <TextBlock Classes="h1" Text="Nothing queued." />
             <TextBlock
                 Classes="meta"
                 TextWrapping="Wrap"
@@ -49,11 +94,11 @@
             />
         </StackPanel>
 
-        <ScrollViewer>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:JobItem">
-                        <Border Classes="row" Padding="16,12,16,10">
+                        <Border Classes="job">
                             <StackPanel>
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Spacing="4">
@@ -61,7 +106,7 @@
                                             <TextBlock
                                                 Text="{Binding Name}"
                                                 FontWeight="SemiBold"
-                                                FontSize="14.5"
+                                                FontSize="16"
                                                 VerticalAlignment="Center"
                                             />
                                             <Border Classes="pill">
@@ -80,6 +125,7 @@
                                             Classes.muted="{Binding Active}"
                                             Classes.red="{Binding NeedsAttention}"
                                             Classes.green="{Binding Done}"
+                                            FontSize="12.5"
                                         />
                                     </StackPanel>
                                     <StackPanel
@@ -116,13 +162,20 @@
                                         />
                                     </StackPanel>
                                 </Grid>
-                                <ProgressBar
-                                    Margin="0,10,0,0"
-                                    Value="{Binding Fraction}"
-                                    Maximum="1"
-                                    IsIndeterminate="{Binding Indeterminate}"
-                                    IsVisible="{Binding Active}"
-                                />
+
+                                <!-- the charge bar: gradient fill, a soft halo, and the indeterminate
+                                     state the downloader already reports -->
+                                <Panel Margin="0,12,0,0" IsVisible="{Binding Active}">
+                                    <Border Classes="chargeGlow" Opacity="0.45" />
+                                    <ProgressBar
+                                        Value="{Binding Fraction}"
+                                        Maximum="1"
+                                        IsIndeterminate="{Binding Indeterminate}"
+                                        Height="4"
+                                        Background="#2A1F3D"
+                                        Foreground="{StaticResource Signal}"
+                                    />
+                                </Panel>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
