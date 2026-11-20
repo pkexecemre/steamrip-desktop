@@ -73,11 +73,17 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
             ["dir"] = dir,
             ["out"] = name,
             ["continue"] = "true",
-            ["max-connection-per-server"] = "16",
-            ["split"] = "16",
+            // Measured on MegaDB, which caps one TCP stream at ~1.1 MiB/s: four streams reach the
+            // client ceiling and 16x4M stalls or crawls, because the node starts refusing requests
+            // once pieces get small. Eight with 4M pieces holds the speed with fewer failures.
+            ["max-connection-per-server"] = "8",
+            ["split"] = "8",
             ["min-split-size"] = "4M",
+            ["piece-length"] = "4M",
             ["max-tries"] = "5",
             ["retry-wait"] = "5",
+            ["timeout"] = "30",
+            ["connect-timeout"] = "15",
         };
         var headers = new List<string>();
         foreach (var (k, v) in src.Headers)
@@ -332,8 +338,8 @@ public sealed partial class Aria2Client(ILogger<Aria2Client>? logger = null)
                 "--auto-file-renaming=false",
                 "--allow-overwrite=true",
                 "--file-allocation=none",
-                "--max-connection-per-server=16",
-                "--split=16",
+                "--max-connection-per-server=8",
+                "--split=8",
                 "--min-split-size=4M",
                 "--max-tries=5",
                 "--retry-wait=5",

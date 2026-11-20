@@ -63,29 +63,42 @@ public sealed class MegaDbResolver(
 
         _log.LogDebug(
             "MegaDB: waiting {Seconds}s (server-enforced) before requesting the token URL",
-            parsed.waitSeconds + 2
+            parsed.waitSeconds
         );
         if (delayOverride is not null)
             await delayOverride();
         else
-            await Task.Delay(TimeSpan.FromSeconds(parsed.waitSeconds + 2), ct);
+            // The token URL starts answering 302 about half a second after the countdown the page
+            // printed; the old +2 was pure waiting (12s of every resolve was this sleep).
+            await Task.Delay(TimeSpan.FromSeconds(parsed.waitSeconds + 0.5), ct);
 
-        using var ptReq = new HttpRequestMessage(HttpMethod.Get, parsed.ptUrl);
-        ptReq.Headers.Referrer = new Uri(shareUrl);
-        using var ptResp = await http.SendAsync(ptReq, ct);
-        _log.LogDebug(
-            "MegaDB token URL → HTTP {Status}, Location {Location}",
-            (int)ptResp.StatusCode,
-            ptResp.Headers.Location is { } l ? FileDitchResolver.Redact(l.ToString()) : "none"
-        );
-        if ((int)ptResp.StatusCode is < 300 or > 399 || ptResp.Headers.Location is null)
+        // If the edge answers with the landing page again (the countdown is not quite up, or a slow
+        // handshake ate the margin) the same token URL works a second later, so retry it instead of
+        // failing the whole resolve.
+        string? location = null;
+        for (var attempt = 1; attempt <= 3 && location is null; attempt++)
+        {
+            if (attempt > 1)
+                await Task.Delay(TimeSpan.FromSeconds(1), ct);
+            using var ptReq = new HttpRequestMessage(HttpMethod.Get, parsed.ptUrl);
+            ptReq.Headers.Referrer = new Uri(shareUrl);
+            using var ptResp = await http.SendAsync(ptReq, ct);
+            location = ptResp.Headers.Location?.ToString();
+            _log.LogDebug(
+                "MegaDB token URL (attempt {Attempt}) → HTTP {Status}, Location {Location}",
+                attempt,
+                (int)ptResp.StatusCode,
+                location is null ? "none" : FileDitchResolver.Redact(location)
+            );
+        }
+        if (location is null)
             throw new HostResolveException(
                 Host,
-                $"expected redirect to storage node, got HTTP {(int)ptResp.StatusCode}"
+                "the token URL never redirected to a storage node"
             );
-        var fileUrl = ptResp.Headers.Location.IsAbsoluteUri
-            ? ptResp.Headers.Location.ToString()
-            : new Uri(new Uri(shareUrl), ptResp.Headers.Location).ToString();
+        var fileUrl = Uri.TryCreate(location, UriKind.Absolute, out var absolute)
+            ? absolute.ToString()
+            : new Uri(new Uri(shareUrl), location).ToString();
 
         var cookieHeader = jar.GetCookieHeader(new Uri(fileUrl));
         if (string.IsNullOrEmpty(cookieHeader))
