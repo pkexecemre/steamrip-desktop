@@ -61,14 +61,24 @@ public partial class LibraryView : UserControl
             // is actually realized, so it is visible instead of happening off-screen.
             // The window is mapped a frame or two after layout: without this the wave plays to an empty
             // screen and the user only sees its end state.
-            Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
-            {
-                await Task.Delay(180);
-                PlayEntrance();
-            });
+            Avalonia.Threading.Dispatcher.UIThread.Post(DelayedEntrance);
         };
         if (this.FindControl<ListBox>("Shelf") is { } shelf)
             shelf.ContainerPrepared += OnRowPrepared;
+    }
+
+    /// <summary>Waits a frame and a bit so the window is on screen, then plays the entrance.</summary>
+    private async void DelayedEntrance()
+    {
+        try
+        {
+            await Task.Delay(180);
+            PlayEntrance();
+        }
+        catch (Exception)
+        {
+            // a dropped entrance must never take the page with it
+        }
     }
 
     private void PlayEntrance()

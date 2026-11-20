@@ -56,17 +56,27 @@ public partial class BrowseView : UserControl
             if (_shown)
                 return;
             _shown = true;
-            Dispatcher.UIThread.Post(async () =>
-            {
-                await Task.Delay(180);
-                PlayEntrance();
-            });
+            Dispatcher.UIThread.Post(DelayedEntrance);
         };
         if (this.FindControl<ItemsControl>("Grid") is { } grid)
             grid.ContainerPrepared += OnTilePrepared;
     }
 
     /// <summary>The first screenful of covers arrives as a wave; the rest of the catalogue waits below.</summary>
+    /// <summary>Waits a frame and a bit so the window is on screen, then plays the entrance.</summary>
+    private async void DelayedEntrance()
+    {
+        try
+        {
+            await Task.Delay(180);
+            PlayEntrance();
+        }
+        catch (Exception)
+        {
+            // a dropped entrance must never take the page with it
+        }
+    }
+
     private void PlayEntrance()
     {
         if (this.FindControl<ItemsControl>("Grid") is not { } grid)
