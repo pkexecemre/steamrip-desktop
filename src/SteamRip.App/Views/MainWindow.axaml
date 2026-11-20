@@ -457,64 +457,75 @@
         <!-- ============ QUEUE ============ -->
         <DataTemplate DataType="vm:QueueViewModel">
             <DockPanel Margin="28,24,28,20">
-                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-                    <TextBlock Classes="eyebrow" Text="ONE AT A TIME" />
-                    <DockPanel>
-                        <StackPanel
-                            DockPanel.Dock="Right"
-                            Orientation="Horizontal"
-                            Spacing="12"
-                            VerticalAlignment="Center"
-                        >
-                            <ToggleSwitch
-                                IsChecked="{Binding Paused}"
-                                OnContent="Auto-updates paused"
-                                OffContent="Auto-updates on"
-                            />
-                            <Button
-                                Classes="quiet"
-                                Content="Clear finished"
-                                Command="{Binding ClearFinishedCommand}"
-                            />
-                        </StackPanel>
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,20" ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="3">
                         <TextBlock Classes="h1" Text="Queue" />
-                    </DockPanel>
-                </StackPanel>
-                <TextBlock
+                        <TextBlock
+                            Classes="meta"
+                            Text="One job at a time. Updates queue themselves; installs start when you press Install."
+                        />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        VerticalAlignment="Center"
+                    >
+                        <ToggleSwitch
+                            IsChecked="{Binding Paused}"
+                            OnContent="Auto-updates paused"
+                            OffContent="Auto-updates on"
+                        />
+                        <Button
+                            Classes="quiet"
+                            Content="Clear finished"
+                            Command="{Binding ClearFinishedCommand}"
+                        />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel
                     DockPanel.Dock="Top"
-                    Classes="muted"
+                    Spacing="10"
+                    Margin="0,4,0,0"
                     IsVisible="{Binding IsEmpty}"
-                    Text="Nothing queued. Updates land here automatically when the catalog changes; installs when you press Install."
-                    TextWrapping="Wrap"
-                />
+                >
+                    <TextBlock Classes="h2" Text="Nothing queued." />
+                    <TextBlock
+                        Classes="meta"
+                        TextWrapping="Wrap"
+                        MaxWidth="520"
+                        HorizontalAlignment="Left"
+                        Text="Updates land here on their own when the catalog changes. Start something from Browse and it appears here while it downloads."
+                    />
+                </StackPanel>
+
                 <ScrollViewer>
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="vm:JobItem">
-                                <Border Classes="card" Margin="0,0,0,8" Padding="0">
+                                <Border Classes="row" Padding="16,12,16,10">
                                     <StackPanel>
-                                        <Grid ColumnDefinitions="*,Auto" Margin="16,12,16,10">
-                                            <StackPanel>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Spacing="4">
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                                     <TextBlock
                                                         Text="{Binding Name}"
                                                         FontWeight="SemiBold"
-                                                        FontSize="15"
+                                                        FontSize="14.5"
+                                                        VerticalAlignment="Center"
                                                     />
                                                     <Border Classes="pill">
-                                                        <TextBlock
-                                                            FontSize="11"
-                                                            Text="{Binding Kind}"
-                                                        />
+                                                        <TextBlock Text="{Binding Kind}" />
                                                     </Border>
                                                     <TextBlock
                                                         Classes="mono muted"
+                                                        FontSize="11"
                                                         Text="{Binding Version}"
                                                         VerticalAlignment="Center"
                                                     />
                                                 </StackPanel>
                                                 <TextBlock
-                                                    Margin="0,6,0,0"
                                                     Text="{Binding Status}"
                                                     TextWrapping="Wrap"
                                                     Classes.muted="{Binding Active}"
@@ -525,11 +536,11 @@
                                             <StackPanel
                                                 Grid.Column="1"
                                                 Orientation="Horizontal"
-                                                Spacing="6"
+                                                Spacing="4"
                                                 VerticalAlignment="Center"
                                             >
                                                 <Button
-                                                    Classes="primary"
+                                                    Classes="action"
                                                     Content="Solve in browser"
                                                     Command="{Binding SolveInBrowserCommand}"
                                                     IsVisible="{Binding NeedsAttention}"
@@ -557,8 +568,7 @@
                                             </StackPanel>
                                         </Grid>
                                         <ProgressBar
-                                            Margin="0"
-                                            CornerRadius="0,0,8,8"
+                                            Margin="0,10,0,0"
                                             Value="{Binding Fraction}"
                                             Maximum="1"
                                             IsIndeterminate="{Binding Indeterminate}"
@@ -575,27 +585,42 @@
 
         <!-- ============ ACTIVITY ============ -->
         <DataTemplate DataType="vm:ActivityViewModel">
-            <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,*">
-                <StackPanel Margin="0,0,0,12">
-                    <TextBlock Classes="eyebrow" Text="WHAT HAPPENED" />
+            <Grid Margin="28,24,28,20" RowDefinitions="Auto,*,Auto,2*">
+                <StackPanel Margin="0,0,0,16" Spacing="3">
                     <TextBlock Classes="h1" Text="Activity" />
+                    <TextBlock
+                        Classes="meta"
+                        Text="What the app did, newest first. Every line is also in the log file."
+                    />
                 </StackPanel>
-                <Border Grid.Row="1" Classes="card" Padding="0">
+
+                <Border
+                    Grid.Row="1"
+                    BorderBrush="{StaticResource Line}"
+                    BorderThickness="1"
+                    Padding="0"
+                >
                     <ScrollViewer>
-                        <ItemsControl ItemsSource="{Binding Events}" Margin="12,8">
+                        <ItemsControl ItemsSource="{Binding Events}" Margin="14,10">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:ActivityLine">
-                                    <Grid ColumnDefinitions="130,90,*" Margin="0,3">
-                                        <TextBlock Classes="mono muted" Text="{Binding When}" />
+                                    <Grid ColumnDefinitions="92,74,*" Margin="0,3">
+                                        <TextBlock
+                                            Classes="mono muted"
+                                            FontSize="11"
+                                            Text="{Binding When}"
+                                        />
                                         <TextBlock
                                             Grid.Column="1"
                                             Classes="mono"
+                                            FontSize="11"
                                             Text="{Binding Kind}"
                                             Classes.red="{Binding IsError}"
                                             Classes.muted="{Binding !IsError}"
                                         />
                                         <TextBlock
                                             Grid.Column="2"
+                                            FontSize="12.5"
                                             Text="{Binding Message}"
                                             TextWrapping="Wrap"
                                         />
@@ -605,27 +630,39 @@
                         </ItemsControl>
                     </ScrollViewer>
                 </Border>
-                <DockPanel Grid.Row="2" Margin="0,16,0,8">
+
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,18,0,8">
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Classes="label" Text="Session log" />
+                        <TextBlock
+                            Classes="mono muted"
+                            FontSize="10.5"
+                            Text="{Binding LogDir}"
+                            TextTrimming="CharacterEllipsis"
+                        />
+                    </StackPanel>
                     <Button
-                        DockPanel.Dock="Right"
+                        Grid.Column="1"
                         Classes="quiet"
                         Content="Open log folder"
                         Command="{Binding OpenLogDirCommand}"
-                        Padding="10,4"
-                        FontSize="12"
+                        VerticalAlignment="Center"
                     />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Classes="eyebrow" Text="LOG (THIS SESSION)" />
-                        <TextBlock Classes="mono muted" FontSize="11" Text="{Binding LogDir}" />
-                    </StackPanel>
-                </DockPanel>
-                <Border Grid.Row="3" Classes="card" Padding="0">
+                </Grid>
+
+                <Border
+                    Grid.Row="3"
+                    BorderBrush="{StaticResource Line}"
+                    BorderThickness="1"
+                    Padding="0"
+                >
                     <ScrollViewer>
-                        <ItemsControl ItemsSource="{Binding Live}" Margin="12,8">
+                        <ItemsControl ItemsSource="{Binding Live}" Margin="14,10">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="x:String">
                                     <TextBlock
                                         Classes="mono muted"
+                                        FontSize="11"
                                         Text="{Binding}"
                                         TextWrapping="Wrap"
                                         Margin="0,1"
@@ -647,27 +684,30 @@
                     MaxWidth="760"
                     HorizontalAlignment="Left"
                 >
-                    <StackPanel>
-                        <TextBlock Classes="eyebrow" Text="HOW IT RUNS" />
+                    <StackPanel Spacing="3">
                         <TextBlock Classes="h1" Text="Settings" />
+                        <TextBlock
+                            Classes="meta"
+                            Text="Saved as you type. Paths apply to new installs; the Proton and download choices to the next launch or job."
+                        />
                     </StackPanel>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Folders" />
+                            <TextBlock Classes="h2" Text="Folders" />
                             <TextBlock
                                 Classes="muted"
                                 Text="Games are extracted to &lt;library&gt;/&lt;game-slug&gt;. Each keeps its own Wine prefix outside the game folder (default &lt;library&gt;/.prefixes/&lt;game-slug&gt;), so an update swap, an uninstall or a delete cannot take the saves with it; prefixes still sitting in a game folder are moved there on the next launch. Archives land in the downloads folder and are deleted after install unless you say otherwise."
                                 TextWrapping="Wrap"
                             />
-                            <TextBlock Text="Library folder" Classes="muted" />
+                            <TextBlock Text="Library folder" Classes="label" />
                             <TextBox Text="{Binding LibraryRoot}" />
-                            <TextBlock Text="Downloads folder" Classes="muted" />
+                            <TextBlock Text="Downloads folder" Classes="label" />
                             <TextBox Text="{Binding DownloadsRoot}" />
                             <StackPanel Spacing="10">
                                 <TextBlock
                                     Text="Prefixes folder (empty = &lt;library&gt;/.prefixes)"
-                                    Classes="muted"
+                                    Classes="label"
                                 />
                                 <TextBox
                                     Text="{Binding PrefixRoot}"
@@ -683,7 +723,7 @@
                                 <StackPanel>
                                     <TextBlock
                                         Text="Save backups to keep per game"
-                                        Classes="muted"
+                                        Classes="label"
                                     />
                                     <NumericUpDown
                                         Value="{Binding KeepBackups}"
@@ -702,15 +742,15 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Downloads" />
+                            <TextBlock Classes="h2" Text="Downloads" />
                             <TextBlock
                                 Classes="muted"
                                 TextWrapping="Wrap"
                                 Text="aria2 splits a transfer over many connections, resumes a half-finished file, retries a host that hung up, checks the hash the hoster published and opens the .torrent mirrors some hosters serve instead of an archive. Without it the app falls back to its own single-connection downloader."
                             />
-                            <TextBlock Text="Engine" Classes="muted" />
+                            <TextBlock Text="Engine" Classes="label" />
                             <ComboBox
                                 ItemsSource="{Binding Engines}"
                                 SelectedItem="{Binding DownloadEngine}"
@@ -729,15 +769,15 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Playing" />
+                            <TextBlock Classes="h2" Text="Playing" />
                             <TextBlock
                                 Classes="muted"
                                 TextWrapping="Wrap"
                                 Text="Games run through umu-run with the Proton build below (per-game override in Launch options). GE-Proton and DW-Proton are downloaded on first use and kept current; expect a wait that one time, and the same for umu's runtime."
                             />
-                            <TextBlock Text="Default Proton" Classes="muted" />
+                            <TextBlock Text="Default Proton" Classes="label" />
                             <ComboBox
                                 ItemsSource="{Binding Protons}"
                                 SelectedItem="{Binding DefaultProton}"
@@ -751,9 +791,9 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Launch defaults" />
+                            <TextBlock Classes="h2" Text="Launch defaults" />
                             <TextBlock
                                 Classes="muted"
                                 TextWrapping="Wrap"
@@ -780,15 +820,15 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Mirrors and Cloudflare" />
+                            <TextBlock Classes="h2" Text="Mirrors and Cloudflare" />
                             <TextBlock
                                 Classes="muted"
                                 TextWrapping="Wrap"
                                 Text="FileDitch and BuzzHeavier pages sit behind browser checks; FlareSolverr passes them for you. GoFile and MegaDB need nothing. If every automatic route fails, the queue offers 'Solve in browser'."
                             />
-                            <TextBlock Text="FlareSolverr URL" Classes="muted" />
+                            <TextBlock Text="FlareSolverr URL" Classes="label" />
                             <DockPanel>
                                 <Button
                                     DockPanel.Dock="Right"
@@ -809,7 +849,7 @@
                                 Text="{Binding SolverTest}"
                                 IsVisible="{Binding SolverTest, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             />
-                            <TextBlock Text="SteamGridDB API key" Classes="muted" />
+                            <TextBlock Text="SteamGridDB API key" Classes="label" />
                             <TextBox
                                 Text="{Binding SteamGridDbApiKey, UpdateSourceTrigger=PropertyChanged}"
                                 PasswordChar="•"
@@ -835,14 +875,14 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="10">
-                            <TextBlock FontWeight="SemiBold" Text="Schedule and tray" />
+                            <TextBlock Classes="h2" Text="Schedule and tray" />
                             <StackPanel Orientation="Horizontal" Spacing="16">
                                 <StackPanel>
                                     <TextBlock
                                         Text="Check the catalog every (minutes)"
-                                        Classes="muted"
+                                        Classes="label"
                                     />
                                     <NumericUpDown
                                         Value="{Binding CheckIntervalMinutes}"
@@ -886,9 +926,9 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Classes="card">
+                    <Border Classes="section">
                         <StackPanel Spacing="6">
-                            <TextBlock FontWeight="SemiBold" Text="On this machine" />
+                            <TextBlock Classes="h2" Text="On this machine" />
                             <TextBlock Classes="mono muted" Text="{Binding VersionLine}" />
                             <TextBlock
                                 Classes="mono muted"
@@ -958,6 +998,7 @@
                                 Height="20"
                             />
                             <TextBlock
+                                Classes="nav-label"
                                 Text="SteamRIP"
                                 FontWeight="SemiBold"
                                 FontSize="14.5"
@@ -965,14 +1006,19 @@
                             />
                         </StackPanel>
                         <TextBlock
-                            Classes="mono muted"
+                            Classes="mono muted nav-label"
                             FontSize="10.5"
                             Text="desktop client"
                             Margin="29,0,0,0"
                         />
                     </StackPanel>
 
-                    <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="6,14,0,0">
+                    <StackPanel
+                        Classes="rail-status"
+                        DockPanel.Dock="Bottom"
+                        Spacing="8"
+                        Margin="6,14,0,0"
+                    >
                         <Border
                             Background="{StaticResource Ink}"
                             BorderBrush="{StaticResource Line}"
@@ -1026,58 +1072,76 @@
                             Classes="nav"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="Library"
+                            ToolTip.Tip="Library"
                             Classes.active="{Binding Section, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Library}"
                         >
-                            <TextBlock Text="Library" />
+                            <DockPanel>
+                                <TextBlock Classes="nav-glyph" Text="L" />
+                                <TextBlock Classes="nav-label" Text="Library" />
+                            </DockPanel>
                         </Button>
                         <Button
                             Classes="nav"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="Browse"
+                            ToolTip.Tip="Browse"
                             Classes.active="{Binding Section, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Browse}"
                         >
-                            <TextBlock Text="Browse" />
+                            <DockPanel>
+                                <TextBlock Classes="nav-glyph" Text="B" />
+                                <TextBlock Classes="nav-label" Text="Browse" />
+                            </DockPanel>
                         </Button>
                         <Button
                             Classes="nav"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="Queue"
+                            ToolTip.Tip="Queue"
                             Classes.active="{Binding Section, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Queue}"
                         >
                             <DockPanel>
+                                <TextBlock Classes="nav-glyph" Text="Q" />
                                 <Border
                                     DockPanel.Dock="Right"
-                                    Classes="pill amber"
+                                    Classes="pill amber nav-count"
                                     IsVisible="{Binding QueueCount}"
                                 >
-                                    <TextBlock FontSize="10.5" Text="{Binding QueueCount}" />
+                                    <TextBlock Text="{Binding QueueCount}" />
                                 </Border>
                                 <Border
                                     DockPanel.Dock="Right"
-                                    Classes="pill"
+                                    Classes="pill nav-count"
                                     Margin="0,0,4,0"
                                     IsVisible="{Binding AttentionCount}"
                                 >
                                     <TextBlock Classes="red" Text="{Binding AttentionCount}" />
                                 </Border>
-                                <TextBlock Text="Queue" />
+                                <TextBlock Classes="nav-label" Text="Queue" />
                             </DockPanel>
                         </Button>
                         <Button
                             Classes="nav"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="Activity"
+                            ToolTip.Tip="Activity"
                             Classes.active="{Binding Section, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Activity}"
                         >
-                            <TextBlock Text="Activity" />
+                            <DockPanel>
+                                <TextBlock Classes="nav-glyph" Text="A" />
+                                <TextBlock Classes="nav-label" Text="Activity" />
+                            </DockPanel>
                         </Button>
                         <Button
                             Classes="nav"
                             Command="{Binding NavigateCommand}"
                             CommandParameter="Settings"
+                            ToolTip.Tip="Settings"
                             Classes.active="{Binding Section, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Settings}"
                         >
-                            <TextBlock Text="Settings" />
+                            <DockPanel>
+                                <TextBlock Classes="nav-glyph" Text="S" />
+                                <TextBlock Classes="nav-label" Text="Settings" />
+                            </DockPanel>
                         </Button>
                     </StackPanel>
                 </DockPanel>
