@@ -141,6 +141,15 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
     public bool HasShortcut(LibraryItem item, ShortcutPlace place) =>
         s.Updates.HasShortcut(item.Game.PostId, place);
 
+    /// <summary>Stops the download or install this game has queued or running.</summary>
+    public void Cancel(LibraryItem item)
+    {
+        if (item.RunningJob is not { } job)
+            return;
+        s.Updates.Cancel(job);
+        s.Log.LogInformation("User cancelled {Name} from the library", item.Name);
+    }
+
     public void Uninstall(LibraryItem item, bool deleteFiles)
     {
         s.Updates.Uninstall(item.Game.PostId, deleteFiles);
@@ -555,6 +564,10 @@ public sealed partial class LibraryItem : ObservableObject
     public string SiteVersion => UpdateDetector.Normalize(Post?.VersionKey) ?? "—";
     public bool HasUpdate { get; private set; }
     public bool IsRunning { get; private set; }
+
+    /// <summary>The job this game is running, if any: the row shows its status and can stop it.</summary>
+    public Job? RunningJob => _job;
+
     public bool IsBusy =>
         _job?.Stage
             is JobStage.Queued
@@ -692,6 +705,9 @@ public sealed partial class LibraryItem : ObservableObject
 
     [RelayCommand]
     private Task RunExe() => _owner.RunExeInPrefixAsync(this);
+
+    [RelayCommand]
+    private void Cancel() => _owner.Cancel(this);
 
     [RelayCommand]
     private void Forget() => _owner.Uninstall(this, deleteFiles: false);

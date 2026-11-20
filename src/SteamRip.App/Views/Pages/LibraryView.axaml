@@ -293,6 +293,15 @@
                                     IsVisible="{Binding IsRunning}"
                                     MinWidth="78"
                                 />
+                                <!-- While a job runs for this game, the row can stop it: the queue is one
+                                     page away and this is where the eye already is. -->
+                                <Button
+                                    Classes="danger"
+                                    Content="Stop"
+                                    Command="{Binding CancelCommand}"
+                                    IsVisible="{Binding IsBusy}"
+                                    MinWidth="78"
+                                />
                                 <Button
                                     Classes="action"
                                     Content="Update"
