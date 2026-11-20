@@ -65,6 +65,21 @@
     </Style>
 
     <!-- Keyboard focus: one amber hairline around whatever has it, only while tabbing. -->
+    <!-- Search reads as part of the shop: a soft pill, violet when it has focus. -->
+    <Style Selector="TextBox.search">
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Background" Value="#1A1226" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="FontSize" Value="12.5" />
+    </Style>
+    <Style Selector="TextBox.search:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#402E2344" />
+    </Style>
+    <Style Selector="TextBox.search:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{StaticResource Violet}" />
+    </Style>
     <Style Selector="Button">
         <Setter Property="FocusAdorner">
             <Template>

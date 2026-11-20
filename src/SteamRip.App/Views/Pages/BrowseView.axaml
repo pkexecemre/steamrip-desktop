@@ -162,7 +162,8 @@
                 />
             </StackPanel>
             <TextBox
-                PlaceholderText="Search by name…"
+                Classes="search"
+                PlaceholderText="Search 5,000 games…"
                 Text="{Binding Query}"
                 MaxWidth="420"
                 HorizontalAlignment="Left"
