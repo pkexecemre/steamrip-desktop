@@ -1186,7 +1186,12 @@
                 </DockPanel>
             </Border>
 
-            <ContentControl Grid.Column="1" Content="{Binding Current}" />
+            <ContentControl
+                Grid.Column="1"
+                Content="{Binding Current}"
+                MaxWidth="1180"
+                HorizontalAlignment="Left"
+            />
         </Grid>
 
         <!-- Toast: one line, bottom left of the content column, gone on its own. -->
