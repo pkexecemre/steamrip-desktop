@@ -36,6 +36,18 @@ mkdir -p "<prefix>"
 touch "<prefix>/.steamrip-vc-redist"
 ```
 
+## "Could not load file or assembly System.Net.WebSockets.Client" after an update
+
+**Symptom**: the app was already running when a new package was installed, and every mirror resolution
+now fails with `Could not load file or assembly 'System.Net.WebSockets.Client, Version=10.0.0.0'`.
+
+The app is a single-file bundle: it reads its own assemblies from the executable file on first use. Installing
+a new package replaces that file under the running process, so the offsets no longer match and the next
+lazily-loaded assembly (the WebSocket client, which the browser solver needs) cannot be read.
+
+**Fix**: quit the app from the tray and start it again. Nothing else is wrong - the catalogue, the queue and
+the library are unaffected.
+
 ## A hoster keeps failing
 
 **Symptom**: the item sits on `Resolving download link…`, then ends red with `No mirror could be resolved:` and one line per hoster.
