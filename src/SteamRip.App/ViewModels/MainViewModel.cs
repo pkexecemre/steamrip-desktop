@@ -102,6 +102,7 @@ public partial class MainViewModel : ObservableObject
         Current = Library;
         Library.OptionsRequested += item => Editing = item;
         Settings.Saved += ShowToast;
+        Browse.Notified += ShowToast;
         _toastTimer.Tick += (_, _) =>
         {
             _toastTimer.Stop();

@@ -6,7 +6,25 @@
     x:DataType="vm:BrowseViewModel"
 >
     <UserControl.Styles>
-        <!-- The tile is the store: a cover, a scrim, the name, and the action only on hover. -->
+        <!-- The card is the button: a cover, the name on a scrim, and a pill that always says what a
+             click will do. Hover answers the pointer, because a catalogue that looks dead reads dead. -->
+        <Style Selector="Button.bare">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Button.bare /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Button.bare:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
         <Style Selector="Border.tile">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="CornerRadius" Value="6" />
@@ -17,7 +35,7 @@
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="ListBoxItem:pointerover Border.tile">
+        <Style Selector="Button.bare:pointerover Border.tile">
             <Setter Property="RenderTransform" Value="scale(1.035)" />
         </Style>
         <Style Selector="Border.tileCover">
@@ -25,26 +43,42 @@
             <Setter Property="ClipToBounds" Value="True" />
             <Setter Property="Background" Value="{StaticResource Raised}" />
             <Setter Property="BoxShadow" Value="0 6 18 0 #66000000" />
-            <Setter Property="Transitions">
-                <Transitions></Transitions>
-            </Setter>
         </Style>
-        <Style Selector="ListBoxItem:pointerover Border.tileCover">
+        <Style Selector="Button.bare:pointerover Border.tileCover">
             <Setter Property="BoxShadow" Value="0 10 30 0 #998438FF" />
         </Style>
-        <Style Selector="Border.tileAction">
-            <Setter Property="Opacity" Value="0" />
+        <Style Selector="Border.tileScrim">
+            <Setter Property="CornerRadius" Value="0,0,6,6" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                    <GradientStop Offset="0" Color="#00000000" />
+                    <GradientStop Offset="0.55" Color="#B3090512" />
+                    <GradientStop Offset="1" Color="#F2090512" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+
+        <!-- The pill always shows the state; only its colour changes with it. -->
+        <Style Selector="Border.actionPill">
+            <Setter Property="CornerRadius" Value="11" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Margin" Value="8" />
+            <Setter Property="Background" Value="{StaticResource Signal}" />
             <Setter Property="Transitions">
                 <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.14" />
+                    <BrushTransition Property="Background" Duration="0:0:0.16" />
                 </Transitions>
             </Setter>
         </Style>
-        <Style Selector="ListBoxItem:pointerover Border.tileAction">
-            <Setter Property="Opacity" Value="1" />
+        <Style Selector="Button.bare:pointerover Border.actionPill">
+            <Setter Property="Background" Value="{StaticResource SignalDown}" />
         </Style>
-        <!-- A light crosses the artwork once each time the pointer arrives: the animation belongs to
-             the :pointerover style, so it runs on hover and stops when the pointer leaves. -->
+        <Style Selector="Border.actionPill.quiet">
+            <Setter Property="Background" Value="#CC120E1B" />
+            <Setter Property="BorderBrush" Value="#40FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
         <Style Selector="Border.sheen">
             <Setter Property="Width" Value="70" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -58,7 +92,7 @@
                 </LinearGradientBrush>
             </Setter>
         </Style>
-        <Style Selector="ListBoxItem:pointerover Border.sheen">
+        <Style Selector="Button.bare:pointerover Border.sheen">
             <Style.Animations>
                 <Animation Duration="0:0:0.7" IterationCount="1">
                     <KeyFrame Cue="0%">
@@ -72,16 +106,6 @@
                     </KeyFrame>
                 </Animation>
             </Style.Animations>
-        </Style>
-        <Style Selector="Border.tileScrim">
-            <Setter Property="CornerRadius" Value="0,0,6,6" />
-            <Setter Property="Background">
-                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
-                    <GradientStop Offset="0" Color="#00000000" />
-                    <GradientStop Offset="0.55" Color="#B3090512" />
-                    <GradientStop Offset="1" Color="#F2090512" />
-                </LinearGradientBrush>
-            </Setter>
         </Style>
     </UserControl.Styles>
 
@@ -214,90 +238,114 @@
             <ItemsControl x:Name="Grid" ItemsSource="{Binding Items}" Margin="0,14,0,0">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel ItemWidth="176" ItemHeight="292" />
+                        <WrapPanel ItemWidth="176" ItemHeight="304" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:BrowseItem">
-                        <Border Classes="tile" Margin="0,0,8,8" Width="168" Height="284">
-                            <Grid RowDefinitions="224,*">
-                                <Border Grid.Row="0" Classes="tileCover" Height="224">
-                                    <Panel>
-                                        <TextBlock
-                                            Classes="coverInitial"
-                                            FontSize="40"
-                                            Text="{Binding Initial}"
-                                            IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
-                                        />
-                                        <Image Source="{Binding Cover}" Stretch="UniformToFill" />
-                                        <Border Classes="sheen" />
+                        <Border Classes="tile" Margin="0,0,8,10" Width="168">
+                            <Grid RowDefinitions="224,Auto,Auto">
+                                <!-- Clicking the artwork installs the game; the pill says so. -->
+                                <Button
+                                    Classes="bare"
+                                    Command="{Binding ActivateCommand}"
+                                    ToolTip.Tip="{Binding ActionLabel}"
+                                    AutomationProperties.Name="{Binding Name}"
+                                >
+                                    <Border Classes="tileCover" Height="224">
+                                        <Panel>
+                                            <TextBlock
+                                                Classes="coverInitial"
+                                                FontSize="40"
+                                                Text="{Binding Initial}"
+                                                IsVisible="{Binding Cover, Converter={x:Static ObjectConverters.IsNull}}"
+                                            />
+                                            <Image
+                                                Source="{Binding Cover}"
+                                                Stretch="UniformToFill"
+                                            />
+                                            <Border Classes="sheen" />
 
-                                        <!-- the name sits on the artwork, like the site's cards -->
-                                        <Border
-                                            Classes="tileScrim"
-                                            VerticalAlignment="Bottom"
-                                            Height="120"
-                                        >
-                                            <StackPanel
+                                            <Border
+                                                Classes="tileScrim"
                                                 VerticalAlignment="Bottom"
-                                                Margin="10,0,10,10"
-                                                Spacing="1"
+                                                Height="120"
+                                            >
+                                                <StackPanel
+                                                    VerticalAlignment="Bottom"
+                                                    Margin="10,0,76,10"
+                                                    Spacing="1"
+                                                >
+                                                    <TextBlock
+                                                        Text="{Binding Name}"
+                                                        FontWeight="SemiBold"
+                                                        FontSize="13.5"
+                                                        TextWrapping="Wrap"
+                                                        MaxLines="2"
+                                                        TextTrimming="CharacterEllipsis"
+                                                    />
+                                                    <TextBlock
+                                                        Classes="mono"
+                                                        FontSize="10.5"
+                                                        Foreground="#C9BEE0"
+                                                        Text="{Binding Version}"
+                                                    />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border
+                                                Classes="pill"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Top"
+                                                Margin="8"
+                                                IsVisible="{Binding Installed}"
+                                            >
+                                                <TextBlock Classes="green" Text="in library" />
+                                            </Border>
+
+                                            <Border
+                                                Classes="pill"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Top"
+                                                Margin="8"
+                                                IsVisible="{Binding Queued}"
                                             >
                                                 <TextBlock
-                                                    Text="{Binding Name}"
-                                                    FontWeight="SemiBold"
-                                                    FontSize="13.5"
-                                                    TextWrapping="Wrap"
-                                                    MaxLines="2"
-                                                    TextTrimming="CharacterEllipsis"
+                                                    Text="in queue"
+                                                    Foreground="{StaticResource VioletSoft}"
                                                 />
+                                            </Border>
+
+                                            <!-- the one control: always there, never only on hover -->
+                                            <Border
+                                                Classes="actionPill"
+                                                Classes.quiet="{Binding Queued}"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Bottom"
+                                                Margin="10"
+                                            >
                                                 <TextBlock
-                                                    Classes="mono"
-                                                    FontSize="10.5"
-                                                    Foreground="#C9BEE0"
-                                                    Text="{Binding Version}"
+                                                    Text="{Binding ActionLabel}"
+                                                    FontSize="11.5"
+                                                    FontWeight="SemiBold"
                                                 />
-                                            </StackPanel>
-                                        </Border>
+                                            </Border>
+                                        </Panel>
+                                    </Border>
+                                </Button>
 
-                                        <!-- status chips, top corners -->
-                                        <Border
-                                            Classes="pill"
-                                            HorizontalAlignment="Left"
-                                            VerticalAlignment="Top"
-                                            Margin="8"
-                                            IsVisible="{Binding Installed}"
-                                        >
-                                            <TextBlock Classes="green" Text="in library" />
-                                        </Border>
-                                        <Border
-                                            Classes="pill"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Top"
-                                            Margin="8"
-                                            IsVisible="{Binding Unsupported}"
-                                            ToolTip.Tip="Only mirrors the app cannot resolve (1fichier, FileCrypt…)"
-                                        >
-                                            <TextBlock Classes="red" Text="no mirror" />
-                                        </Border>
+                                <ProgressBar
+                                    Grid.Row="1"
+                                    Height="2"
+                                    Margin="0,6,0,0"
+                                    Minimum="0"
+                                    Maximum="1"
+                                    Value="{Binding JobFraction}"
+                                    IsIndeterminate="{Binding JobIndeterminate}"
+                                    IsVisible="{Binding Queued}"
+                                />
 
-                                        <!-- the action appears when the pointer is on the tile -->
-                                        <Border
-                                            Classes="tileAction"
-                                            VerticalAlignment="Center"
-                                            HorizontalAlignment="Center"
-                                        >
-                                            <Button
-                                                Classes="primary"
-                                                Content="Install"
-                                                Command="{Binding InstallCommand}"
-                                                IsVisible="{Binding CanInstall}"
-                                                Padding="16,7"
-                                            />
-                                        </Border>
-                                    </Panel>
-                                </Border>
-                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="2,8,2,0">
+                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="2,8,2,0">
                                     <StackPanel Spacing="2">
                                         <TextBlock
                                             Classes="mono"

@@ -1,0 +1,4 @@
+# GitHub's language bar counts what it can see; the Rust core is part of this project,
+# not vendored or generated code, so say so explicitly.
+*.rs linguist-detectable
+rust/** linguist-detectable

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using SteamRip.Core.Catalog;
 using SteamRip.Core.Updates;
 
@@ -101,6 +102,7 @@ public partial class BrowseViewModel : ObservableObject
         // keeps the page usable instead of throwing out of every later refresh.
         var posts = _s.Db.SearchPosts(Query, Sort.Sort, Genre?.Id is > 0 ? Genre.Id : null, Limit);
         var installed = _s.Db.GetInstalls().ToDictionary(g => g.PostId);
+        var jobs = _s.Updates.Jobs.ToDictionary(j => j.Post.Id);
         Items.Clear();
         foreach (var p in posts)
             Items.Add(
@@ -109,7 +111,8 @@ public partial class BrowseViewModel : ObservableObject
                     p,
                     installed.ContainsKey(p.Id),
                     _s.Resolvers.Supported,
-                    _s.Covers
+                    _s.Covers,
+                    jobs.GetValueOrDefault(p.Id)
                 )
             );
         var total = _s.Db.PostCount();
@@ -134,9 +137,19 @@ public partial class BrowseViewModel : ObservableObject
         OnPropertyChanged(nameof(HasCatalog));
     }
 
+    /// <summary>The shell's toast line; the window subscribes so a click reports back.</summary>
+    public event Action<string>? Notified;
+
     public void Install(BrowseItem item)
     {
+        if (item.Installed)
+        {
+            Notified?.Invoke($"{item.Name} is already in your library");
+            return;
+        }
         _s.Updates.Enqueue(item.Post, isUpdate: false);
+        _s.Log.LogInformation("User queued {Name} from the catalogue", item.Name);
+        Notified?.Invoke($"Queued {item.Name} — see Queue");
         Refresh();
     }
 
@@ -165,7 +178,8 @@ public sealed partial class BrowseItem(
     CatalogPost post,
     bool installed,
     IReadOnlyCollection<Hoster> supported,
-    Services.CoverCache covers
+    Services.CoverCache covers,
+    Job? job
 ) : ObservableObject
 {
     private Bitmap? _cover;
@@ -209,6 +223,35 @@ public sealed partial class BrowseItem(
     public bool Installed => installed;
     public bool CanInstall => !installed && post.Mirrors.Any(m => supported.Contains(m.Host));
     public bool Unsupported => !installed && !CanInstall;
+
+    /// <summary>A job for this game is queued or running: the card says so instead of looking idle.</summary>
+    public bool Queued =>
+        job?.Stage
+            is JobStage.Queued
+                or JobStage.Resolving
+                or JobStage.Downloading
+                or JobStage.Installing;
+
+    public string QueueStatus => job?.Status ?? "";
+    public double? JobFraction => job?.Fraction;
+    public bool JobIndeterminate => Queued && job?.Fraction is null;
+
+    /// <summary>What the card's one button says: the state first, the action last.</summary>
+    public string ActionLabel =>
+        Installed ? "in library"
+        : Queued ? "queued"
+        : CanInstall ? "Install"
+        : "no mirror";
+
+    /// <summary>The whole card is the button: install when possible, the site page otherwise.</summary>
+    [RelayCommand]
+    private void Activate()
+    {
+        if (CanInstall)
+            owner.Install(this);
+        else
+            OpenPage();
+    }
 
     [RelayCommand]
     private void Install() => owner.Install(this);
