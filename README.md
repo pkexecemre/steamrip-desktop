@@ -4,6 +4,15 @@ A tray-resident desktop app (C# / Avalonia, Linux first, Windows supported) that
 
 Personal-use project. The code is what one person needs to run a game library hands-off; it is not a general scraping framework.
 
+## This build
+
+A personal fork with its own interface and a second implementation of the core:
+
+- **Redesign.** The palette is taken from steamrip.com itself (violet `#8438FF` to pink `#FF007A` over ink `#120E1B`), with IBM Plex Sans/Mono, a command bar whose bottom edge is the brand gradient, a shelf for the library, a cover grid for the catalogue, and motion that answers actions: pages slide in, rows and covers arrive as a wave, the running download's bar breathes, a hovered cover catches a light. Each page is its own view; the window is the shell.
+- **Rust core.** `rust/` holds a port of the core (`steamrip-core`: catalogue, mirror resolution, download planning, install rules) checked against fixtures recorded from the C# implementation with `make golden` and replayed with `make rust-test`. The desktop app is still C#/Avalonia; the Rust crate is the parity target, not a second UI.
+- **Installing.** Archives are verified with `unrar` when it is present (faster than `7z` on the same stored RAR), the verify and extract stages report live percentages, and a stopped install can be retried or cancelled from the game's own row.
+
+
 ## What it does
 
 - **Catalog**: syncs the site through the WordPress REST API (no HTML scraping of the site itself), detects updated posts by `modified` + build/version change.
