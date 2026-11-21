@@ -109,6 +109,27 @@ public partial class LibraryViewModel(AppServices s) : ObservableObject
         Refresh();
     }
 
+    /// <summary>Launches one specific executable of an installed bundle and remembers it.</summary>
+    public async Task PlayExeAsync(LibraryItem item, string relativePath)
+    {
+        LastError = null;
+        try
+        {
+            await s.Updates.PlayAsync(item.Game.PostId, relativePath);
+        }
+        catch (Exception e)
+        {
+            LastError = $"{item.Name}: {e.Message}";
+            s.Log.LogWarning(
+                "Play {Name} ({Exe}) failed: {Error}",
+                item.Name,
+                relativePath,
+                e.Message
+            );
+        }
+        Refresh();
+    }
+
     public void Stop(LibraryItem item)
     {
         s.Launcher.Stop(item.Game.PostId);
@@ -524,8 +545,13 @@ public sealed partial class LibraryItem : ObservableObject
     private void ApplyExes(IReadOnlyList<string> found, string? current)
     {
         Exes.Clear();
+        ExeChoices.Clear();
         foreach (var relative in found)
+        {
             Exes.Add(relative);
+            ExeChoices.Add(new ExeChoice(this, relative));
+        }
+        OnPropertyChanged(nameof(HasExeChoices));
         if (current is { } cur && !Exes.Contains(cur))
             Exes.Insert(0, cur);
         _selectedExe = Game.ExeRelative;
@@ -535,6 +561,27 @@ public sealed partial class LibraryItem : ObservableObject
         OnPropertyChanged(nameof(SelectedExe));
         OnPropertyChanged(nameof(SelectedProton));
     }
+
+    /// <summary>Every executable worth launching: a trilogy packs three games into one install.</summary>
+    public ObservableCollection<ExeChoice> ExeChoices { get; } = [];
+
+    /// <summary>
+    /// A bundle looks like this: several executables, each in its own game folder. One folder with two
+    /// exes is a game plus its crash handler, and does not deserve a menu.
+    /// </summary>
+    public bool HasExeChoices =>
+        Game.State == InstallState.Installed
+        && ExeChoices.Count > 1
+        && ExeChoices
+            .Select(c =>
+                c.RelativePath.Contains(Path.DirectorySeparatorChar)
+                    ? c.RelativePath[..c.RelativePath.IndexOf(Path.DirectorySeparatorChar)]
+                    : ""
+            )
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count() > 1;
+
+    internal Task PlayExeAsync(string relative) => _owner.PlayExeAsync(this, relative);
 
     public InstalledGame Game { get; private set; }
     public CatalogPost? Post { get; private set; }
@@ -683,6 +730,9 @@ public sealed partial class LibraryItem : ObservableObject
     private Task Play() => _owner.PlayAsync(this);
 
     [RelayCommand]
+    private Task PlayExe(string? relative) => _owner.PlayExeAsync(this, relative ?? "");
+
+    [RelayCommand]
     private void Stop() => _owner.Stop(this);
 
     [RelayCommand]
@@ -735,4 +785,19 @@ public sealed partial class LibraryItem : ObservableObject
 
     [RelayCommand]
     private void Delete() => _owner.Uninstall(this, deleteFiles: true);
+}
+
+/// <summary>One executable a bundle can launch, with the command that starts it.</summary>
+public sealed partial class ExeChoice(LibraryItem owner, string relativePath) : ObservableObject
+{
+    public string RelativePath => relativePath;
+
+    /// <summary>File name, and the folder when two candidates share one (the trilogy has no such luck).</summary>
+    public string Label =>
+        Path.GetFileNameWithoutExtension(relativePath) is { Length: > 0 } stem
+            ? stem + "  ·  " + relativePath
+            : relativePath;
+
+    [RelayCommand]
+    private Task Play() => owner.PlayExeAsync(relativePath);
 }

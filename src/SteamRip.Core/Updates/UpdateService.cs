@@ -110,15 +110,29 @@ public sealed class UpdateService : IAsyncDisposable
 
     // ---- play ----
 
-    public async Task PlayAsync(long postId)
+    /// <summary>
+    /// Launches a game, optionally through a chosen executable: a bundle like the GTA Trilogy packs
+    /// three games into one install and each of them is its own exe.
+    /// </summary>
+    public async Task PlayAsync(long postId, string? exeRelative = null)
     {
         var g = _db.GetInstall(postId) ?? throw new LaunchException("Not installed.");
         if (g.State is not InstallState.Installed)
             throw new LaunchException($"{g.Name} is {g.State}; wait for it to finish.");
         var post = _db.GetPost(postId);
         var path = g.ResolvePath(_settings.LibraryRoot);
-        var exe = g.ExeRelative;
-        if (exe is null || !File.Exists(Path.Combine(path, exe)))
+        var exe = exeRelative ?? g.ExeRelative;
+        if (exeRelative is not null && File.Exists(Path.Combine(path, exeRelative)))
+        {
+            exe = exeRelative;
+            _db.UpsertInstall(g with { ExeRelative = exeRelative });
+            _log.LogInformation(
+                "{Name}: launching the chosen executable {Exe}",
+                g.Name,
+                exeRelative
+            );
+        }
+        else if (exe is null || !File.Exists(Path.Combine(path, exe)))
         {
             exe =
                 ExeFinder.Best(path, g.Name)

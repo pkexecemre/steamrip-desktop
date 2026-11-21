@@ -325,6 +325,43 @@
                                     IsVisible="{Binding HasUpdate}"
                                     IsEnabled="{Binding IsIdle}"
                                 />
+                                <!-- A bundle (the GTA Trilogy) holds several games: pick which exe to start. -->
+                                <Button
+                                    Classes="link"
+                                    Content="exe ▾"
+                                    IsVisible="{Binding HasExeChoices}"
+                                    ToolTip.Tip="This install has several executables"
+                                >
+                                    <Button.Flyout>
+                                        <Flyout Placement="BottomEdgeAlignedRight">
+                                            <StackPanel Spacing="6" MinWidth="260">
+                                                <TextBlock
+                                                    Classes="label"
+                                                    Text="LAUNCH WHICH EXECUTABLE?"
+                                                />
+                                                <ItemsControl ItemsSource="{Binding ExeChoices}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:ExeChoice">
+                                                            <Button
+                                                                Classes="quiet"
+                                                                HorizontalAlignment="Stretch"
+                                                                HorizontalContentAlignment="Left"
+                                                                Command="{Binding PlayCommand}"
+                                                                Margin="0,1,0,1"
+                                                            >
+                                                                <TextBlock
+                                                                    Text="{Binding Label}"
+                                                                    FontSize="11.5"
+                                                                    TextTrimming="CharacterEllipsis"
+                                                                />
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
                                 <Button
                                     Classes="link"
                                     Content="Options"
