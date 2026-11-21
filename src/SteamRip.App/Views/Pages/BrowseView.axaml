@@ -249,7 +249,7 @@
                                 <Button
                                     Classes="bare"
                                     Command="{Binding ActivateCommand}"
-                                    ToolTip.Tip="{Binding ActionLabel}"
+                                    ToolTip.Tip="{Binding CardTip}"
                                     AutomationProperties.Name="{Binding Name}"
                                 >
                                     <Border Classes="tileCover" Height="224">
@@ -269,20 +269,21 @@
                                             <Border
                                                 Classes="tileScrim"
                                                 VerticalAlignment="Bottom"
-                                                Height="120"
+                                                Height="170"
                                             >
                                                 <StackPanel
                                                     VerticalAlignment="Bottom"
                                                     Margin="10,0,76,10"
                                                     Spacing="1"
                                                 >
+                                                    <!-- the full title: "Trilogy" and "Enhanced" are the whole difference -->
                                                     <TextBlock
                                                         Text="{Binding Name}"
                                                         FontWeight="SemiBold"
-                                                        FontSize="13.5"
+                                                        FontSize="12.8"
+                                                        LineHeight="14.5"
                                                         TextWrapping="Wrap"
-                                                        MaxLines="2"
-                                                        TextTrimming="CharacterEllipsis"
+                                                        MaxLines="4"
                                                     />
                                                     <TextBlock
                                                         Classes="mono"

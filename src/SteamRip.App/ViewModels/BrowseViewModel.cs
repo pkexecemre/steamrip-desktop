@@ -236,6 +236,9 @@ public sealed partial class BrowseItem(
     public double? JobFraction => job?.Fraction;
     public bool JobIndeterminate => Queued && job?.Fraction is null;
 
+    /// <summary>Hovering says the whole story: name, size, age, and what a click does.</summary>
+    public string CardTip => $"{Name} — {Size}, {Updated}. {ActionLabel}.";
+
     /// <summary>What the card's one button says: the state first, the action last.</summary>
     public string ActionLabel =>
         Installed ? "in library"
