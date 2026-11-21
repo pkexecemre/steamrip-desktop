@@ -61,8 +61,17 @@ public sealed class Installer(ArchiveTool archive, ILogger<Installer>? logger = 
             target,
             oldVersion ?? "none"
         );
-        progress?.Report(("Testing archive", 0));
-        if (!await archive.TestAsync(archivePath, ct))
+        // Say how big the archive is: verifying 100 GB reads every byte, and "0%" alone reads as a hang.
+        var testStage =
+            "Testing archive (" + PrefixManager.FormatSize(new FileInfo(archivePath).Length) + ")";
+        progress?.Report((testStage, 0));
+        if (
+            !await archive.TestAsync(
+                archivePath,
+                new Progress<int>(p => progress?.Report((testStage, p))),
+                ct
+            )
+        )
         {
             var kind = ArchiveTool.SniffKind(archivePath) ?? "unknown";
             ArchiveMarker.Clear(archivePath);

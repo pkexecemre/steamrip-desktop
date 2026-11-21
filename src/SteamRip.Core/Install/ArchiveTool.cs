@@ -150,17 +150,21 @@ public sealed partial class ArchiveTool(ILogger<ArchiveTool>? logger = null)
 
     public string Describe() => $"unrar: {UnrarPath ?? "missing"}, 7z: {SevenZipPath ?? "missing"}";
 
-    public async Task<bool> TestAsync(string archive, CancellationToken ct)
+    /// <summary>
+    /// Verifies the archive by decompressing all of it. On a 100 GB game that is minutes of work,
+    /// so the percentage is passed through: a stage stuck at 0% looked like a hang.
+    /// </summary>
+    public async Task<bool> TestAsync(string archive, IProgress<int>? percent, CancellationToken ct)
     {
         archive = FirstPart(archive);
         (string exe, string[] args) tool =
             UnrarPath is not null && archive.EndsWith(".rar", StringComparison.OrdinalIgnoreCase)
-                ? (UnrarPath, ["t", "-y", "-idq", archive])
+                ? (UnrarPath, ["t", "-y", archive])
                 : (
                     SevenZipPath ?? throw new InvalidOperationException("No archive tool found"),
-                    ["t", archive, "-y", "-bso0", "-bsp0"]
+                    ["t", archive, "-y", "-bso0", "-bsp1"]
                 );
-        var code = await RunAsync(tool.exe, tool.args, null, ct);
+        var code = await RunAsync(tool.exe, tool.args, percent, ct);
         return code == 0;
     }
 
