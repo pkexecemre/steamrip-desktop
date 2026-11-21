@@ -328,7 +328,7 @@
                                 <!-- A bundle (the GTA Trilogy) holds several games: pick which exe to start. -->
                                 <Button
                                     Classes="link"
-                                    Content="exe ▾"
+                                    Content="{Binding BundleLabel}"
                                     IsVisible="{Binding HasExeChoices}"
                                     ToolTip.Tip="This install has several executables"
                                 >

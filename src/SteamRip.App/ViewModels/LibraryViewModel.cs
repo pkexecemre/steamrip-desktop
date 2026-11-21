@@ -581,6 +581,15 @@ public sealed partial class LibraryItem : ObservableObject
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Count() > 1;
 
+    /// <summary>The exe the row currently starts, as a person reads it.</summary>
+    private string ChosenExeName =>
+        Path.GetFileNameWithoutExtension(Game.ExeRelative ?? "") is { Length: > 0 } stem
+            ? stem
+            : "";
+
+    /// <summary>What the bundle button says: how many games this one install actually holds.</summary>
+    public string BundleLabel => $"{ExeChoices.Count} games ▾";
+
     internal Task PlayExeAsync(string relative) => _owner.PlayExeAsync(this, relative);
 
     public InstalledGame Game { get; private set; }
@@ -662,6 +671,7 @@ public sealed partial class LibraryItem : ObservableObject
         };
     public string StatusLine =>
         IsRunning ? "Running"
+        : HasExeChoices ? $"{ExeChoices.Count} games inside · {ChosenExeName}"
         : _job is not null && IsBusy ? _job.Status
         : NeedsAttention ? Game.LastError?.Split('\n')[0] ?? "Needs attention"
         // A launch that died during startup explains itself here until the next Play; the log has the paragraph.
