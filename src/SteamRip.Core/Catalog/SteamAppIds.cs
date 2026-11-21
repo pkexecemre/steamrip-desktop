@@ -140,10 +140,16 @@ public sealed partial class SteamAppIdResolver(
         return null;
     }
 
-    /// <summary>Full title, then the segment before <c>:</c> / <c> - </c> when that is shorter.</summary>
+    /// <summary>
+    /// Full title, the same title with its dashes normalised (store search is fussy about – and —),
+    /// then the segment before <c>:</c> / <c> - </c> when that is shorter.
+    /// </summary>
     public static IEnumerable<string> SearchTerms(string gameName)
     {
         yield return gameName;
+        var plain = gameName.Replace('–', '-').Replace('—', '-').Trim();
+        if (plain != gameName)
+            yield return plain;
         var cut = TitlePrefix(gameName);
         if (cut is not null)
             yield return cut;
@@ -231,6 +237,10 @@ public sealed partial class SteamAppIdResolver(
                 continue;
             var need = Math.Max(1, (int)Math.Ceiling(want.Count * 0.6));
             if (overlap < need)
+                continue;
+            // A candidate that leaves out a word we asked for is a different game: "Grand Theft Auto:
+            // The Trilogy" shares grand/theft/auto with GTA V, and the trilogy card wore GTA V's art.
+            if (want.Except(got).Any())
                 continue;
             // prefer exact-ish coverage and shorter Steam names (base game over DLC)
             var score = overlap * 100 - got.Count;
