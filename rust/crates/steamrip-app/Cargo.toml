@@ -1,0 +1,13 @@
+[package]
+name = "steamrip-app"
+description = "The desktop app, in Rust: native windows, no web view."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+steamrip-core = { path = "../steamrip-core" }
+iced = { version = "0.13", default-features = false, features = ["wgpu", "image", "svg", "tokio", "advanced"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde_json.workspace = true
+serde.workspace = true
