@@ -99,12 +99,26 @@ fn view(state: &App) -> Element<'_, Message> {
     .spacing(10)
     .align_y(Alignment::Center);
 
-    let header = container(brand).width(Length::Fill).padding(Padding::from([14, 20]));
+    let header = container(brand)
+        .width(Length::Fill)
+        .padding(Padding::from([14, 20]))
+        .style(|_| container::Style {
+            background: Some(Background::Color(PANEL)),
+            border: Border {
+                width: 1.0,
+                color: LINE,
+                radius: 0.0.into(),
+            },
+            ..container::Style::default()
+        });
 
-    let list = state.games.iter().enumerate().fold(
-        column![].spacing(2),
-        |col, (index, game)| col.push(game_row(game, index, state.selected == Some(index))),
-    );
+    let list = state
+        .games
+        .iter()
+        .enumerate()
+        .fold(column![].spacing(2), |col, (index, game)| {
+            col.push(game_row(game, index, state.selected == Some(index)))
+        });
 
     let body = scrollable(container(list).padding(Padding::from([10, 20]))).height(Length::Fill);
 
@@ -163,9 +177,13 @@ fn game_row<'a>(game: &'a Game, index: usize, selected: bool) -> Element<'a, Mes
     let title = column![
         text(game.name.clone()).size(15).color(TEXT),
         meta,
-        text(game.exe.clone().unwrap_or_else(|| "no executable yet".into()))
-            .size(10.5)
-            .color(MUTED),
+        text(
+            game.exe
+                .clone()
+                .unwrap_or_else(|| "no executable yet".into())
+        )
+        .size(10.5)
+        .color(MUTED),
     ]
     .spacing(3)
     .width(Length::Fill);
