@@ -9,6 +9,7 @@ use std::process::{Child, Command, Stdio};
 use std::time::Instant;
 
 mod db;
+mod hosters;
 mod sync;
 use db::Db;
 
@@ -34,6 +35,47 @@ fn main() -> iced::Result {
     // A diagnostic that prints the composed launch without starting Proton: the launch rules live
     // in steamrip-core and this is how they are checked against the C# app's own log lines.
     let args: Vec<String> = std::env::args().collect();
+    if let Some(at) = args.iter().position(|a| a == "--resolve") {
+        let Some(post_id) = args.get(at + 1).and_then(|v| v.parse::<i64>().ok()) else {
+            println!("usage: --resolve <post_id>");
+            return Ok(());
+        };
+        let dir = config_dir();
+        let Ok(runtime) = tokio::runtime::Runtime::new() else {
+            return Ok(());
+        };
+        let outcome = runtime.block_on(async move {
+            let db = Db::open_readonly(&dir.join("steamrip.db"))?;
+            let Some(post) = db.post(post_id)? else {
+                return Err(format!("no post {post_id}"));
+            };
+            let http = hosters::http()?;
+            hosters::resolve_post(&http, &post, &[]).await
+        });
+        match outcome {
+            Ok(resolved) => {
+                let head: String = resolved.url.chars().take(96).collect();
+                println!(
+                    "{:?}: {} ({} bytes, headers {:?})",
+                    resolved.host,
+                    head,
+                    resolved
+                        .size
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| "?".into()),
+                    resolved
+                        .headers
+                        .iter()
+                        .map(|(k, _)| k.as_str())
+                        .collect::<Vec<_>>()
+                );
+                println!("file: {:?}", resolved.file_name);
+            }
+            Err(error) => println!("resolve failed: {error}"),
+        }
+        return Ok(());
+    }
+
     if let Some(at) = args.iter().position(|a| a == "--sync") {
         let full = args.get(at + 1).map(|v| v == "full").unwrap_or(false);
         let dir = config_dir();

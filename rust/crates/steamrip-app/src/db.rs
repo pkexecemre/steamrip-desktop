@@ -114,6 +114,67 @@ impl Db {
         self.conn.query_row(sql, [], |row| row.get(0)).ok()
     }
 
+    /// One catalogue post, rebuilt from the columns the sync writes.
+    pub fn post(&self, id: i64) -> Result<Option<CatalogPost>, String> {
+        let row = self.conn.query_row(
+            "select id, slug, url, title, name, title_version, build, steam_app_id, modified_utc,
+                    published_utc, size_text, mirrors_json, coalesce(size_bytes, 0)
+             from posts where id = ?1",
+            params![id],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, String>(3)?,
+                    row.get::<_, String>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<i64>>(7)?,
+                    row.get::<_, String>(8)?,
+                    row.get::<_, String>(9)?,
+                    row.get::<_, Option<String>>(10)?,
+                    row.get::<_, String>(11)?,
+                    row.get::<_, i64>(12)?,
+                ))
+            },
+        );
+        match row {
+            Ok((
+                id,
+                slug,
+                url,
+                title,
+                name,
+                title_version,
+                build,
+                steam_app_id,
+                modified,
+                published,
+                size_text,
+                mirrors_json,
+                size_bytes,
+            )) => Ok(Some(CatalogPost {
+                id,
+                slug,
+                url,
+                title,
+                name,
+                title_version,
+                build,
+                steam_app_id,
+                modified_utc: parse_iso(&modified),
+                published_utc: parse_iso(&published),
+                size_text,
+                mirrors: mirrors_from_json(&mirrors_json),
+                size_bytes: (size_bytes > 0).then_some(size_bytes),
+                category_ids: Vec::new(),
+            })),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(error) => Err(error.to_string()),
+        }
+    }
+
     pub fn kv(&self, key: &str) -> Result<Option<String>, String> {
         self.conn
             .query_row("select value from kv where key = ?1", params![key], |row| {
@@ -233,6 +294,42 @@ fn civil_from_unix(seconds: i64) -> (i64, u32, u32, u32, u32, u32) {
         ((rem % 3_600) / 60) as u32,
         (rem % 60) as u32,
     )
+}
+
+/// ISO text (the C# app's round-trip format) back to unix seconds.
+fn parse_iso(text: &str) -> i64 {
+    steamrip_core::dates::parse_utc_text(text).unwrap_or(0)
+}
+
+/// The C# mirror column: [{"Host":2,"Url":"…"}] with the enum's numbers.
+fn mirrors_from_json(text: &str) -> Vec<steamrip_core::catalog::Mirror> {
+    use steamrip_core::catalog::Mirror;
+    use steamrip_core::hoster::Hoster;
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(text) else {
+        return Vec::new();
+    };
+    let Some(items) = value.as_array() else {
+        return Vec::new();
+    };
+    items
+        .iter()
+        .filter_map(|item| {
+            let host = item.get("Host").and_then(|v| v.as_i64()).unwrap_or(0);
+            let url = item.get("Url").and_then(|v| v.as_str())?;
+            Some(Mirror {
+                host: match host {
+                    1 => Hoster::BuzzHeavier,
+                    2 => Hoster::FileDitch,
+                    3 => Hoster::GoFile,
+                    4 => Hoster::MegaDb,
+                    5 => Hoster::Fichier,
+                    6 => Hoster::FileCrypt,
+                    _ => Hoster::Unknown,
+                },
+                url: url.to_string(),
+            })
+        })
+        .collect()
 }
 
 #[cfg(test)]
