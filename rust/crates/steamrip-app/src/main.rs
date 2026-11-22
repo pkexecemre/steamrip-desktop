@@ -6,6 +6,10 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::time::Instant;
+
+mod db;
+use db::Db;
 
 use iced::widget::{button, column, container, image, row, scrollable, text, Space};
 use iced::{
@@ -29,6 +33,47 @@ fn main() -> iced::Result {
     // A diagnostic that prints the composed launch without starting Proton: the launch rules live
     // in steamrip-core and this is how they are checked against the C# app's own log lines.
     let args: Vec<String> = std::env::args().collect();
+    if let Some(at) = args.iter().position(|a| a == "--simulate-play") {
+        let index = args
+            .get(at + 1)
+            .and_then(|v| v.parse::<usize>().ok())
+            .unwrap_or(0);
+        let seconds: i64 = args.get(at + 2).and_then(|v| v.parse().ok()).unwrap_or(60);
+        let dir = config_dir();
+        let (games, _) = load_games(&dir.join("steamrip.db"), &dir.join("covers"));
+        let Some(game) = games.get(index) else {
+            println!("no install at {index}");
+            return Ok(());
+        };
+        match Db::open(&dir.join("steamrip.db")) {
+            Ok(db) => {
+                let _ = db.mark_played(game.post_id);
+                let _ = db.add_playtime(game.post_id, seconds);
+                let _ = db.log_event(
+                    "play",
+                    &format!("{} simulated {seconds}s", game.name),
+                    Some(game.post_id),
+                );
+                let row = db
+                    .installs()
+                    .ok()
+                    .and_then(|rows| rows.into_iter().find(|r| r.post_id == game.post_id));
+                match row {
+                    Some(row) => println!(
+                        "{}: playtime {}s, last {} events-after {}",
+                        row.name,
+                        row.playtime,
+                        last_played(&db, game.post_id).unwrap_or_default(),
+                        event_count(&db).unwrap_or_default()
+                    ),
+                    None => println!("row disappeared"),
+                }
+            }
+            Err(error) => println!("db: {error}"),
+        }
+        return Ok(());
+    }
+
     if let Some(at) = args.iter().position(|a| a == "--dry-run-play") {
         let index = args
             .get(at + 1)
@@ -40,12 +85,14 @@ fn main() -> iced::Result {
             &library_root(&dir, &games),
             read_prefix_root(&dir).as_deref(),
         );
+        let opened = Db::open(&dir.join("steamrip.db")).ok();
         let mut state = App {
             games,
             selected: None,
             status,
             prefix_root,
             running: HashMap::new(),
+            db: opened,
         };
         std::env::set_var("SR_DRY_RUN", "1");
         play(&mut state, index);
@@ -71,6 +118,7 @@ struct Game {
     playtime: i64,
     initial: char,
     cover: Option<PathBuf>,
+    post_id: i64,
     install_path: PathBuf,
     slug: String,
     steam_app_id: Option<i64>,
@@ -85,12 +133,20 @@ enum Message {
     Tick,
 }
 
+struct Session {
+    child: Child,
+    started: Instant,
+    post_id: i64,
+    name: String,
+}
+
 struct App {
     games: Vec<Game>,
     selected: Option<usize>,
     status: String,
     prefix_root: PathBuf,
-    running: HashMap<usize, Child>,
+    running: HashMap<usize, Session>,
+    db: Option<Db>,
 }
 
 impl App {
@@ -101,6 +157,7 @@ impl App {
             &library_root(&dir, &games),
             read_prefix_root(&dir).as_deref(),
         );
+        let opened = Db::open(&dir.join("steamrip.db")).ok();
         (
             Self {
                 games,
@@ -108,6 +165,7 @@ impl App {
                 status,
                 prefix_root,
                 running: HashMap::new(),
+                db: opened,
             },
             Task::none(),
         )
@@ -121,30 +179,28 @@ fn update(state: &mut App, message: Message) -> Task<Message> {
             Task::none()
         }
         Message::Stop(index) => {
-            if let Some(mut child) = state.running.remove(&index) {
-                let _ = child.kill();
-                let _ = child.wait();
-                state.status = "stopped".into();
+            if let Some(mut session) = state.running.remove(&index) {
+                let _ = session.child.kill();
+                let _ = session.child.wait();
+                settle(state, &session);
+                state.status = format!("{}: stopped", session.name);
             }
             Task::none()
         }
         Message::Tick => {
             let mut finished = Vec::new();
-            for (index, child) in state.running.iter_mut() {
-                match child.try_wait() {
+            for (index, session) in state.running.iter_mut() {
+                match session.child.try_wait() {
                     Ok(Some(status)) => finished.push((*index, status.code())),
                     Ok(None) => {}
                     Err(_) => finished.push((*index, None)),
                 }
             }
             for (index, code) in finished {
-                state.running.remove(&index);
-                let name = state
-                    .games
-                    .get(index)
-                    .map(|g| g.name.clone())
-                    .unwrap_or_default();
-                state.status = format!("{name} exited ({})", code.unwrap_or(-1));
+                if let Some(session) = state.running.remove(&index) {
+                    settle(state, &session);
+                    state.status = format!("{} exited ({})", session.name, code.unwrap_or(-1));
+                }
             }
             Task::none()
         }
@@ -211,10 +267,39 @@ fn play(state: &mut App, index: usize) {
     process.stdin(Stdio::null());
     match process.spawn() {
         Ok(child) => {
-            state.running.insert(index, child);
+            if let Some(db) = state.db.as_ref() {
+                let _ = db.mark_played(game.post_id);
+                let _ = db.log_event(
+                    "play",
+                    &format!("{} launched", game.name),
+                    Some(game.post_id),
+                );
+            }
+            state.running.insert(
+                index,
+                Session {
+                    child,
+                    started: Instant::now(),
+                    post_id: game.post_id,
+                    name: game.name.clone(),
+                },
+            );
             state.status = format!("{}: running", game.name);
         }
         Err(error) => state.status = format!("{}: could not start ({error})", game.name),
+    }
+}
+
+/// Records how long the game ran, in the same columns and events the C# app uses.
+fn settle(state: &App, session: &Session) {
+    let seconds = session.started.elapsed().as_secs() as i64;
+    if let Some(db) = state.db.as_ref() {
+        let _ = db.add_playtime(session.post_id, seconds);
+        let _ = db.log_event(
+            "play",
+            &format!("{} played {}m", session.name, seconds / 60),
+            Some(session.post_id),
+        );
     }
 }
 
@@ -491,64 +576,54 @@ fn config_dir() -> PathBuf {
 
 /// Reads the rows the C# app writes; the Rust UI does not own the database yet.
 fn load_games(db_path: &Path, covers: &Path) -> (Vec<Game>, String) {
-    let conn = match rusqlite::Connection::open_with_flags(
-        db_path,
-        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
-    ) {
-        Ok(conn) => conn,
+    let db = match Db::open_readonly(db_path) {
+        Ok(db) => db,
         Err(error) => return (Vec::new(), format!("no database ({error})")),
     };
-    // Covers are cached per Steam app id, so the row has to come along with the install.
-    let mut statement = match conn.prepare(
-        "select i.name, coalesce(i.installed_version, ''), i.state, i.exe_rel, \
-                coalesce(i.playtime_sec, 0), coalesce(p.steam_app_id, 0), \
-                i.install_path, i.slug, i.proton, i.launch_args \
-         from installs i left join posts p on p.id = i.post_id \
-         order by i.installed_utc desc",
-    ) {
-        Ok(statement) => statement,
+    let rows = match db.installs() {
+        Ok(rows) => rows,
         Err(error) => return (Vec::new(), format!("query failed ({error})")),
     };
-    let rows = statement.query_map([], |row| {
-        Ok((
-            row.get::<_, String>(0)?,
-            row.get::<_, String>(1)?,
-            row.get::<_, i64>(2)?,
-            row.get::<_, Option<String>>(3)?,
-            row.get::<_, i64>(4)?,
-            row.get::<_, i64>(5)?,
-            row.get::<_, Option<String>>(6)?,
-            row.get::<_, String>(7)?,
-            row.get::<_, Option<String>>(8)?,
-            row.get::<_, Option<String>>(9)?,
-        ))
-    });
-    let mut games = Vec::new();
-    if let Ok(rows) = rows {
-        for (name, version, state, exe, playtime, app_id, install_path, slug, proton, arguments) in
-            rows.flatten()
-        {
-            let cover = covers.join(format!("{app_id}.jpg"));
-            games.push(Game {
-                initial: name.chars().next().unwrap_or('?'),
-                name,
-                version,
-                state,
-                exe,
-                playtime,
-                cover: cover.exists().then_some(cover),
-                install_path: install_path.map(PathBuf::from).unwrap_or_default(),
-                slug,
-                steam_app_id: (app_id > 0).then_some(app_id),
-                proton,
-                arguments,
-            });
-        }
-    }
+    let games: Vec<Game> = rows
+        .into_iter()
+        .map(|row| {
+            let cover = row
+                .app_id
+                .map(|id| covers.join(format!("{id}.jpg")))
+                .filter(|path| path.exists());
+            Game {
+                initial: row.name.chars().next().unwrap_or('?'),
+                name: row.name,
+                version: row.version,
+                state: row.state,
+                exe: row.exe,
+                playtime: row.playtime,
+                cover,
+                post_id: row.post_id,
+                install_path: if row.install_path.is_empty() {
+                    PathBuf::new()
+                } else {
+                    PathBuf::from(row.install_path)
+                },
+                slug: row.slug,
+                steam_app_id: row.app_id,
+                proton: row.proton,
+                arguments: row.arguments,
+            }
+        })
+        .collect();
     let status = if games.is_empty() {
         "nothing installed".to_string()
     } else {
         "same database as the C# app".to_string()
     };
     (games, status)
+}
+
+fn last_played(db: &Db, post_id: i64) -> Option<String> {
+    db.install_field(post_id, "last_played_utc")
+}
+
+fn event_count(db: &Db) -> Option<i64> {
+    db.scalar_i64("select count(*) from events")
 }
