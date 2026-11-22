@@ -9,8 +9,7 @@ use std::process::{Child, Command, Stdio};
 
 use iced::widget::{button, column, container, image, row, scrollable, text, Space};
 use iced::{
-    Alignment, Background, Border, Color, Element, Length, Padding, Radians, Shadow, Subscription,
-    Task, Theme,
+    Alignment, Background, Border, Color, Element, Length, Padding, Radians, Shadow, Task, Theme,
 };
 use steamrip_core::launch::{compose, LaunchSpec};
 use steamrip_core::prefix;
@@ -81,7 +80,6 @@ struct Game {
 
 #[derive(Debug, Clone)]
 enum Message {
-    Select(usize),
     Play(usize),
     Stop(usize),
     Tick,
@@ -118,10 +116,6 @@ impl App {
 
 fn update(state: &mut App, message: Message) -> Task<Message> {
     match message {
-        Message::Select(index) => {
-            state.selected = Some(index);
-            Task::none()
-        }
         Message::Play(index) => {
             play(state, index);
             Task::none()
