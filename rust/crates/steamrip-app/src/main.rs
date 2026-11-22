@@ -11,6 +11,7 @@ use std::time::Instant;
 mod db;
 mod download;
 mod hosters;
+mod install;
 mod sync;
 use db::Db;
 
@@ -36,6 +37,53 @@ fn main() -> iced::Result {
     // A diagnostic that prints the composed launch without starting Proton: the launch rules live
     // in steamrip-core and this is how they are checked against the C# app's own log lines.
     let args: Vec<String> = std::env::args().collect();
+    if let Some(at) = args.iter().position(|a| a == "--install") {
+        let Some(post_id) = args.get(at + 1).and_then(|v| v.parse::<i64>().ok()) else {
+            println!("usage: --install <post_id> [archive] [library]");
+            return Ok(());
+        };
+        let archive_arg = args.get(at + 2).map(PathBuf::from);
+        let library_arg = args.get(at + 3).map(PathBuf::from);
+        let profile = config_dir();
+        let Ok(runtime) = tokio::runtime::Runtime::new() else {
+            return Ok(());
+        };
+        let outcome = runtime.block_on(async move {
+            let db = Db::open(&profile.join("steamrip.db"))?;
+            let post = db
+                .post(post_id)?
+                .ok_or_else(|| format!("no post {post_id}"))?;
+            let library = library_arg.unwrap_or_else(|| {
+                read_setting(&profile, "LibraryRoot")
+                    .map(PathBuf::from)
+                    .unwrap_or_else(|| PathBuf::from("/tmp/sr-lib"))
+            });
+            let archive = match archive_arg {
+                Some(path) => path,
+                None => {
+                    let downloads = read_setting(&profile, "DownloadsRoot")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|| library.join(".downloads"))
+                        .join(&post.slug);
+                    let http = hosters::http()?;
+                    let resolved = hosters::resolve_post(&http, &post, &[]).await?;
+                    download::fetch(&resolved, &downloads, None).await?.path
+                }
+            };
+            install::install(&db, &library, &post.slug, &post, &archive)
+        });
+        match outcome {
+            Ok(done) => println!(
+                "installed to {} (exe {:?}, backup {:?})",
+                done.target.display(),
+                done.exe,
+                done.backup.map(|p| p.display().to_string())
+            ),
+            Err(error) => println!("install failed: {error}"),
+        }
+        return Ok(());
+    }
+
     if let Some(at) = args.iter().position(|a| a == "--download") {
         let Some(post_id) = args.get(at + 1).and_then(|v| v.parse::<i64>().ok()) else {
             println!("usage: --download <post_id> [dir]");

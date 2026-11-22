@@ -175,6 +175,65 @@ impl Db {
         }
     }
 
+    /// The install row, written the way the C# app writes it after a successful swap.
+    pub fn upsert_install(
+        &self,
+        post: &CatalogPost,
+        slug: &str,
+        install_path: &std::path::Path,
+        exe: Option<&str>,
+    ) -> Result<(), String> {
+        let gh = self
+            .conn
+            .query_row(
+                "select auto_update, coalesce(playtime_sec, 0), last_played_utc, proton, launch_args, launch_json
+                 from installs where post_id = ?1",
+                params![post.id],
+                |row| {
+                    Ok((
+                        row.get::<_, i64>(0)?,
+                        row.get::<_, i64>(1)?,
+                        row.get::<_, Option<String>>(2)?,
+                        row.get::<_, Option<String>>(3)?,
+                        row.get::<_, Option<String>>(4)?,
+                        row.get::<_, Option<String>>(5)?,
+                    ))
+                },
+            )
+            .ok();
+        let (auto, playtime, played, proton, args, launch) =
+            gh.unwrap_or((1, 0, None, None, None, None));
+        self.conn
+            .execute(
+                "insert into installs(post_id,slug,name,installed_version,install_path,installed_utc,auto_update,state,last_error,exe_rel,proton,launch_args,last_played_utc,playtime_sec,launch_json)
+                 values(?1,?2,?3,?4,?5,?6,?7,4,null,?8,?9,?10,?11,?12,?13)
+                 on conflict(post_id) do update set slug=excluded.slug, name=excluded.name,
+                   installed_version=excluded.installed_version, install_path=excluded.install_path,
+                   installed_utc=excluded.installed_utc, state=4, last_error=null, exe_rel=excluded.exe_rel,
+                   proton=coalesce(excluded.proton, installs.proton), launch_args=excluded.launch_args,
+                   playtime_sec=excluded.playtime_sec, launch_json=excluded.launch_json",
+                params![
+                    post.id,
+                    slug,
+                    post.name,
+                    steamrip_core::updates::normalize(
+                        post.title_version.as_deref().or(post.build.as_deref())
+                    ),
+                    install_path.display().to_string(),
+                    now_iso(),
+                    auto,
+                    exe,
+                    proton,
+                    args,
+                    played,
+                    playtime,
+                    launch,
+                ],
+            )
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
+
     pub fn kv(&self, key: &str) -> Result<Option<String>, String> {
         self.conn
             .query_row("select value from kv where key = ?1", params![key], |row| {
