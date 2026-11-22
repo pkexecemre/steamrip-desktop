@@ -152,7 +152,7 @@ fn find_exe(root: &Path, game_name: &str) -> Option<String> {
                 .to_string();
             if kind.is_dir() {
                 let name = child.file_name().to_string_lossy().to_lowercase();
-                entries.push(Entry::dir(relative, depth as i32));
+                entries.push(Entry::dir(relative, depth));
                 if matches!(
                     name.as_str(),
                     "_commonredist"
@@ -174,7 +174,7 @@ fn find_exe(root: &Path, game_name: &str) -> Option<String> {
                 .is_some_and(|e| e.eq_ignore_ascii_case("exe"))
             {
                 let size = child.metadata().map(|m| m.len() as i64).unwrap_or(0);
-                entries.push(Entry::file(relative, size, depth as i32));
+                entries.push(Entry::file(relative, size, depth));
             }
         }
     }
