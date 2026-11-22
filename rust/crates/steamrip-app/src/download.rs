@@ -184,7 +184,7 @@ impl Aria2 {
                 .unwrap_or(0);
             if done / (16 * 1024 * 1024) != last_printed {
                 last_printed = done / (16 * 1024 * 1024);
-                let percent = if total > 0 { done * 100 / total } else { 0 };
+                let percent = done.saturating_mul(100).checked_div(total).unwrap_or(0);
                 eprintln!(
                     "[{label}] {percent}% · {} MiB / {} MiB · {} MiB/s",
                     done / 1_048_576,
