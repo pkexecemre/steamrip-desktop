@@ -10,4 +10,6 @@ steamrip-core = { path = "../steamrip-core" }
 iced = { version = "0.13", default-features = false, features = ["wgpu", "image", "svg", "tokio", "advanced"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
 serde_json.workspace = true
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "gzip"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
 serde.workspace = true

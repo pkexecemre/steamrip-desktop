@@ -9,6 +9,7 @@ use std::process::{Child, Command, Stdio};
 use std::time::Instant;
 
 mod db;
+mod sync;
 use db::Db;
 
 use iced::widget::{button, column, container, image, row, scrollable, text, Space};
@@ -33,6 +34,26 @@ fn main() -> iced::Result {
     // A diagnostic that prints the composed launch without starting Proton: the launch rules live
     // in steamrip-core and this is how they are checked against the C# app's own log lines.
     let args: Vec<String> = std::env::args().collect();
+    if let Some(at) = args.iter().position(|a| a == "--sync") {
+        let full = args.get(at + 1).map(|v| v == "full").unwrap_or(false);
+        let dir = config_dir();
+        let runtime = tokio::runtime::Runtime::new().map_err(|e| {
+            eprintln!("runtime: {e}");
+            e
+        });
+        let Ok(runtime) = runtime else {
+            return Ok(());
+        };
+        match runtime.block_on(sync::sync(&dir, full)) {
+            Ok(report) => println!(
+                "synced {} post(s) over {} page(s); {} total; {} categories",
+                report.posts, report.pages, report.total, report.categories
+            ),
+            Err(error) => println!("sync failed: {error}"),
+        }
+        return Ok(());
+    }
+
     if let Some(at) = args.iter().position(|a| a == "--simulate-play") {
         let index = args
             .get(at + 1)
@@ -131,6 +152,8 @@ enum Message {
     Play(usize),
     Stop(usize),
     Tick,
+    Sync,
+    Synced(Result<String, String>),
 }
 
 struct Session {
@@ -185,6 +208,23 @@ fn update(state: &mut App, message: Message) -> Task<Message> {
                 settle(state, &session);
                 state.status = format!("{}: stopped", session.name);
             }
+            Task::none()
+        }
+        Message::Sync => {
+            state.status = "syncing the catalogue…".into();
+            let dir = config_dir();
+            Task::perform(async move { sync::sync(&dir, false).await }, |result| {
+                Message::Synced(
+                    result
+                        .map(|report| format!("{} changed · {} games", report.posts, report.total)),
+                )
+            })
+        }
+        Message::Synced(result) => {
+            state.status = match result {
+                Ok(line) => line,
+                Err(error) => format!("sync failed: {error}"),
+            };
             Task::none()
         }
         Message::Tick => {
@@ -365,6 +405,10 @@ fn view(state: &App) -> Element<'_, Message> {
         text(format!("{} games · {}", state.games.len(), state.status))
             .size(11)
             .color(MUTED),
+        button(text("Sync").size(11).color(TEXT))
+            .padding(Padding::from([5, 12]))
+            .on_press(Message::Sync)
+            .style(|_, _| quiet_button()),
     ]
     .spacing(10)
     .align_y(Alignment::Center);
@@ -542,6 +586,19 @@ fn play_plate() -> container::Style {
             blur_radius: 10.0,
         },
         ..container::Style::default()
+    }
+}
+
+fn quiet_button() -> button::Style {
+    button::Style {
+        background: Some(Background::Color(RAISED)),
+        text_color: TEXT,
+        border: Border {
+            width: 1.0,
+            color: LINE,
+            radius: 4.0.into(),
+        },
+        ..button::Style::default()
     }
 }
 

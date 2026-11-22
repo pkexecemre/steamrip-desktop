@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use rusqlite::{params, Connection};
+use steamrip_core::catalog::parse_one::CatalogPost;
 
 /// One install, as the library needs it.
 #[derive(Debug, Clone)]
@@ -113,6 +114,75 @@ impl Db {
         self.conn.query_row(sql, [], |row| row.get(0)).ok()
     }
 
+    pub fn kv(&self, key: &str) -> Result<Option<String>, String> {
+        self.conn
+            .query_row("select value from kv where key = ?1", params![key], |row| {
+                row.get::<_, String>(0)
+            })
+            .map(Some)
+            .or_else(|e| match e {
+                rusqlite::Error::QueryReturnedNoRows => Ok(None),
+                other => Err(other.to_string()),
+            })
+    }
+
+    pub fn set_kv(&self, key: &str, value: &str) -> Result<(), String> {
+        self.conn
+            .execute(
+                "insert into kv(key,value) values(?1,?2) on conflict(key) do update set value=excluded.value",
+                params![key, value],
+            )
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
+
+    pub fn upsert_categories(&self, categories: &[(i64, String, i64)]) -> Result<(), String> {
+        let mut statement = self
+            .conn
+            .prepare(
+                "insert into categories(id,name,count) values(?1,?2,?3)                  on conflict(id) do update set name=excluded.name, count=excluded.count",
+            )
+            .map_err(|e| e.to_string())?;
+        for (id, name, count) in categories {
+            statement
+                .execute(params![id, name, count])
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+
+    /// The same upsert the C# app runs, including the mirror JSON it expects back.
+    pub fn upsert_posts(&self, posts: &[CatalogPost]) -> Result<(), String> {
+        let mut statement = self
+            .conn
+            .prepare(
+                "insert into posts(id,slug,url,title,name,title_version,build,steam_app_id,modified_utc,published_utc,size_text,mirrors_json,seen_utc,size_bytes)                  values(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14)                  on conflict(id) do update set slug=excluded.slug, url=excluded.url, title=excluded.title,                    name=excluded.name, title_version=excluded.title_version, build=excluded.build,                    steam_app_id=coalesce(excluded.steam_app_id, posts.steam_app_id), modified_utc=excluded.modified_utc,                    published_utc=excluded.published_utc, size_text=excluded.size_text,                    mirrors_json=excluded.mirrors_json, size_bytes=excluded.size_bytes",
+            )
+            .map_err(|e| e.to_string())?;
+        let seen = now_iso();
+        for post in posts {
+            statement
+                .execute(params![
+                    post.id,
+                    post.slug,
+                    post.url,
+                    post.title,
+                    post.name,
+                    post.title_version,
+                    post.build,
+                    post.steam_app_id,
+                    crate::sync::date_iso(post.modified_utc),
+                    crate::sync::date_iso(post.published_utc),
+                    post.size_text,
+                    crate::sync::mirrors_json(&post.mirrors),
+                    seen,
+                    post.size_bytes,
+                ])
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+
     pub fn log_event(&self, kind: &str, message: &str, post_id: Option<i64>) -> Result<(), String> {
         self.conn
             .execute(
@@ -163,4 +233,23 @@ fn civil_from_unix(seconds: i64) -> (i64, u32, u32, u32, u32, u32) {
         ((rem % 3_600) / 60) as u32,
         (rem % 60) as u32,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn epoch_is_the_epoch() {
+        assert_eq!(iso_from_unix(0, 0), "1970-01-01T00:00:00.0000000Z");
+    }
+
+    #[test]
+    fn known_timestamp() {
+        // 2026-08-27T04:05:52Z, checked with date -u
+        assert_eq!(
+            iso_from_unix(1_787_803_552, 0),
+            "2026-08-27T04:05:52.0000000Z"
+        );
+    }
 }
